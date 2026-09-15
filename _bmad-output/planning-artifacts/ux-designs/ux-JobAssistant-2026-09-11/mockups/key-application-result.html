@@ -1,0 +1,308 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JobAssistant — Application Result (key screen mock)</title>
+<style>
+/*
+  Illustrates:
+  - DESIGN.md Components: match-score-badge-strong, keyword-chip-matched, keyword-chip-missing,
+    suggestion-callout, card, button-primary, button-secondary
+  - DESIGN.md Colors / Typography / Shapes / Elevation & Depth tokens (exact hex/px values) — Rich Mocha
+    theme (warm beige/cream base, warm dark-brown text, single brown/mocha accent)
+  - DESIGN.md Typography: mono-score (match score number), label (ATS MATCH SCORE, section labels)
+  - DESIGN.md Shapes: rounded.full for the score badge only; rounded.sm for chips/buttons; rounded.md for cards
+  - EXPERIENCE.md Component Patterns: "Match Score panel" (score badge + keyword-chip row + suggestion
+    callouts), "Keyword chip" (✓/✕ glyph pairing), "Suggestion callout" (what's missing / why it matters /
+    which coursework could fill it), "Reflection Note" (the bundle name for this panel)
+  - EXPERIENCE.md Accessibility Floor: glyph + text label pairing, never color-only
+  - EXPERIENCE.md Key Flows > Flow 1, step 7 (the Climax): 78%-style match score, matched/missing chips,
+    "cross-functional collaboration" suggestion pointing at the semester group project
+  - EXPERIENCE.md Voice and Tone: "78% match. Here's why." register — evidence-first, no cheerleading
+  - EXPERIENCE.md Accessibility Floor: downloadable files named descriptively, not output.pdf
+*/
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --background: #F2E4CF;
+  --surface: #FAF1E1;
+  --text: #3A2A1D;
+  --text-secondary: #8A7157;
+  --border: #E0CBA8;
+  --accent: #7F6244;
+  --accent-strong: #937A62;
+  --accent-text: #FFF6EE;
+  --accent-bg: #7F62441F;
+  --success: #4C7A3F;
+  --success-bg: #4C7A3F1A;
+  --success-border: #4C7A3F40;
+  --warning: #B8860B;
+  --warning-bg: #B8860B1F;
+  --warning-border: #B8860B45;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.browser-frame {
+  max-width: 1180px;
+  margin: 24px auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.browser-chrome {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.browser-chrome .dot { width: 10px; height: 10px; border-radius: 9999px; background: var(--border); }
+.browser-chrome .addr {
+  margin-left: 12px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.navbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 60px;
+}
+.navbar .brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; margin-right: 32px; }
+.nav-links { display: flex; align-items: center; gap: 24px; flex: 1; }
+.nav-link-primary { color: var(--text); font-weight: 700; text-decoration: none; font-size: 15px; }
+.nav-link-primary.active { color: var(--accent); }
+.nav-link-secondary { color: var(--text-secondary); font-weight: 500; text-decoration: none; font-size: 15px; }
+
+.page { padding: 48px 20px; }
+.page-inner { max-width: 760px; margin: 0 auto; }
+
+h1.display {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.subhead { color: var(--text-secondary); font-size: 15px; margin-bottom: 48px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 48px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+/* Match score */
+.score-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 9999px;
+  padding: 8px 18px;
+  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.badge-strong { color: var(--success); background: var(--success-bg); border: 1px solid var(--success-border); }
+.score-verdict { font-size: 15px; }
+.score-verdict strong { font-weight: 700; }
+
+/* Keyword chips */
+.chip-section { margin-bottom: 24px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.chip-matched { color: var(--success); background: var(--success-bg); border: 1px solid var(--success-border); }
+.chip-missing { color: var(--warning); background: var(--warning-bg); border: 1px solid var(--warning-border); }
+.chip .glyph { font-weight: 700; }
+
+.missing-line {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-top: 10px;
+}
+.missing-line strong { color: var(--text); font-weight: 600; }
+
+/* Suggestion callout */
+.callout {
+  background: var(--accent-bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 16px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.callout p { margin-bottom: 8px; }
+.callout p:last-child { margin-bottom: 0; }
+.callout .emphasis { color: var(--accent-strong); font-weight: 600; }
+
+/* Downloads */
+.download-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.download-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+}
+.file-meta { display: flex; flex-direction: column; gap: 2px; }
+.file-name { font-weight: 600; font-size: 14px; }
+.file-sub { color: var(--text-secondary); font-size: 12px; }
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 18px;
+  cursor: pointer;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+.saved-note { color: var(--text-secondary); font-size: 13px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="browser-frame">
+  <div class="browser-chrome">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="addr">jobassistant.app/application/result</div>
+  </div>
+
+  <nav class="navbar">
+    <div style="display:flex; align-items:center;">
+      <span class="brand">JobAssistant</span>
+      <div class="nav-links">
+        <a class="nav-link-secondary" href="#">Home</a>
+        <a class="nav-link-primary active" href="#">Application</a>
+        <a class="nav-link-secondary" href="#">Profile</a>
+        <a class="nav-link-secondary" href="#">History</a>
+        <a class="nav-link-secondary" href="#">Account</a>
+      </div>
+    </div>
+    <a class="nav-link-secondary" href="#">Logout</a>
+  </nav>
+
+  <div class="page">
+    <div class="page-inner">
+      <h1 class="display">Frontend Developer — Nordic Digital</h1>
+      <p class="subhead">78% match. Here's why.</p>
+
+      <div class="card">
+        <div class="label">ATS MATCH SCORE</div>
+        <div class="score-row">
+          <span class="badge badge-strong">78%</span>
+          <span class="score-verdict">Strong match — your CV covers most of what this posting screens for.</span>
+        </div>
+
+        <div class="chip-section">
+          <div class="label">MATCHED KEYWORDS</div>
+          <div class="chip-row">
+            <span class="chip chip-matched"><span class="glyph">✓</span>React</span>
+            <span class="chip chip-matched"><span class="glyph">✓</span>TypeScript</span>
+            <span class="chip chip-matched"><span class="glyph">✓</span>REST APIs</span>
+            <span class="chip chip-matched"><span class="glyph">✓</span>Agile</span>
+            <span class="chip chip-matched"><span class="glyph">✓</span>Git</span>
+          </div>
+        </div>
+
+        <div class="chip-section">
+          <div class="label">MISSING KEYWORDS</div>
+          <div class="chip-row">
+            <span class="chip chip-missing"><span class="glyph">✕</span>Cross-functional collaboration</span>
+            <span class="chip chip-missing"><span class="glyph">✕</span>Kubernetes</span>
+          </div>
+          <div class="missing-line">Missing: <strong>Cross-functional collaboration, Kubernetes.</strong></div>
+        </div>
+
+        <div class="label" style="margin-top: 24px;">SUGGESTIONS</div>
+        <div class="callout">
+          <p>Recruiters scanning for this role look for <span class="emphasis">"cross-functional collaboration."</span> Your application doesn't show it yet.</p>
+          <p>Your semester project on the <span class="emphasis">group course-planning app</span> likely covers this — consider adding it.</p>
+        </div>
+        <div class="callout">
+          <p>Kubernetes appears in the posting's requirements but isn't reflected in your CV.</p>
+          <p>If you haven't used it directly, this may be a genuine gap rather than a phrasing issue — consider whether a course or project touched on container orchestration before adding it.</p>
+        </div>
+      </div>
+
+      <div class="download-section">
+        <h2>Your files</h2>
+        <div class="download-row">
+          <div class="file-meta">
+            <span class="file-name">violet-hansen-cv-nordic-digital-2026.pdf</span>
+            <span class="file-sub">Tailored CV</span>
+          </div>
+          <button class="btn-primary">Download</button>
+        </div>
+        <div class="download-row">
+          <div class="file-meta">
+            <span class="file-name">violet-hansen-letter-nordic-digital-2026.pdf</span>
+            <span class="file-sub">Application letter</span>
+          </div>
+          <button class="btn-primary">Download</button>
+        </div>
+        <div class="download-row">
+          <div class="file-meta">
+            <span class="file-name">violet-hansen-reflection-note-nordic-digital-2026.pdf</span>
+            <span class="file-sub">Reflection Note — match score, keywords, suggestions</span>
+          </div>
+          <button class="btn-secondary">Download</button>
+        </div>
+        <p class="saved-note">Saved. Download your files below.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

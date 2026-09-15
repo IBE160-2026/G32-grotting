@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobAssistant — Pink-Accent Tone Pick</title>
+<style>
+  /* =====================================================================
+     PURPOSE OF THIS PAGE
+     In color-themes-2.html the team previewed a beige theme called
+     "Warm Editorial" (sand/cream base, warm brown text, a burnt-terracotta
+     accent) and liked the warmth and the beige base — but said explicitly
+     that the accent should read "more pink than orange."
+
+     This page keeps the exact same Warm Editorial base (background, surface,
+     text, text-secondary, border) and the exact same success/warning/error
+     semantics, and swaps ONLY the accent family to pink — shown in 3 distinct
+     pink registers so the final tone can be picked directly:
+
+       1. Dusty Rose        — muted, desaturated, mature, understated
+       2. Warm Coral-Pink   — punchier, warmer, leaning coral/salmon
+       3. Berry/Magenta-Pink — deeper, saturated, bold "brand statement" pink
+
+     Success stays a green family, warning stays amber/gold, error stays a
+     clear red — all deliberately kept far enough in hue from every pink
+     accent below that they can never be confused with it.
+     ===================================================================== */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: #EFE5D9;
+    color: #17140F;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 32px 20px 80px; }
+
+  .page-header {
+    max-width: 920px;
+    margin: 0 auto 44px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    color: #17140F;
+  }
+
+  .page-header p {
+    color: #4A453C;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 680px;
+  }
+
+  .page-header .base-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #756E5F;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* ---------- Theme section shell (shared layout; colors via CSS vars per theme) ---------- */
+
+  .theme {
+    max-width: 920px;
+    margin: 0 auto 48px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 28px 32px;
+  }
+
+  .theme-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .theme-name-wrap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+
+  .theme-name {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .theme-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid;
+    color: var(--accent-strong);
+    background: var(--accent-bg);
+    border-color: var(--accent);
+  }
+
+  .theme-register {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  .theme-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 22px;
+    max-width: 680px;
+    line-height: 1.5;
+  }
+
+  /* ---------- Token chips ---------- */
+
+  .token-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+
+  .token-chip {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 8px 12px;
+    min-width: 150px;
+  }
+
+  .swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid var(--swatch-border);
+  }
+
+  .token-name {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+
+  .token-hex {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: "Consolas", "SFMono-Regular", Menlo, monospace;
+  }
+
+  /* ---------- UI mock: navbar ---------- */
+
+  .mock {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav-left { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+
+  .logo {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .logo::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent);
+    margin-right: 8px;
+  }
+
+  .nav-links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+  .nav-link {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .nav-link.strong { color: var(--accent); font-weight: 700; }
+
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+
+  .avatar-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent-strong);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---------- UI mock: match-score card ---------- */
+
+  .mock-body { padding: 20px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 18px 20px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .score-badge {
+    font-size: 13px;
+    font-weight: 800;
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid;
+    color: var(--success);
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  }
+
+  .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .kw-chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 7px;
+    border: 1px solid;
+  }
+
+  .kw-chip.matched {
+    color: var(--success);
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  }
+
+  .kw-chip.missing {
+    color: var(--warning);
+    background: var(--warning-bg);
+    border-color: var(--warning-border);
+  }
+
+  .suggestion {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--text);
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 11px 14px;
+  }
+
+  .suggestion b { color: var(--accent-strong); }
+
+  @media (max-width: 480px) {
+    .theme { padding: 20px 16px 24px; }
+    .token-chip { min-width: 44%; }
+  }
+
+  /* =====================================================================
+     SHARED BASE — "Warm Editorial" beige/cream field (unchanged from
+     color-themes-2.html), carried by every variation below. Only the
+     accent family changes between p1 / p2 / p3.
+       background:       #F2E4CF  (warm sand/cream)
+       surface (card):   #FAF1E1  (lighter warm cream)
+       text:              #3A2A1D (warm dark brown, not pure black)
+       text-secondary:   #8A7157
+       border/divider:   #E0CBA8
+     Semantics held identical across all 3 pink variations on purpose, so
+     the only variable being tone-picked is the accent itself:
+       success:          #4C7A3F  | bg #4C7A3F1A | border #4C7A3F40  (green)
+       warning:          #C2650C  | bg #C2650C1F | border #C2650C45  (amber/gold)
+       error:            #A8341F  | bg #A8341F1A | border #A8341F40  (clear red)
+     Hue check against the 3 pink accents (329°–347°): success ~100°,
+     warning ~25°, error ~9° — all comfortably far from the pink band, so
+     none of them can read as "the accent" or as each other.
+     ===================================================================== */
+
+  /* =====================================================================
+     PINK 1 — "Dusty Rose"
+     Register: muted, desaturated rose-pink — soft, understated, mature.
+     Reads as a quiet, confident pink rather than anything candy-colored;
+     closest in weight/soberness to the original terracotta accent.
+       accent/primary:   #A6677A  (dusty rose, hue ~342°, low-mid saturation)
+       accent-strong:    #C48A9B  (lighter dusty rose, for text-on-tint)
+       accent-text:      #FFF8FA
+       accent bg tint:   #A6677A1F
+     ===================================================================== */
+  .p1 {
+    --bg: #F2E4CF;
+    --surface: #FAF1E1;
+    --text: #3A2A1D;
+    --text-secondary: #8A7157;
+    --border: #E0CBA8;
+    --accent: #A6677A;
+    --accent-strong: #C48A9B;
+    --accent-text: #FFF8FA;
+    --accent-bg: #A6677A1F;
+    --success: #4C7A3F;
+    --success-bg: #4C7A3F1A;
+    --success-border: #4C7A3F40;
+    --warning: #C2650C;
+    --warning-bg: #C2650C1F;
+    --warning-border: #C2650C45;
+    --error: #A8341F;
+    --error-bg: #A8341F1A;
+    --error-border: #A8341F40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+
+  /* =====================================================================
+     PINK 2 — "Warm Coral-Pink"
+     Register: punchier and warmer than Dusty Rose, leaning toward
+     coral/salmon — but the hue stays firmly in pink territory (~347°),
+     not orange. More energetic, still friendly and approachable.
+       accent/primary:   #E8637F  (warm coral-pink, hue ~347°, high saturation)
+       accent-strong:    #F28CA0  (lighter coral-pink highlight)
+       accent-text:      #FFF6F4
+       accent bg tint:   #E8637F1F
+     ===================================================================== */
+  .p2 {
+    --bg: #F2E4CF;
+    --surface: #FAF1E1;
+    --text: #3A2A1D;
+    --text-secondary: #8A7157;
+    --border: #E0CBA8;
+    --accent: #E8637F;
+    --accent-strong: #F28CA0;
+    --accent-text: #FFF6F4;
+    --accent-bg: #E8637F1F;
+    --success: #4C7A3F;
+    --success-bg: #4C7A3F1A;
+    --success-border: #4C7A3F40;
+    --warning: #C2650C;
+    --warning-bg: #C2650C1F;
+    --warning-border: #C2650C45;
+    --error: #A8341F;
+    --error-bg: #A8341F1A;
+    --error-border: #A8341F40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+
+  /* =====================================================================
+     PINK 3 — "Berry/Magenta-Pink"
+     Register: deeper, more saturated pink-magenta — bolder, the closest
+     of the three to a "brand statement" color. Sits right at the
+     pink/magenta boundary (~329°), clearly a cousin of Dusty Rose and
+     Warm Coral-Pink but with far more weight and confidence.
+       accent/primary:   #A62D6B  (berry-magenta, hue ~329°, high saturation)
+       accent-strong:    #C85990  (lighter berry-magenta highlight)
+       accent-text:      #FFF5FA
+       accent bg tint:   #A62D6B1F
+     ===================================================================== */
+  .p3 {
+    --bg: #F2E4CF;
+    --surface: #FAF1E1;
+    --text: #3A2A1D;
+    --text-secondary: #8A7157;
+    --border: #E0CBA8;
+    --accent: #A62D6B;
+    --accent-strong: #C85990;
+    --accent-text: #FFF5FA;
+    --accent-bg: #A62D6B1F;
+    --success: #4C7A3F;
+    --success-bg: #4C7A3F1A;
+    --success-border: #4C7A3F40;
+    --warning: #C2650C;
+    --warning-bg: #C2650C1F;
+    --warning-border: #C2650C45;
+    --error: #A8341F;
+    --error-bg: #A8341F1A;
+    --error-border: #A8341F40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>JobAssistant — Pink-Accent Tone Pick</h1>
+    <p>
+      Warm Editorial's beige/cream base (sand background, warm brown text) and its
+      success/warning/error semantics are unchanged from color-themes-2.html. Only the
+      accent family has been swapped from terracotta to pink, shown here in 3 distinct
+      pink registers — from a quiet, mature dusty rose through a punchier coral-leaning
+      pink to a bold berry/magenta — so the exact final tone can be picked directly.
+    </p>
+    <p class="base-note">3 pink-accent variations on the same Warm Editorial base — pick the tone, not the theme</p>
+  </div>
+
+  <!-- ============================= PINK 1 — DUSTY ROSE ============================= -->
+  <section class="theme p1">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">1. Dusty Rose</span>
+        <span class="theme-tag">soft &amp; understated</span>
+      </div>
+      <span class="theme-register">muted, desaturated, mature — not candy-colored</span>
+    </div>
+    <p class="theme-sub">The quietest of the three: a low-saturation rose-pink that reads as confident and grown-up rather than playful. Closest in weight to the original terracotta accent, just shifted firmly into pink.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#F2E4CF"></span><div><div class="token-name">Background</div><div class="token-hex">#F2E4CF</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FAF1E1"></span><div><div class="token-name">Surface</div><div class="token-hex">#FAF1E1</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#3A2A1D"></span><div><div class="token-name">Text</div><div class="token-hex">#3A2A1D</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#8A7157"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#8A7157</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#E0CBA8"></span><div><div class="token-name">Border</div><div class="token-hex">#E0CBA8</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A6677A"></span><div><div class="token-name">Accent</div><div class="token-hex">#A6677A</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#C48A9B"></span><div><div class="token-name">Accent Strong</div><div class="token-hex">#C48A9B</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#4C7A3F"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#4C7A3F</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#C2650C"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#C2650C</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A8341F"></span><div><div class="token-name">Error</div><div class="token-hex">#A8341F</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= PINK 2 — WARM CORAL-PINK ============================= -->
+  <section class="theme p2">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">2. Warm Coral-Pink</span>
+        <span class="theme-tag">punchy &amp; energetic</span>
+      </div>
+      <span class="theme-register">warmer, leaning coral/salmon — still clearly pink, not orange</span>
+    </div>
+    <p class="theme-sub">More energetic than Dusty Rose: higher saturation and a touch more warmth, drifting toward coral/salmon without ever crossing into orange. The liveliest of the three while staying legible and on-brand.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#F2E4CF"></span><div><div class="token-name">Background</div><div class="token-hex">#F2E4CF</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FAF1E1"></span><div><div class="token-name">Surface</div><div class="token-hex">#FAF1E1</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#3A2A1D"></span><div><div class="token-name">Text</div><div class="token-hex">#3A2A1D</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#8A7157"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#8A7157</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#E0CBA8"></span><div><div class="token-name">Border</div><div class="token-hex">#E0CBA8</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#E8637F"></span><div><div class="token-name">Accent</div><div class="token-hex">#E8637F</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#F28CA0"></span><div><div class="token-name">Accent Strong</div><div class="token-hex">#F28CA0</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#4C7A3F"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#4C7A3F</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#C2650C"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#C2650C</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A8341F"></span><div><div class="token-name">Error</div><div class="token-hex">#A8341F</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= PINK 3 — BERRY/MAGENTA-PINK ============================= -->
+  <section class="theme p3">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">3. Berry/Magenta-Pink</span>
+        <span class="theme-tag">bold brand statement</span>
+      </div>
+      <span class="theme-register">deeper, more saturated pink-magenta — the boldest of the three</span>
+    </div>
+    <p class="theme-sub">The most confident option: a deep, saturated berry-magenta that sits right at the pink/magenta boundary. Carries real visual weight for the active nav items and the suggestion rail — reads as a deliberate brand color, not a decoration.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#F2E4CF"></span><div><div class="token-name">Background</div><div class="token-hex">#F2E4CF</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FAF1E1"></span><div><div class="token-name">Surface</div><div class="token-hex">#FAF1E1</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#3A2A1D"></span><div><div class="token-name">Text</div><div class="token-hex">#3A2A1D</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#8A7157"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#8A7157</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#E0CBA8"></span><div><div class="token-name">Border</div><div class="token-hex">#E0CBA8</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A62D6B"></span><div><div class="token-name">Accent</div><div class="token-hex">#A62D6B</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#C85990"></span><div><div class="token-name">Accent Strong</div><div class="token-hex">#C85990</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#4C7A3F"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#4C7A3F</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#C2650C"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#C2650C</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A8341F"></span><div><div class="token-name">Error</div><div class="token-hex">#A8341F</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

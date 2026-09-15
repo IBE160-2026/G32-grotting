@@ -1,0 +1,334 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JobAssistant — Home (key screen mock)</title>
+<style>
+/*
+  Illustrates:
+  - DESIGN.md Components: navbar, nav-link-primary/secondary, persistent-cta (desktop form: button-primary),
+    button-primary, button-secondary, card, match-score-badge-strong/weak
+  - DESIGN.md Colors / Typography / Shapes / Elevation & Depth tokens (exact hex/px values) — Rich Mocha
+    theme (warm beige/cream base, warm dark-brown text, single brown/mocha accent)
+  - EXPERIENCE.md Information Architecture: Home row (recent past applications, CTA, Review CV / Review
+    Application entry points)
+  - EXPERIENCE.md Component Patterns: History row (job title, date, type, match score badge at a glance)
+  - EXPERIENCE.md Key Flows > Flow 1, step 1 & step 4 (CTA placement, Kickresume-inspired "don't bury it")
+  - EXPERIENCE.md Key Flows > Flow 2, step 2 (standalone Review CV entry point on Home)
+
+  NOTE: This mock renders the authenticated state WITH history present (richer to review).
+  An additional Empty-history state variant also exists per EXPERIENCE.md State Patterns
+  ("No applications yet. Start with your first job description." + primary CTA) and an
+  Unauthenticated variant (same CTA-forward layout, CTA routes to Signup) — not rendered here,
+  see EXPERIENCE.md State Patterns table, rows "Unauthenticated" and "Empty history".
+*/
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --background: #F2E4CF;
+  --surface: #FAF1E1;
+  --text: #3A2A1D;
+  --text-secondary: #8A7157;
+  --border: #E0CBA8;
+  --accent: #7F6244;
+  --accent-strong: #937A62;
+  --accent-text: #FFF6EE;
+  --accent-bg: #7F62441F;
+  --success: #4C7A3F;
+  --success-bg: #4C7A3F1A;
+  --success-border: #4C7A3F40;
+  --warning: #B8860B;
+  --warning-bg: #B8860B1F;
+  --warning-border: #B8860B45;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Desktop browser frame */
+.browser-frame {
+  max-width: 1180px;
+  margin: 24px auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.browser-chrome {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.browser-chrome .dot { width: 10px; height: 10px; border-radius: 9999px; background: var(--border); }
+.browser-chrome .addr {
+  margin-left: 12px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+/* Navbar */
+.navbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 60px;
+}
+.navbar .brand {
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-right: 32px;
+}
+.nav-links { display: flex; align-items: center; gap: 24px; flex: 1; }
+.nav-link-primary { color: var(--text); font-weight: 700; text-decoration: none; font-size: 15px; }
+.nav-link-primary.active { color: var(--accent); }
+.nav-link-secondary { color: var(--text-secondary); font-weight: 500; text-decoration: none; font-size: 15px; }
+
+/* Page body */
+.page { padding: 48px 20px; }
+.page-inner { max-width: 900px; margin: 0 auto; }
+
+h1.display {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.subhead { color: var(--text-secondary); font-size: 15px; margin-bottom: 32px; }
+
+/* Primary CTA card — Kickresume-inspired, front and center, not buried */
+.cta-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+.cta-card .cta-copy h2 {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.cta-card .cta-copy p { color: var(--text-secondary); font-size: 14px; }
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 24px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 11px 18px;
+  cursor: pointer;
+}
+.btn-review {
+  background: var(--accent-strong);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 24px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Standalone review entry points */
+.review-entries {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.review-card {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.review-card .label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.review-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.review-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
+
+/* Recent activity */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-head h2 { font-size: 17px; font-weight: 700; }
+.section-head a { color: var(--text-secondary); font-size: 13px; text-decoration: none; }
+
+.history-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.history-row .row-main { display: flex; flex-direction: column; gap: 4px; }
+.history-row .row-title { font-weight: 700; font-size: 15px; }
+.history-row .row-meta { color: var(--text-secondary); font-size: 13px; }
+.history-row .row-right { display: flex; align-items: center; gap: 14px; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.badge-strong { color: var(--success); background: var(--success-bg); border: 1px solid var(--success-border); }
+.badge-weak { color: var(--warning); background: var(--warning-bg); border: 1px solid var(--warning-border); }
+
+.type-tag {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+</style>
+</head>
+<body>
+<div class="browser-frame">
+  <div class="browser-chrome">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="addr">jobassistant.app/home</div>
+  </div>
+
+  <nav class="navbar">
+    <div style="display:flex; align-items:center;">
+      <span class="brand">JobAssistant</span>
+      <div class="nav-links">
+        <a class="nav-link-primary active" href="#">Home</a>
+        <a class="nav-link-primary" href="#">Application</a>
+        <a class="nav-link-secondary" href="#">Profile</a>
+        <a class="nav-link-secondary" href="#">History</a>
+        <a class="nav-link-secondary" href="#">Account</a>
+      </div>
+    </div>
+    <a class="nav-link-secondary" href="#">Logout</a>
+  </nav>
+
+  <div class="page">
+    <div class="page-inner">
+      <h1 class="display">Welcome back, Violet</h1>
+      <p class="subhead">Paste a job description and JobAssistant will tell you why your application does — or doesn't — match.</p>
+
+      <div class="cta-card">
+        <div class="cta-copy">
+          <h2>Create tailored application</h2>
+          <p>Paste a job description. Get a tailored CV, letter, and a Reflection Note explaining your match.</p>
+        </div>
+        <button class="btn-primary">Create tailored application</button>
+      </div>
+
+      <div class="review-entries">
+        <div class="review-card">
+          <div class="label">Standalone</div>
+          <h3>Review CV</h3>
+          <p>Upload a CV, independent of any specific job ad, and get a feedback document.</p>
+          <button class="btn-review">Review CV</button>
+        </div>
+        <div class="review-card">
+          <div class="label">Standalone</div>
+          <h3>Review Application</h3>
+          <p>Upload an application for general strengths and improvement suggestions.</p>
+          <button class="btn-review">Review Application</button>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h2>Recent activity</h2>
+        <a href="#">See full history</a>
+      </div>
+
+      <div class="history-row">
+        <div class="row-main">
+          <span class="row-title">Frontend Developer — Nordic Digital</span>
+          <span class="row-meta">Application · Sept 8, 2026</span>
+        </div>
+        <div class="row-right">
+          <span class="type-tag">Application</span>
+          <span class="badge badge-strong">78%</span>
+        </div>
+      </div>
+
+      <div class="history-row">
+        <div class="row-main">
+          <span class="row-title">Junior Product Analyst — Fjord Analytics</span>
+          <span class="row-meta">Application · Aug 27, 2026</span>
+        </div>
+        <div class="row-right">
+          <span class="type-tag">Application</span>
+          <span class="badge badge-weak">54%</span>
+        </div>
+      </div>
+
+      <div class="history-row">
+        <div class="row-main">
+          <span class="row-title">CV review — general check</span>
+          <span class="row-meta">CV review · Aug 12, 2026</span>
+        </div>
+        <div class="row-right">
+          <span class="type-tag">CV review</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

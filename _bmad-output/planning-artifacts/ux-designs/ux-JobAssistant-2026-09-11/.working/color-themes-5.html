@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobAssistant — Review Button: Hardwood Color Options</title>
+<style>
+/*
+  ============================================================
+  JobAssistant — "Review CV" / "Review application" button
+  Hardwood brown color options (pick one)
+  ============================================================
+
+  Base theme (confirmed, unchanged):
+    --bg              #F2E4CF   beige background
+    --surface         #FAF1E1   card/surface
+    --text            #3A2A1D   primary text
+    --text-secondary  #8A7157   secondary text
+    --border          #E0CBA8   border
+    --primary         #6B4226   "Rich Mocha" — primary CTA (Create tailored application)
+    --primary-text    #FFF6EE   text on primary button
+
+  Current "button-review" shade being replaced (for reference only):
+    --accent-strong (current) = #96603A
+
+  Three "hardwood" variants proposed below, each a real hardwood-flooring
+  tone, each distinct from both --primary (#6B4226) and the current
+  --accent-strong (#96603A):
+
+    1. Honey Oak   = #C1863F   (warm, lighter honey/tan oak-floor tone)
+    2. Walnut      = #7A4B33   (medium warm reddish-brown, walnut-floor tone)
+    3. Mahogany    = #6E2E28   (deep reddish-brown, more red / less neutral
+                                 than Rich Mocha's coffee-toned espresso brown)
+
+  All variant buttons use text color #FFF6EE, 6px corner radius,
+  font-weight 700, font-size 15px, padding 14px 24px — matching the
+  primary button's sizing convention exactly, so only hue/value differs.
+  ============================================================
+*/
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 40px 20px 64px;
+  background: #EDE0CC;
+  color: #3A2A1D;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.page-header {
+  max-width: 900px;
+  margin: 0 auto 40px;
+}
+
+.page-header h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #3A2A1D;
+}
+
+.page-header p {
+  margin: 0;
+  font-size: 14px;
+  color: #8A7157;
+  line-height: 1.5;
+}
+
+.variants {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.variant-card {
+  background: #FAF1E1;
+  border: 1px solid #E0CBA8;
+  border-radius: 12px;
+  padding: 28px 28px 32px;
+}
+
+.variant-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.variant-name {
+  font-size: 19px;
+  font-weight: 700;
+  color: #3A2A1D;
+}
+
+.variant-number {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8A7157;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.variant-desc {
+  margin: 4px 0 20px;
+  font-size: 14px;
+  color: #8A7157;
+  line-height: 1.5;
+}
+
+/* Token chip showing the exact hex value */
+.token-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #F2E4CF;
+  border: 1px solid #E0CBA8;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 22px;
+  font-size: 13px;
+  color: #3A2A1D;
+}
+
+.token-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid rgba(0,0,0,0.12);
+  flex-shrink: 0;
+}
+
+.token-label {
+  font-weight: 600;
+  color: #8A7157;
+}
+
+.token-hex {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-weight: 700;
+  color: #3A2A1D;
+}
+
+/* Home screen snippet mockup */
+.snippet {
+  background: #F2E4CF;
+  border: 1px solid #E0CBA8;
+  border-radius: 10px;
+  padding: 28px 24px;
+}
+
+.snippet-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8A7157;
+  margin: 0 0 16px;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 24px;
+  cursor: default;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+/* Primary CTA — Rich Mocha, unchanged across all variants for comparison */
+.btn-primary {
+  background: #6B4226;
+  color: #FFF6EE;
+}
+
+/* Variant-specific review button colors */
+.btn-review-honey-oak {
+  background: #C1863F;
+  color: #FFF6EE;
+}
+
+.btn-review-walnut {
+  background: #7A4B33;
+  color: #FFF6EE;
+}
+
+.btn-review-mahogany {
+  background: #6E2E28;
+  color: #FFF6EE;
+}
+
+@media (max-width: 480px) {
+  .button-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btn {
+    width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Review Button — Hardwood Brown Options</h1>
+  <p>Three real hardwood-flooring tones for the "Review CV" / "Review application" buttons on the Home screen. The primary "Create tailored application" button stays at the confirmed Rich Mocha (#6B4226) in every variant, so you can compare each option directly against it and against the beige background.</p>
+</div>
+
+<div class="variants">
+
+  <!-- Variant 1: Honey Oak -->
+  <section class="variant-card">
+    <div class="variant-head">
+      <span class="variant-name">1. Honey Oak</span>
+      <span class="variant-number">Variant A</span>
+    </div>
+    <p class="variant-desc">A warm, lighter honey/tan hardwood tone — like a honey oak floor. Lighter and warmer than the current accent-strong shade.</p>
+
+    <div class="token-chip">
+      <span class="token-swatch" style="background:#C1863F;"></span>
+      <span class="token-label">button-review</span>
+      <span class="token-hex">#C1863F</span>
+    </div>
+
+    <div class="snippet">
+      <p class="snippet-label">Home screen</p>
+      <div class="button-row">
+        <button class="btn btn-primary">Create tailored application</button>
+        <button class="btn btn-review-honey-oak">Review CV</button>
+        <button class="btn btn-review-honey-oak">Review application</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Variant 2: Walnut -->
+  <section class="variant-card">
+    <div class="variant-head">
+      <span class="variant-name">2. Walnut</span>
+      <span class="variant-number">Variant B</span>
+    </div>
+    <p class="variant-desc">A medium warm reddish-brown, evoking walnut wood flooring — a genuine mid-tone, distinct from both the current accent-strong and the primary Rich Mocha.</p>
+
+    <div class="token-chip">
+      <span class="token-swatch" style="background:#7A4B33;"></span>
+      <span class="token-label">button-review</span>
+      <span class="token-hex">#7A4B33</span>
+    </div>
+
+    <div class="snippet">
+      <p class="snippet-label">Home screen</p>
+      <div class="button-row">
+        <button class="btn btn-primary">Create tailored application</button>
+        <button class="btn btn-review-walnut">Review CV</button>
+        <button class="btn btn-review-walnut">Review application</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Variant 3: Mahogany -->
+  <section class="variant-card">
+    <div class="variant-head">
+      <span class="variant-name">3. Mahogany</span>
+      <span class="variant-number">Variant C</span>
+    </div>
+    <p class="variant-desc">A deeper reddish-brown with more red in it than Rich Mocha's more neutral, espresso-leaning brown — reads distinctly as "reddish wood" rather than "coffee."</p>
+
+    <div class="token-chip">
+      <span class="token-swatch" style="background:#6E2E28;"></span>
+      <span class="token-label">button-review</span>
+      <span class="token-hex">#6E2E28</span>
+    </div>
+
+    <div class="snippet">
+      <p class="snippet-label">Home screen</p>
+      <div class="button-row">
+        <button class="btn btn-primary">Create tailored application</button>
+        <button class="btn btn-review-mahogany">Review CV</button>
+        <button class="btn btn-review-mahogany">Review application</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobAssistant — Beige Light-Theme Exploration</title>
+<style>
+  /* =====================================================================
+     PURPOSE OF THIS PAGE
+     The team already confirmed a dark theme for JobAssistant: near-black
+     background (#0A0A0A), off-white text (#F5F5F5), indigo-violet accent
+     (#8B7CF6, "Violet Precision"), success green (#34D399), warning amber
+     (#FBBF24), error red (#F87171) — professional / sharp / technical,
+     explicitly NOT playful or warm.
+
+     This page is a PURE EXPLORATION of a beige-based LIGHT theme — a real
+     pivot away from the dark/sharp direction already locked in. It is not
+     a proposal to switch. Four distinct beige registers are shown, plus
+     the confirmed dark theme reproduced at the end (same colors as before,
+     unchanged) so warm-light and dark-technical can be compared directly
+     in one place before deciding whether beige is worth pursuing further.
+     ===================================================================== */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: #EDE9DF;
+    color: #17140F;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 32px 20px 80px; }
+
+  .page-header {
+    max-width: 920px;
+    margin: 0 auto 44px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    color: #17140F;
+  }
+
+  .page-header p {
+    color: #4A453C;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 680px;
+  }
+
+  .page-header .base-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #756E5F;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* ---------- Theme section shell (shared layout; colors via CSS vars per theme) ---------- */
+
+  .theme {
+    max-width: 920px;
+    margin: 0 auto 48px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 28px 32px;
+  }
+
+  .theme-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .theme-name-wrap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+
+  .theme-name {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .theme-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+
+  .theme-tag.explore {
+    color: var(--accent-strong);
+    background: var(--accent-bg);
+    border-color: var(--accent);
+  }
+
+  .theme-tag.confirmed {
+    color: #F5F5F5;
+    background: #34D3991A;
+    border-color: #34D399;
+    color: #34D399;
+  }
+
+  .theme-register {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  .theme-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 22px;
+    max-width: 680px;
+    line-height: 1.5;
+  }
+
+  /* ---------- Token chips ---------- */
+
+  .token-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+
+  .token-chip {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 8px 12px;
+    min-width: 150px;
+  }
+
+  .swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid var(--swatch-border);
+  }
+
+  .token-name {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+
+  .token-hex {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: "Consolas", "SFMono-Regular", Menlo, monospace;
+  }
+
+  /* ---------- UI mock: navbar ---------- */
+
+  .mock {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav-left { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+
+  .logo {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .logo::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent);
+    margin-right: 8px;
+  }
+
+  .nav-links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+  .nav-link {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .nav-link.strong { color: var(--text); font-weight: 700; }
+
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+
+  .avatar-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent-strong);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---------- UI mock: match-score card ---------- */
+
+  .mock-body { padding: 20px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 18px 20px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .score-badge {
+    font-size: 13px;
+    font-weight: 800;
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid;
+    color: var(--success);
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  }
+
+  .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .kw-chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 7px;
+    border: 1px solid;
+  }
+
+  .kw-chip.matched {
+    color: var(--success);
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  }
+
+  .kw-chip.missing {
+    color: var(--warning);
+    background: var(--warning-bg);
+    border-color: var(--warning-border);
+  }
+
+  .suggestion {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--text);
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 11px 14px;
+  }
+
+  .suggestion b { color: var(--accent-strong); }
+
+  @media (max-width: 480px) {
+    .theme { padding: 20px 16px 24px; }
+    .token-chip { min-width: 44%; }
+  }
+
+  /* =====================================================================
+     BEIGE 1 — "Paper Precision"
+     Register: the most conservative option — stays as close to
+     professional/sharp as a warm base allows. Crisp ivory paper tone,
+     near-black text, minimal warmth. Accent stays a cool, restrained
+     ink-blue rather than anything beige/orange, so the page still reads
+     "technical" even on a warm ground.
+       background:       #F7F4EC  (crisp ivory paper)
+       surface (card):   #FCFAF2  (slightly lighter paper, for separation)
+       text:              #17140F (near-black, faint warm tint)
+       text-secondary:   #6B6459
+       border/divider:   #DDD6C4
+       accent/primary:   #33475B  (ink/steel blue — cool, deliberate contrast)
+       accent-strong:    #4C6B85
+       accent-text:      #FFFFFF
+       accent bg tint:   #33475B14
+       success:          #1E7A46  | bg #1E7A461A | border #1E7A4640
+       warning:          #B45309  | bg #B453091A | border #B4530940
+       error:            #B91C1C | bg #B91C1C1A | border #B91C1C40
+     ===================================================================== */
+  .b1 {
+    --bg: #F7F4EC;
+    --surface: #FCFAF2;
+    --text: #17140F;
+    --text-secondary: #6B6459;
+    --border: #DDD6C4;
+    --accent: #33475B;
+    --accent-strong: #4C6B85;
+    --accent-text: #FFFFFF;
+    --accent-bg: #33475B14;
+    --success: #1E7A46;
+    --success-bg: #1E7A461A;
+    --success-border: #1E7A4640;
+    --warning: #B45309;
+    --warning-bg: #B453091A;
+    --warning-border: #B4530940;
+    --error: #B91C1C;
+    --error-bg: #B91C1C1A;
+    --error-border: #B91C1C40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+
+  /* =====================================================================
+     BEIGE 2 — "Warm Editorial"
+     Register: leans into beige's natural warmth on purpose — softer,
+     human, editorial. Genuinely warm sand/cream base, warm dark-brown
+     text instead of pure black, a burnt-terracotta accent, and an olive
+     green / warm-orange semantic pair that stays in the same warm family
+     as the base without losing legibility or distinctness.
+       background:       #F2E4CF  (warm sand/cream)
+       surface (card):   #FAF1E1  (lighter warm cream)
+       text:              #3A2A1D (warm dark brown, not pure black)
+       text-secondary:   #8A7157
+       border/divider:   #E0CBA8
+       accent/primary:   #C1662D  (burnt terracotta)
+       accent-strong:    #D68A54
+       accent-text:      #FFF8EE
+       accent bg tint:   #C1662D1F
+       success:          #4C7A3F  | bg #4C7A3F1A | border #4C7A3F40
+       warning:          #C2650C  | bg #C2650C1F | border #C2650C45
+       error:            #A8341F | bg #A8341F1A | border #A8341F40
+     ===================================================================== */
+  .b2 {
+    --bg: #F2E4CF;
+    --surface: #FAF1E1;
+    --text: #3A2A1D;
+    --text-secondary: #8A7157;
+    --border: #E0CBA8;
+    --accent: #C1662D;
+    --accent-strong: #D68A54;
+    --accent-text: #FFF8EE;
+    --accent-bg: #C1662D1F;
+    --success: #4C7A3F;
+    --success-bg: #4C7A3F1A;
+    --success-border: #4C7A3F40;
+    --warning: #C2650C;
+    --warning-bg: #C2650C1F;
+    --warning-border: #C2650C45;
+    --error: #A8341F;
+    --error-bg: #A8341F1A;
+    --error-border: #A8341F40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+
+  /* =====================================================================
+     BEIGE 3 — "Beige Noir"
+     Register: beige paired with a bold, near-black accent for contrast
+     and seriousness — the accent itself carries the "sharp" weight the
+     dark theme had, even though the field underneath is warm and light.
+     Deeper beige than B1/B2, charcoal/near-black used boldly for the
+     accent (CTA-equivalent, active nav weight, suggestion rail).
+       background:       #EDE3D0  (deeper warm beige)
+       surface (card):   #F6EFE1
+       text:              #1C1815 (near-black)
+       text-secondary:   #5C5347
+       border/divider:   #D6C7A9
+       accent/primary:   #1C1815  (charcoal/near-black — bold, dark accent)
+       accent-strong:    #3A332B
+       accent-text:      #F6EFE1
+       accent bg tint:   #1C18151A
+       success:          #1F6D42  | bg #1F6D421A | border #1F6D4240
+       warning:          #A85A00  | bg #A85A001A | border #A85A0040
+       error:            #A31D1D | bg #A31D1D1A | border #A31D1D40
+     ===================================================================== */
+  .b3 {
+    --bg: #EDE3D0;
+    --surface: #F6EFE1;
+    --text: #1C1815;
+    --text-secondary: #5C5347;
+    --border: #D6C7A9;
+    --accent: #1C1815;
+    --accent-strong: #3A332B;
+    --accent-text: #F6EFE1;
+    --accent-bg: #1C18151A;
+    --success: #1F6D42;
+    --success-bg: #1F6D421A;
+    --success-border: #1F6D4240;
+    --warning: #A85A00;
+    --warning-bg: #A85A001A;
+    --warning-border: #A85A0040;
+    --error: #A31D1D;
+    --error-bg: #A31D1D1A;
+    --error-border: #A31D1D40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+
+  /* =====================================================================
+     BEIGE 4 — "Beige Violet"
+     Register: beige paired with the SAME indigo-violet accent family
+     already confirmed for the dark theme (#8B7CF6), deepened slightly
+     for legibility on a light ground. The test: does the existing accent
+     choice survive the switch to a warm light base, or does it clash?
+       background:       #F1E7D6  (warm beige)
+       surface (card):   #FAF4E9
+       text:              #241F2E (deep plum-black, ties to the violet family)
+       text-secondary:   #6E6577
+       border/divider:   #DED0B4  (kept warm/neutral — accent carries the violet)
+       accent/primary:   #7C6AE8  (deepened #8B7CF6 for light-bg contrast)
+       accent-strong:    #6552D6
+       accent-text:      #FFFFFF
+       accent bg tint:   #7C6AE81F
+       success:          #1E7A46  | bg #1E7A461A | border #1E7A4640
+       warning:          #B45309  | bg #B453091A | border #B4530940
+       error:            #B91C1C | bg #B91C1C1A | border #B91C1C40
+     ===================================================================== */
+  .b4 {
+    --bg: #F1E7D6;
+    --surface: #FAF4E9;
+    --text: #241F2E;
+    --text-secondary: #6E6577;
+    --border: #DED0B4;
+    --accent: #7C6AE8;
+    --accent-strong: #6552D6;
+    --accent-text: #FFFFFF;
+    --accent-bg: #7C6AE81F;
+    --success: #1E7A46;
+    --success-bg: #1E7A461A;
+    --success-border: #1E7A4640;
+    --warning: #B45309;
+    --warning-bg: #B453091A;
+    --warning-border: #B4530940;
+    --error: #B91C1C;
+    --error-bg: #B91C1C1A;
+    --error-border: #B91C1C40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+
+  /* =====================================================================
+     COMPARISON — "Violet Precision" (CONFIRMED DARK THEME, unchanged)
+     Reproduced exactly as already locked in, for direct side-by-side
+     reference only — not one of the four beige options.
+       background:       #0A0A0A
+       surface (card):   #141220
+       text:              #F5F5F5
+       text-secondary:   #A5A1B5
+       border/divider:   #262238
+       accent/primary:   #8B7CF6
+       accent-strong:    #AEA3FA
+       accent-text:      #0F0B24
+       accent bg tint:   #8B7CF61F
+       success:          #34D399  | bg #34D3991A | border #34D39940
+       warning:          #FBBF24  | bg #FBBF241A | border #FBBF2440
+       error:            #F87171  | bg #F871711A | border #F8717140
+     ===================================================================== */
+  .violet-dark {
+    --bg: #0A0A0A;
+    --surface: #141220;
+    --text: #F5F5F5;
+    --text-secondary: #A5A1B5;
+    --border: #262238;
+    --accent: #8B7CF6;
+    --accent-strong: #AEA3FA;
+    --accent-text: #0F0B24;
+    --accent-bg: #8B7CF61F;
+    --success: #34D399;
+    --success-bg: #34D3991A;
+    --success-border: #34D39940;
+    --warning: #FBBF24;
+    --warning-bg: #FBBF241A;
+    --warning-border: #FBBF2440;
+    --error: #F87171;
+    --error-bg: #F871711A;
+    --error-border: #F8717140;
+    --swatch-border: rgba(255,255,255,0.14);
+  }
+
+  .theme-tag.confirmed-dark {
+    color: #F5F5F5;
+    background: #8B7CF61F;
+    border-color: #8B7CF6;
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>JobAssistant — Beige Light-Theme Exploration</h1>
+    <p>
+      Pure exploration, not a proposal: the dark "Violet Precision" theme is already confirmed
+      (near-black background, off-white text, indigo-violet accent, professional/sharp/technical,
+      explicitly not playful or warm). This page previews four distinct beige-based LIGHT themes —
+      each with its own register, not variations on one idea — so it's easy to see whether warm
+      beige is worth pursuing at all, or whether the confirmed dark direction should stand as-is.
+      The confirmed dark theme is reproduced at the end, unchanged, for direct side-by-side comparison.
+    </p>
+    <p class="base-note">4 beige explorations + 1 confirmed dark theme for comparison — nothing here replaces the confirmed decision</p>
+  </div>
+
+  <!-- ============================= BEIGE 1 ============================= -->
+  <section class="theme b1">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">1. Paper Precision</span>
+        <span class="theme-tag explore">exploration</span>
+      </div>
+      <span class="theme-register">professional and sharp, warmth kept to a minimum</span>
+    </div>
+    <p class="theme-sub">The most conservative beige option — crisp ivory paper instead of pure white, near-black text, and a cool ink-blue accent that deliberately resists the warmth of the base so the page still reads technical.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#F7F4EC"></span><div><div class="token-name">Background</div><div class="token-hex">#F7F4EC</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FCFAF2"></span><div><div class="token-name">Surface</div><div class="token-hex">#FCFAF2</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#17140F"></span><div><div class="token-name">Text</div><div class="token-hex">#17140F</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#6B6459"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#6B6459</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#DDD6C4"></span><div><div class="token-name">Border</div><div class="token-hex">#DDD6C4</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#33475B"></span><div><div class="token-name">Accent</div><div class="token-hex">#33475B</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#1E7A46"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#1E7A46</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#B45309"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#B45309</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#B91C1C"></span><div><div class="token-name">Error</div><div class="token-hex">#B91C1C</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= BEIGE 2 ============================= -->
+  <section class="theme b2">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">2. Warm Editorial</span>
+        <span class="theme-tag explore">exploration</span>
+      </div>
+      <span class="theme-register">genuinely warm — human and editorial, not sterile</span>
+    </div>
+    <p class="theme-sub">Leans into beige on purpose: warm sand and cream, dark-brown text instead of black, a burnt-terracotta accent, and an olive/warm-orange semantic pair that stays legible while living in the same warm family as the page.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#F2E4CF"></span><div><div class="token-name">Background</div><div class="token-hex">#F2E4CF</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FAF1E1"></span><div><div class="token-name">Surface</div><div class="token-hex">#FAF1E1</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#3A2A1D"></span><div><div class="token-name">Text</div><div class="token-hex">#3A2A1D</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#8A7157"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#8A7157</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#E0CBA8"></span><div><div class="token-name">Border</div><div class="token-hex">#E0CBA8</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#C1662D"></span><div><div class="token-name">Accent</div><div class="token-hex">#C1662D</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#4C7A3F"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#4C7A3F</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#C2650C"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#C2650C</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A8341F"></span><div><div class="token-name">Error</div><div class="token-hex">#A8341F</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= BEIGE 3 ============================= -->
+  <section class="theme b3">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">3. Beige Noir</span>
+        <span class="theme-tag explore">exploration</span>
+      </div>
+      <span class="theme-register">warm field, bold dark accent — contrast and seriousness</span>
+    </div>
+    <p class="theme-sub">A deeper warm-beige base carrying a charcoal/near-black accent for the CTA-equivalent, bold nav items and suggestion rail — the accent does the "seriousness" work the dark theme's palette did, even on a light field.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#EDE3D0"></span><div><div class="token-name">Background</div><div class="token-hex">#EDE3D0</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#F6EFE1"></span><div><div class="token-name">Surface</div><div class="token-hex">#F6EFE1</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#1C1815"></span><div><div class="token-name">Text</div><div class="token-hex">#1C1815</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#5C5347"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#5C5347</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#D6C7A9"></span><div><div class="token-name">Border</div><div class="token-hex">#D6C7A9</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#1C1815"></span><div><div class="token-name">Accent</div><div class="token-hex">#1C1815</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#1F6D42"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#1F6D42</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A85A00"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#A85A00</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A31D1D"></span><div><div class="token-name">Error</div><div class="token-hex">#A31D1D</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= BEIGE 4 ============================= -->
+  <section class="theme b4">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">4. Beige Violet</span>
+        <span class="theme-tag explore">exploration</span>
+      </div>
+      <span class="theme-register">the confirmed accent, transplanted onto a warm light base</span>
+    </div>
+    <p class="theme-sub">Same indigo-violet accent family as the confirmed dark theme (#8B7CF6), deepened slightly for contrast on a light field. The test this variation answers: does that accent still feel intentional here, or does it read as mismatched once the base goes warm and light?</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#F1E7D6"></span><div><div class="token-name">Background</div><div class="token-hex">#F1E7D6</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FAF4E9"></span><div><div class="token-name">Surface</div><div class="token-hex">#FAF4E9</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#241F2E"></span><div><div class="token-name">Text</div><div class="token-hex">#241F2E</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#6E6577"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#6E6577</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#DED0B4"></span><div><div class="token-name">Border</div><div class="token-hex">#DED0B4</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#7C6AE8"></span><div><div class="token-name">Accent</div><div class="token-hex">#7C6AE8</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#1E7A46"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#1E7A46</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#B45309"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#B45309</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#B91C1C"></span><div><div class="token-name">Error</div><div class="token-hex">#B91C1C</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= COMPARISON: CONFIRMED DARK THEME ============================= -->
+  <section class="theme violet-dark">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">Violet Precision</span>
+        <span class="theme-tag confirmed-dark">confirmed theme — for comparison</span>
+      </div>
+      <span class="theme-register">technical and precise — the direction already locked in</span>
+    </div>
+    <p class="theme-sub">Unchanged from the confirmed decision: near-black background, off-white text, indigo-violet accent, professional/sharp/technical mood. Shown here only as a direct reference point next to the four beige explorations above — not an option being re-decided.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#0A0A0A"></span><div><div class="token-name">Background</div><div class="token-hex">#0A0A0A</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#141220"></span><div><div class="token-name">Surface</div><div class="token-hex">#141220</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#F5F5F5"></span><div><div class="token-name">Text</div><div class="token-hex">#F5F5F5</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A5A1B5"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#A5A1B5</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#262238"></span><div><div class="token-name">Border</div><div class="token-hex">#262238</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#8B7CF6"></span><div><div class="token-name">Accent</div><div class="token-hex">#8B7CF6</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#34D399"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#34D399</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FBBF24"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#FBBF24</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#F87171"></span><div><div class="token-name">Error</div><div class="token-hex">#F87171</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

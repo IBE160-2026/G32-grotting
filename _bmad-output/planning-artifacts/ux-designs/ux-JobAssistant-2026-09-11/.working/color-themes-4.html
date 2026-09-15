@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobAssistant — Brown/Mocha-Accent Tone Pick</title>
+<style>
+  /* =====================================================================
+     PURPOSE OF THIS PAGE
+     In color-themes-2.html the team previewed a beige theme called
+     "Warm Editorial" (sand/cream base, warm brown text, a burnt-terracotta
+     accent). In color-themes-3.html they explored a pink accent family on
+     the same base. This page keeps the exact same Warm Editorial base
+     (background, surface, text, text-secondary, border) and the exact same
+     success/error semantics, and swaps the accent family to brown/mocha —
+     shown in 2 distinct registers so the final tone can be picked directly:
+
+       1. Light Caramel — lighter, warmer tan/caramel brown. Softer and more
+          approachable; sits closer to the beige base tonally while still
+          reading as a clear, deliberate accent.
+       2. Rich Mocha    — deeper, richer mocha/espresso brown. More saturated
+          and grounded, reads as "serious"/coffee-toned, with higher contrast
+          against the light beige base.
+
+     Because brown and amber/gold can sit close together in hue, the warning
+     color was deliberately re-tuned for this page: instead of the burnt
+     amber-orange used in earlier pages (~25° hue), warning here is a punchy,
+     more saturated goldenrod (~43° hue, much higher saturation, lower
+     lightness) that reads unmistakably as "gold/yellow caution," not as a
+     third brown. See the hue-check note in the shared base comment below.
+     Success stays a green family, error stays a clear red — both already far
+     enough in hue from any brown to never be confused with the accent.
+     ===================================================================== */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: #EFE5D9;
+    color: #17140F;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 32px 20px 80px; }
+
+  .page-header {
+    max-width: 920px;
+    margin: 0 auto 44px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    color: #17140F;
+  }
+
+  .page-header p {
+    color: #4A453C;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 680px;
+  }
+
+  .page-header .base-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #756E5F;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* ---------- Theme section shell (shared layout; colors via CSS vars per theme) ---------- */
+
+  .theme {
+    max-width: 920px;
+    margin: 0 auto 48px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 28px 32px;
+  }
+
+  .theme-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .theme-name-wrap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+
+  .theme-name {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .theme-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid;
+    color: var(--accent-strong);
+    background: var(--accent-bg);
+    border-color: var(--accent);
+  }
+
+  .theme-register {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  .theme-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 22px;
+    max-width: 680px;
+    line-height: 1.5;
+  }
+
+  /* ---------- Token chips ---------- */
+
+  .token-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+
+  .token-chip {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 8px 12px;
+    min-width: 150px;
+  }
+
+  .swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid var(--swatch-border);
+  }
+
+  .token-name {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+
+  .token-hex {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: "Consolas", "SFMono-Regular", Menlo, monospace;
+  }
+
+  /* ---------- UI mock: navbar ---------- */
+
+  .mock {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav-left { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+
+  .logo {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .logo::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent);
+    margin-right: 8px;
+  }
+
+  .nav-links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+  .nav-link {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .nav-link.strong { color: var(--accent); font-weight: 700; }
+
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+
+  .avatar-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    color: var(--accent-strong);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---------- UI mock: match-score card ---------- */
+
+  .mock-body { padding: 20px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 18px 20px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .score-badge {
+    font-size: 13px;
+    font-weight: 800;
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid;
+    color: var(--success);
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  }
+
+  .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .kw-chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 7px;
+    border: 1px solid;
+  }
+
+  .kw-chip.matched {
+    color: var(--success);
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  }
+
+  .kw-chip.missing {
+    color: var(--warning);
+    background: var(--warning-bg);
+    border-color: var(--warning-border);
+  }
+
+  .suggestion {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--text);
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 11px 14px;
+  }
+
+  .suggestion b { color: var(--accent-strong); }
+
+  @media (max-width: 480px) {
+    .theme { padding: 20px 16px 24px; }
+    .token-chip { min-width: 44%; }
+  }
+
+  /* =====================================================================
+     SHARED BASE — "Warm Editorial" beige/cream field (unchanged from
+     color-themes-2.html / color-themes-3.html), carried by both
+     variations below. Only the accent family changes between b1 / b2.
+       background:       #F2E4CF  (warm sand/cream)
+       surface (card):   #FAF1E1  (lighter warm cream)
+       text:              #3A2A1D (warm dark brown, not pure black)
+       text-secondary:   #8A7157
+       border/divider:   #E0CBA8
+
+     Semantics held identical across both brown/mocha variations, so the
+     only variable being tone-picked is the accent itself:
+       success:          #4C7A3F  | bg #4C7A3F1A | border #4C7A3F40  (green)
+       warning:          #B8860B  | bg #B8860B1F | border #B8860B45  (goldenrod)
+       error:            #A8341F  | bg #A8341F1A | border #A8341F40  (clear red)
+
+     Hue check — this is the real risk on a brown/mocha accent page, since
+     brown and amber/gold naturally sit close in hue:
+       Light Caramel accent  #BA8A4E  ≈ H33°  S44%  L52%  (light, muted tan)
+       Rich Mocha accent     #6B4226  ≈ H24°  S48%  L28%  (dark, earthy brown)
+       Warning (goldenrod)   #B8860B  ≈ H43°  S89%  L38%  (vivid gold-yellow)
+     Warning sits 10-19° away in hue from either accent, but far more
+     importantly it is much MORE saturated (89% vs 44-48%) and reads as a
+     punchy gold-yellow rather than a muted tan/coffee brown — so it stays
+     visually distinct from both accents even at a glance, and is nowhere
+     near green (success, ~113°) or red (error, ~9°).
+     ===================================================================== */
+
+  /* =====================================================================
+     BROWN 1 — "Light Caramel"
+     Register: lighter, warmer tan/caramel brown — softer, more approachable,
+     sits closer to the beige base tonally while still reading as a clear,
+     deliberate accent against it.
+       accent/primary:   #BA8A4E  (caramel tan, hue ~33°, medium saturation)
+       accent-strong:    #DCB27C  (lighter caramel, for text-on-tint)
+       accent-text:      #FFF9F0
+       accent bg tint:   #BA8A4E1F
+     ===================================================================== */
+  .b1 {
+    --bg: #F2E4CF;
+    --surface: #FAF1E1;
+    --text: #3A2A1D;
+    --text-secondary: #8A7157;
+    --border: #E0CBA8;
+    --accent: #BA8A4E;
+    --accent-strong: #DCB27C;
+    --accent-text: #FFF9F0;
+    --accent-bg: #BA8A4E1F;
+    --success: #4C7A3F;
+    --success-bg: #4C7A3F1A;
+    --success-border: #4C7A3F40;
+    --warning: #B8860B;
+    --warning-bg: #B8860B1F;
+    --warning-border: #B8860B45;
+    --error: #A8341F;
+    --error-bg: #A8341F1A;
+    --error-border: #A8341F40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+
+  /* =====================================================================
+     BROWN 2 — "Rich Mocha"
+     Register: deeper, richer mocha/espresso brown — more saturated and
+     grounded, reads as more "serious"/coffee-toned, with noticeably higher
+     contrast against the light beige base than Light Caramel.
+       accent/primary:   #6B4226  (mocha/espresso, hue ~24°, dark and earthy)
+       accent-strong:    #96603A  (lighter mocha, for text-on-tint)
+       accent-text:      #FFF6EE
+       accent bg tint:   #6B42261F
+     ===================================================================== */
+  .b2 {
+    --bg: #F2E4CF;
+    --surface: #FAF1E1;
+    --text: #3A2A1D;
+    --text-secondary: #8A7157;
+    --border: #E0CBA8;
+    --accent: #6B4226;
+    --accent-strong: #96603A;
+    --accent-text: #FFF6EE;
+    --accent-bg: #6B42261F;
+    --success: #4C7A3F;
+    --success-bg: #4C7A3F1A;
+    --success-border: #4C7A3F40;
+    --warning: #B8860B;
+    --warning-bg: #B8860B1F;
+    --warning-border: #B8860B45;
+    --error: #A8341F;
+    --error-bg: #A8341F1A;
+    --error-border: #A8341F40;
+    --swatch-border: rgba(0,0,0,0.14);
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>JobAssistant — Brown/Mocha-Accent Tone Pick</h1>
+    <p>
+      Warm Editorial's beige/cream base (sand background, warm brown text) and its
+      success/error semantics are unchanged from color-themes-2.html and
+      color-themes-3.html. Instead of the pink accent explored previously, the accent
+      family here is brown/mocha, shown in 2 distinct registers — a lighter, softer
+      caramel and a deeper, richer mocha — so the exact final tone can be picked
+      directly. The warning color has been re-tuned to a vivid goldenrod so it can
+      never be mistaken for a third brown.
+    </p>
+    <p class="base-note">2 brown/mocha-accent variations on the same Warm Editorial base — pick the tone, not the theme</p>
+  </div>
+
+  <!-- ============================= BROWN 1 — LIGHT CARAMEL ============================= -->
+  <section class="theme b1">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">1. Light Caramel</span>
+        <span class="theme-tag">soft &amp; approachable</span>
+      </div>
+      <span class="theme-register">lighter, warmer tan/caramel — sits close to the beige base</span>
+    </div>
+    <p class="theme-sub">The gentler of the two: a warm caramel-tan that stays tonally close to the sand/cream base while still reading as a clear, deliberate accent on nav links, the avatar and the suggestion rail.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#F2E4CF"></span><div><div class="token-name">Background</div><div class="token-hex">#F2E4CF</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FAF1E1"></span><div><div class="token-name">Surface</div><div class="token-hex">#FAF1E1</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#3A2A1D"></span><div><div class="token-name">Text</div><div class="token-hex">#3A2A1D</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#8A7157"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#8A7157</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#E0CBA8"></span><div><div class="token-name">Border</div><div class="token-hex">#E0CBA8</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#BA8A4E"></span><div><div class="token-name">Accent</div><div class="token-hex">#BA8A4E</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#DCB27C"></span><div><div class="token-name">Accent Strong</div><div class="token-hex">#DCB27C</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#4C7A3F"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#4C7A3F</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#B8860B"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#B8860B</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A8341F"></span><div><div class="token-name">Error</div><div class="token-hex">#A8341F</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= BROWN 2 — RICH MOCHA ============================= -->
+  <section class="theme b2">
+    <div class="theme-head">
+      <div class="theme-name-wrap">
+        <span class="theme-name">2. Rich Mocha</span>
+        <span class="theme-tag">grounded &amp; serious</span>
+      </div>
+      <span class="theme-register">deeper espresso/mocha — higher contrast against the beige base</span>
+    </div>
+    <p class="theme-sub">The more confident of the two: a deep, saturated mocha-espresso brown with real weight for the active nav items and the suggestion rail. Reads as a coffee-toned, deliberate brand color rather than a decoration.</p>
+
+    <div class="token-row">
+      <div class="token-chip"><span class="swatch" style="background:#F2E4CF"></span><div><div class="token-name">Background</div><div class="token-hex">#F2E4CF</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#FAF1E1"></span><div><div class="token-name">Surface</div><div class="token-hex">#FAF1E1</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#3A2A1D"></span><div><div class="token-name">Text</div><div class="token-hex">#3A2A1D</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#8A7157"></span><div><div class="token-name">Text Secondary</div><div class="token-hex">#8A7157</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#E0CBA8"></span><div><div class="token-name">Border</div><div class="token-hex">#E0CBA8</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#6B4226"></span><div><div class="token-name">Accent</div><div class="token-hex">#6B4226</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#96603A"></span><div><div class="token-name">Accent Strong</div><div class="token-hex">#96603A</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#4C7A3F"></span><div><div class="token-name">Success / Match-Strong</div><div class="token-hex">#4C7A3F</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#B8860B"></span><div><div class="token-name">Warning / Match-Weak</div><div class="token-hex">#B8860B</div></div></div>
+      <div class="token-chip"><span class="swatch" style="background:#A8341F"></span><div><div class="token-name">Error</div><div class="token-hex">#A8341F</div></div></div>
+    </div>
+
+    <div class="mock">
+      <div class="navbar">
+        <div class="nav-left">
+          <span class="logo">JobAssistant</span>
+          <nav class="nav-links">
+            <a class="nav-link strong">Home</a>
+            <a class="nav-link strong">Application</a>
+            <a class="nav-link">Profile</a>
+            <a class="nav-link">History</a>
+            <a class="nav-link">Account</a>
+            <a class="nav-link">Logout</a>
+          </nav>
+        </div>
+        <div class="nav-right">
+          <span class="avatar-dot">HG</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ATS Match Score</span>
+            <span class="score-badge">78% match</span>
+          </div>
+          <div class="keywords">
+            <span class="kw-chip matched">✓ Python</span>
+            <span class="kw-chip matched">✓ Data Analysis</span>
+            <span class="kw-chip matched">✓ SQL</span>
+            <span class="kw-chip missing">✕ Kubernetes</span>
+            <span class="kw-chip missing">✕ Agile Certification</span>
+          </div>
+          <div class="suggestion">
+            <b>AI suggestion:</b> "Cross-functional collaboration" appears 3× in the job posting
+            but isn't in your resume — your semester group project is a strong fit, consider
+            adding a line about coordinating across teammates from different disciplines.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

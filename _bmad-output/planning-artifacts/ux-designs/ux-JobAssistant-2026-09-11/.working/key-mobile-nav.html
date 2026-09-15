@@ -1,0 +1,230 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JobAssistant — Mobile Nav (key screen mock)</title>
+<style>
+/*
+  Illustrates:
+  - DESIGN.md Components: navbar, hamburger-toggle, persistent-cta, nav-link-primary/secondary, card
+  - DESIGN.md Colors / Shapes / Elevation & Depth tokens (exact hex/px values) — Rich Mocha theme (warm
+    beige/cream base, warm dark-brown text, single brown/mocha accent)
+  - DESIGN.md Shapes: rounded.lg (14px) reserved for the mobile nav sheet full-bleed container
+  - EXPERIENCE.md Responsive & Platform: breakpoint <= 640px — nav links collapse into hamburger menu,
+    persistent CTA (components.persistent-cta) stays visible outside the hamburger at all times, routes
+    to the Application flow; History, Profile, Account, Logout live inside the hamburger sheet
+  - EXPERIENCE.md Component Patterns: "Persistent CTA" row (mobile/narrow only, same destination as Home's
+    big CTA and the navbar's bold "Application" link) — compact sizing: body-sm label, spacing.2/spacing.3
+    padding, so it doesn't crowd the collapsed navbar next to the hamburger toggle
+  - EXPERIENCE.md Interaction Primitives: touch targets >= 44px, Esc closes topmost sheet
+  - Two viewport-width frames (400px, well under the 640px breakpoint) shown side by side:
+    hamburger CLOSED state and hamburger OPEN state (sheet contents visible)
+*/
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --background: #F2E4CF;
+  --surface: #FAF1E1;
+  --text: #3A2A1D;
+  --text-secondary: #8A7157;
+  --border: #E0CBA8;
+  --accent: #7F6244;
+  --accent-strong: #937A62;
+  --accent-text: #FFF6EE;
+  --accent-bg: #7F62441F;
+  --success: #4C7A3F;
+  --success-bg: #4C7A3F1A;
+  --success-border: #4C7A3F40;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 24px 16px;
+}
+
+.frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.frame-block { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.frame-caption {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.phone {
+  width: 375px;
+  max-width: 92vw;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--background);
+}
+.phone-notch {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+  display: flex;
+  justify-content: center;
+}
+.phone-notch .bar { width: 60px; height: 5px; border-radius: 9999px; background: var(--border); }
+
+.navbar-mobile {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 56px;
+  position: relative;
+}
+.brand-mobile { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+
+.nav-controls { display: flex; align-items: center; gap: 10px; }
+
+/* Persistent CTA — stays outside the hamburger at all times */
+.persistent-cta {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 12px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hamburger {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.hamburger .bar-line { width: 18px; height: 2px; background: var(--text); border-radius: 2px; }
+.hamburger.open .bar-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger.open .bar-line:nth-child(2) { opacity: 0; }
+.hamburger.open .bar-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.body-fill {
+  padding: 20px 16px;
+  min-height: 260px;
+}
+.body-fill h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.body-fill p { color: var(--text-secondary); font-size: 13px; }
+
+/* Hamburger sheet (open state) */
+.sheet-overlay {
+  position: relative;
+}
+.sheet {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0 0 14px 14px;
+  padding: 8px 8px 16px;
+}
+.sheet-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 15px;
+  text-decoration: none;
+  border-radius: 6px;
+}
+.sheet-link.logout { color: var(--text-secondary); }
+.sheet-link:hover { background: var(--accent-bg); }
+
+.dim-body {
+  padding: 20px 16px;
+  min-height: 140px;
+  opacity: 0.35;
+}
+.dim-body h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.dim-body p { color: var(--text-secondary); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="frames">
+
+  <div class="frame-block">
+    <div class="frame-caption">Hamburger — closed (&le; 640px)</div>
+    <div class="phone">
+      <div class="phone-notch"><div class="bar"></div></div>
+      <div class="navbar-mobile">
+        <span class="brand-mobile">JobAssistant</span>
+        <div class="nav-controls">
+          <button class="persistent-cta">Create application</button>
+          <button class="hamburger" aria-label="Open menu" aria-expanded="false">
+            <span class="bar-line"></span><span class="bar-line"></span><span class="bar-line"></span>
+          </button>
+        </div>
+      </div>
+      <div class="body-fill">
+        <h1>Welcome back, Violet</h1>
+        <p>Paste a job description and JobAssistant will tell you why your application does — or doesn't — match.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-block">
+    <div class="frame-caption">Hamburger — open (sheet contents)</div>
+    <div class="phone">
+      <div class="phone-notch"><div class="bar"></div></div>
+      <div class="navbar-mobile">
+        <span class="brand-mobile">JobAssistant</span>
+        <div class="nav-controls">
+          <button class="persistent-cta">Create application</button>
+          <button class="hamburger open" aria-label="Close menu" aria-expanded="true">
+            <span class="bar-line"></span><span class="bar-line"></span><span class="bar-line"></span>
+          </button>
+        </div>
+      </div>
+      <div class="sheet-overlay">
+        <div class="sheet">
+          <a class="sheet-link" href="#">History</a>
+          <a class="sheet-link" href="#">Profile</a>
+          <a class="sheet-link" href="#">Account</a>
+          <a class="sheet-link logout" href="#">Logout</a>
+        </div>
+      </div>
+      <div class="dim-body">
+        <h1>Welcome back, Violet</h1>
+        <p>Paste a job description and JobAssistant will tell you why your application does — or doesn't — match.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
