@@ -2,7 +2,7 @@
 title: JobAssistant
 status: final
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-10-09
 ---
 
 # Product brief: JobAssistant
@@ -43,9 +43,20 @@ JobAssistant is self-serve and used directly by the student — there is no inst
 
 ## Success criteria
 
-**User success**: students report that JobAssistant's suggestions feel honest and useful — not generic AI filler, not implying qualifications they don't have — and understand *why* a change was suggested well enough to defend it in an interview. Over time, this shows up as fewer ATS-style rejections, application letters that sound like the student rather than a template, and enough understanding of how recruitment filtering works that rejections stop feeling arbitrary.
+**Functional success criteria** (testable within the semester, against fixed example CVs and job ads with a pre-defined answer key):
 
-**Delivery success**: a working end-to-end demo by early December — CV upload, job ad paste-in, tailored application output, CV improvement suggestions, gap analysis, and ATS match score, all functioning together. (Formal grading criteria for the course are out of scope for this brief.)
+1. For a known CV and job ad, the match-score output lists which keywords from the job ad are present in the CV and which are missing, keyword by keyword.
+2. The match-score is a single number between 0 and 100, computed deterministically by code (keyword/skill comparison between job-ad text and CV text) — not generated or estimated by the language model — so the same CV/job-ad pair always produces the same score, where 100 means every keyword/skill identified in the job ad is reflected in the CV.
+3. The gap-analysis never suggests a qualification that isn't already supported by text in the CV: every suggested gap-filler must cite the specific CV entry (course, project, job, or extracurricular) it's drawn from.
+4. Run against a fixed set of at least 3 example CV/job-ad pairs with a hand-written answer key: the match-score (±a defined tolerance) and gap-analysis outputs match the expected keywords and suggestions.
+5. The generated application letter contains no qualification or keyword that isn't traceable back to the CV (no hallucinated experience).
+6. CV improvement suggestions each name the specific CV section they're based on, so a reviewer can verify the suggestion isn't invented.
+7. The full core flow — upload CV (PDF or TXT), paste job ad, view match score with explanation, receive tailored letter — completes end-to-end without manual intervention.
+8. A test mode exists that reproduces this full flow using one pre-recorded example CV and job ad with cached responses, so it can be verified without a live LLM API key.
+
+**How the match-score is calculated**: the score is produced by code, not by asking the language model to invent a number. Keywords/skills are extracted from the job ad text and compared against the CV text (e.g., exact and near-match string/keyword comparison); the result is a 0–100 score (percentage of job-ad keywords found in the CV) plus a present/missing breakdown per keyword. This keeps the score auditable and testable against fixture data — the language model is used only for the explanatory text and the letter/gap-analysis content, not for deciding the score itself.
+
+**User success** (directional, not graded within the semester): over time, students should find JobAssistant's suggestions honest and useful rather than generic filler, and understand *why* a change was suggested well enough to defend it in an interview. This is a long-term outcome the functional criteria above are designed to make possible, not something measured during the course.
 
 ## Scope
 
