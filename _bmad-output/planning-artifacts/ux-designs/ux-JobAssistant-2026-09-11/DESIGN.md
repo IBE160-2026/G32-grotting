@@ -238,7 +238,7 @@ Visual reference mocks for the three load-bearing surfaces: [Home](mockups/key-h
 - **Match-score badge** — `{components.match-score-badge-strong}` (success tokens) or `{components.match-score-badge-weak}` (warning tokens) depending on threshold [ASSUMPTION threshold not specified — see EXPERIENCE.md.Component Patterns]. Percentage set in `{typography.mono-score}`.
 - **Keyword chip** — matched (`{components.keyword-chip-matched}`) or missing (`{components.keyword-chip-missing}`). Always paired with a ✓ / ✕ glyph, never color alone (accessibility requirement, see EXPERIENCE.md.Accessibility Floor).
 - **Suggestion callout** — `{colors.accent-bg}` fill, `{colors.accent}` left rail, body text in `{colors.text}` with the load-bearing phrase in `{colors.accent-strong}`. This is where the gap-analysis reasoning is delivered — the product's core transparency moment, so it never collapses into a generic alert style.
-- **Upload dropzone** — `{colors.surface}` fill, `{colors.border}` outline (dashed [ASSUMPTION, standard drop-target convention]), accepts PDF/DOC/TXT. Switches to `{colors.error}` outline on rejected file type/size.
+- **Upload dropzone** — `{colors.surface}` fill, `{colors.border}` outline (dashed [ASSUMPTION, standard drop-target convention]), accepts PDF/TXT. Switches to `{colors.error}` outline on rejected file type/size.
 - **Input field** — `{colors.surface}` fill, `{colors.border}` outline, `{colors.accent}` outline on focus, `{colors.error}` outline + inline message on validation failure.
 
 ## Do's and Don'ts

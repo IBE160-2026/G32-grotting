@@ -60,15 +60,19 @@ JobAssistant is self-serve and used directly by the student — there is no inst
 
 ## Scope
 
-**In v1**:
-- CV upload (PDF/DOC/TXT)
-- Job advertisement paste-in
-- Tailored application letter generation in a preferred tone/style
-- CV improvement suggestions
-- Gap analysis that translates coursework/projects/extracurriculars into missing qualifications
-- ATS-style match score with keyword-level explanations
-- User accounts with login
-- Encrypted storage of uploaded and generated content
+**In v1**, ranked in build order (if time runs short, cut from the bottom):
+
+1. CV upload (PDF or TXT, with plain-text paste as a fallback) and job advertisement paste-in — the input for everything else
+2. ATS-style match score with keyword-level explanations, computed in code
+3. Tailored application letter generation in a preferred tone/style
+4. Gap analysis that translates coursework/projects/extracurriculars into missing qualifications
+5. CV improvement suggestions
+6. User accounts with login, where each student sees only their own CVs and applications
+7. Encrypted storage of uploaded and generated content
+
+Items 1–3 form the core flow (upload CV → paste job ad → see explained match score → get tailored letter) and must be finished and stable before work starts on items 4–7. DOC files are not supported in v1, because text extraction from them is unreliable and adds risk without strengthening the core flow.
+
+**Privacy and data handling**: CVs contain personal data. Besides encrypting stored content, v1 tells the student plainly that CV and job-ad text is sent to an external language-model provider to generate the letter, gap analysis, suggestions, and explanations. The match score itself is computed locally and does not require sending data out. Only made-up example CVs are used as test data; real CVs never go into the repository.
 
 **Explicitly out of v1**:
 - Learning the student's voice from former applications (past applications are not yet used to personalize output)
