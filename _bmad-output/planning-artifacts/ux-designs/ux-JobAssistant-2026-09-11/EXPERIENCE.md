@@ -2,7 +2,7 @@
 title: JobAssistant
 status: final
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-10-10
 sources:
   - ../../briefs/brief-JobAssistant-2026-09-11/brief.md
   - ../../briefs/brief-JobAssistant-2026-09-11/addendum.md
@@ -14,7 +14,33 @@ sources:
 
 ## Foundation
 
-Single responsive web app, one account tier, no institutional/career-center intermediary (self-serve, per brief). No named UI system — components are custom, specified in `DESIGN.md.Components`. Course-project delivery target: working end-to-end demo by early December 2026 (per brief `Success criteria`). This keeps the spine intentionally narrow to v1 scope: CV upload, job-description paste-in, tailored letter generation, CV suggestions, gap analysis, ATS (Applicant Tracking System) match score, accounts with encrypted storage. Out of scope for this spine, per brief: in-app output editing, voice-learning from past applications, multi-language support, job-board integration/auto-apply, interview prep, LinkedIn import.
+Single responsive web app, one account tier, no institutional/career-center intermediary (self-serve, per brief). No named UI system — components are custom, specified in `DESIGN.md.Components`. Course-project delivery target: working end-to-end demo by early December 2026 (per brief `Success criteria`). This keeps the spine intentionally narrow to v1 scope: CV upload, job-description paste-in, tailored letter generation, CV suggestions, gap analysis, ATS (Applicant Tracking System) match score, accounts with encrypted storage. Out of scope for this spine, per brief: in-app output editing, voice-learning from past applications, multi-language support (the product is Norwegian only, see Language), job-board integration/auto-apply, interview prep, LinkedIn import.
+
+## Language
+
+The whole interface is Norwegian (bokmål), and so is everything the product generates: the application letter, CV suggestions, gap analysis, and explanations. There is no language switch. This spine keeps English surface and component names (Home, Application, Reflection Note, …) as internal identifiers so it stays consistent with `DESIGN.md` and the brief; the user-facing labels are the Norwegian ones below. Quoted microcopy elsewhere in this spine is already the Norwegian UI text.
+
+| Internal name | UI label |
+|---|---|
+| Home | Hjem |
+| Application | Søknad |
+| Profile | Profil |
+| History | Historikk |
+| Account | Konto |
+| Logout | Logg ut |
+| Signup / Login | Registrer deg / Logg inn |
+| "Create tailored application" (Home CTA) | Lag skreddersydd søknad |
+| "Create application" (persistent CTA) | Lag søknad |
+| Review CV / Review Application | Vurder CV / Vurder søknad |
+| Reflection Note | Refleksjonsnotat |
+| Feedback Document | Tilbakemelding |
+| ATS match score (card label) | ATS-samsvar |
+| Matched / missing keywords | Nøkkelord du har / Nøkkelord som mangler |
+| Suggestions | Forslag |
+| Strong match / Needs work | Sterkt samsvar / Bør forbedres |
+| Download | Last ned |
+
+Formatting follows Norwegian conventions: a space before the percent sign ("78 %"), dates as "8. sep. 2026", and «sjevroner» for quoted terms. Downloaded file names stay ASCII (`soknadsbrev`, not `søknadsbrev`) so they survive every file system and email client.
 
 ## Information Architecture
 
@@ -41,11 +67,12 @@ Microcopy. Brand register lives in `DESIGN.md.Brand & Style`: warm and editorial
 
 | Do | Don't |
 |---|---|
-| "78% match. Here's why." | "Wow, great job! 🎉 78% match!" |
-| "Missing: Kubernetes, Agile Certification." | "Uh oh, you're missing some keywords!" |
-| "Recruiters scanning for this role look for 'cross-functional collaboration.' Your application doesn't show it yet." | "You should add some more skills." |
-| "Your semester project on X likely covers this — consider adding it." | "We fixed this for you." (never implies the system invented or added a qualification on its own — see Inspiration & Anti-patterns) |
-| "Saved. Download your files below." | "Success!! Your documents are ready to go!!" |
+| "78 % samsvar. Her er hvorfor." | "Wow, så bra! 🎉 78 % samsvar!" |
+| "Mangler: Kubernetes, smidig sertifisering." | "Oi, du mangler noen nøkkelord!" |
+| "Rekrutterere som ser etter folk til denne stillingen, leter etter «tverrfaglig samarbeid». Søknaden din viser det ikke ennå." | "Du bør legge til flere ferdigheter." |
+| "Semesterprosjektet ditt om X dekker trolig dette – vurder å ta det med." | "Vi har fikset dette for deg." (never implies the system invented or added a qualification on its own — see Inspiration & Anti-patterns) |
+| "Lagret. Last ned filene dine nedenfor." | "Suksess!! Dokumentene dine er klare!!" |
+| Plain bokmål; address the user as "du". | Formal "De", English loanwords where a common Norwegian word exists, literal translations from English. |
 | Direct, evidence-first sentences — state the fact, then the reason. | Cheerleading, exclamation points, emoji, gamified praise. |
 
 ## Component Patterns
@@ -55,7 +82,7 @@ Behavioral. Visual specs live in `DESIGN.md.Components`.
 | Component | Use | Behavioral rules |
 |---|---|---|
 | Navbar | Global | Home + Application bold and always visible pre-collapse. Active surface highlighted in accent. Logout requires no confirmation dialog — single click ends session. |
-| Persistent CTA | Global, mobile/narrow only | [ASSUMPTION — see Responsive & Platform] Stays visible outside the hamburger at all times; routes to the Application flow (paste job description). Interpreted as the same destination as Home's big CTA and the navbar's bold "Application" link, since the memlog names a single "key CTA action," not several. Labeled "Create application" (shortened) and rendered compact (`{components.persistent-cta}`, sized below `{components.button-primary}`'s default) so it doesn't crowd the collapsed mobile navbar next to the hamburger toggle. |
+| Persistent CTA | Global, mobile/narrow only | [ASSUMPTION — see Responsive & Platform] Stays visible outside the hamburger at all times; routes to the Application flow (paste job description). Interpreted as the same destination as Home's big CTA and the navbar's bold "Application" link, since the memlog names a single "key CTA action," not several. Labeled "Lag søknad" (shortened) and rendered compact (`{components.persistent-cta}`, sized below `{components.button-primary}`'s default) so it doesn't crowd the collapsed mobile navbar next to the hamburger toggle. |
 | Review entry buttons | Home | The standalone "Review CV" and "Review application" buttons use `{components.button-review}` — `{colors.accent-strong}` fill, a visibly lighter brown than the primary CTA's `{colors.accent}` fill — so they read as actionable and on-brand without competing with Home's single primary "Create tailored application" CTA. |
 | Upload dropzone | Profile (CV), Review CV, Review Application | Click-to-browse or drag-and-drop. Accepts PDF/TXT only; anything else rejects inline with an error state (see State Patterns) before any upload request fires. Shows filename + size once accepted; re-drag replaces it. |
 | Match Score panel | Application result | One per generated application. Score badge (`{components.match-score-badge-strong}` or `{components.match-score-badge-weak}`) plus a keyword-chip row plus one-or-more suggestion callouts. Threshold for strong vs. weak: [ASSUMPTION — not specified in sources; a reasonable placeholder is ≥70% strong; treat as a config value the PRD/architecture should confirm, not a hard UX commitment]. |
@@ -64,7 +91,7 @@ Behavioral. Visual specs live in `DESIGN.md.Components`.
 | Reflection Note | Application result | The bundle name for the Match Score panel + suggestion callouts delivered alongside a generated application — this is the "gap analysis + ATS-screening explanation" named in the memlog. Downloadable alongside the CV and letter [ASSUMPTION: as a combined summary, format TBD by architecture — could be on-screen only, PDF, or plain text; the memlog confirms the *content* exists but not its delivery format beyond "downloadable"]. |
 | Feedback Document | Review CV result, Review Application result | [ASSUMPTION — the memlog names the output only as "a feedback document," not its structure.] Reuses the Match Score panel's keyword-chip and suggestion-callout patterns where a job description was supplied; falls back to general strengths/improvement callouts (no score, no keyword chips) when reviewing without one, since ATS matching requires a job description to compare against. |
 | History row | History, Home (recent list) | Job title/label, date, type (Application / CV review / Application review), and — for Application rows — the match score badge at a glance. Click opens the stored result read-only; download buttons remain available. |
-| Trust microcopy | Profile (CV upload), Account | Short, always-on, factual line near the upload control: "Your CV and generated documents are stored encrypted." [ASSUMPTION — surfaces the brief's encrypted-storage requirement as a trust signal, since the AI-transparency pillar extends naturally to data-handling transparency; exact placement/wording not decided in the memlog.] |
+| Trust microcopy | Profile (CV upload), Account | Short, always-on, factual line near the upload control: "CV-en din og dokumentene som lages, lagres kryptert." [ASSUMPTION — surfaces the brief's encrypted-storage requirement as a trust signal, since the AI-transparency pillar extends naturally to data-handling transparency; exact placement/wording not decided in the memlog.] |
 | Form field | Signup, Login, Profile, Account | Label above input (`{typography.label}`). Inline validation on blur, not on every keystroke. Error state uses `{colors.error}`, never `{colors.warning}` (warning is reserved for ATS semantics only). |
 
 ## State Patterns
@@ -72,16 +99,16 @@ Behavioral. Visual specs live in `DESIGN.md.Components`.
 | State | Surface | Treatment |
 |---|---|---|
 | Unauthenticated | Home | Same CTA-forward layout as authenticated Home; "Create tailored application" routes to Signup instead of Application. No locked/teaser screen. |
-| Empty history | Home, History | "No applications yet. Start with your first job description." + primary CTA. |
+| Empty history | Home, History | "Ingen søknader ennå. Start med din første stillingsannonse." + primary CTA. |
 | Cold load | Home, History | Skeleton rows matching the eventual list layout; resolves on data. |
 | Uploading | Profile, Review CV, Review Application | Dropzone shows filename + indeterminate progress. Cancel available while in flight. |
-| Upload rejected | Profile, Review CV, Review Application | Inline, `{colors.error}`: "Only PDF or TXT files are supported." / "File is too large." No toast — the error sits at the dropzone. |
-| Generating | Application (post-paste), Review CV, Review Application | Explicit progress state, not a bare spinner — per the product's transparency pillar, microcopy should say what's happening: "Comparing your CV against the job description…" This can take real processing time (LLM calls); the wait itself should not feel like a black box either. |
-| Generation failed | Application, Review CV, Review Application | `{colors.error}` inline message: "Something went wrong generating your application. Your job description/file wasn't lost — try again." Input preserved, retry in place. |
+| Upload rejected | Profile, Review CV, Review Application | Inline, `{colors.error}`: "Bare PDF- og TXT-filer støttes." / "Filen er for stor." No toast — the error sits at the dropzone. |
+| Generating | Application (post-paste), Review CV, Review Application | Explicit progress state, not a bare spinner — per the product's transparency pillar, microcopy should say what's happening: "Sammenligner CV-en din med stillingsannonsen …" This can take real processing time (LLM calls); the wait itself should not feel like a black box either. |
+| Generation failed | Application, Review CV, Review Application | `{colors.error}` inline message: "Noe gikk galt da søknaden skulle lages. Stillingsannonsen/filen din er ikke borte – prøv igjen." Input preserved, retry in place. |
 | Result ready | Application, Review CV, Review Application | Reflection Note / Feedback Document renders; download button(s) enabled. |
 | Form validation error | Signup, Login, Profile, Account | Inline, field-level, `{colors.error}`. Never a page-level blocking modal for validation. |
-| Session expired | Global | Redirect to Login with: "Your session ended. Log back in to continue." [ASSUMPTION, pairs with the assumed Login surface.] Where technically feasible, any in-progress paste/upload on Application isn't silently discarded — re-prompt after login. |
-| Offline / request failed | Global | [ASSUMPTION] Inline error banner, not a toast: "Couldn't reach the server. Check your connection and try again." No offline-first/local-write behavior — this is a server-dependent AI product, unlike a notes app. |
+| Session expired | Global | Redirect to Login with: "Økten din er avsluttet. Logg inn igjen for å fortsette." [ASSUMPTION, pairs with the assumed Login surface.] Where technically feasible, any in-progress paste/upload on Application isn't silently discarded — re-prompt after login. |
+| Offline / request failed | Global | [ASSUMPTION] Inline error banner, not a toast: "Fikk ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen." No offline-first/local-write behavior — this is a server-dependent AI product, unlike a notes app. |
 
 ## Interaction Primitives
 
@@ -99,12 +126,13 @@ JobAssistant is a document-in, document-out workflow tool, not a power-user surf
 Behavioral. Visual contrast lives in `DESIGN.md`.
 
 - WCAG 2.2 AA across the full responsive web surface.
-- Match/keyword semantics are never color-only: every keyword chip and match-score badge pairs its color with a glyph (✓/✕) and/or text label ("Strong match" / "Needs work"), so colorblind users get the same information.
+- Match/keyword semantics are never color-only: every keyword chip and match-score badge pairs its color with a glyph (✓/✕) and/or text label ("Sterkt samsvar" / "Bør forbedres"), so colorblind users get the same information.
 - All uploads have a labeled file input with an accessible name, not just a styled dropzone; drag-and-drop is progressive enhancement over a real `<input type="file">`.
 - Focus rings use `{colors.accent}` at AA contrast against `{colors.background}` and `{colors.surface}` (verified in DESIGN.md).
 - Form errors are associated with their field via `aria-describedby`, not color alone.
-- Generation-in-progress state is announced via `aria-live` (polite) so screen reader users get the "Comparing your CV…" progress copy, not silence.
-- Downloadable files are named descriptively (e.g., `violet-hansen-cv-acme-2026.pdf`), not `output.pdf` — an accessibility and usability point at once.
+- Generation-in-progress state is announced via `aria-live` (polite) so screen reader users get the "Sammenligner CV-en din …" progress copy, not silence.
+- Every page sets `lang="nb"` so screen readers pronounce the Norwegian text with a Norwegian voice.
+- Downloadable files are named descriptively (e.g., `violet-hansen-cv-acme-2026.pdf`, `violet-hansen-soknadsbrev-acme-2026.pdf`), not `output.pdf` — an accessibility and usability point at once.
 
 ## Responsive & Platform
 
@@ -131,13 +159,13 @@ No native mobile app exists or is planned (explicit brief scope exclusion); "res
 
 ### Flow 1 — First tailored application (Violet, first session, new user)
 
-1. Violet lands on Home, unauthenticated. She sees the big "Create tailored application" CTA up front — the Kickresume-style placement — plus an empty/sample state since she has no history yet.
+1. Violet lands on Home, unauthenticated. She sees the big "Lag skreddersydd søknad" CTA up front — the Kickresume-style placement — plus an empty/sample state since she has no history yet.
 2. She taps the CTA and is routed into Signup: username, email, password.
 3. Immediately after signup, she's redirected to Profile: she uploads her CV (PDF) via the dropzone and fills out her personal info fields.
 4. She returns to Home — her CTA is now front and center on a real (still-empty) dashboard — and taps it again, landing on the Application surface. (She could equally have used the bold "Application" navbar link.)
 5. She pastes in a job description for a role she's targeting.
-6. She submits; the Generating state shows explicit progress copy ("Comparing your CV against the job description…") rather than a bare spinner.
-7. **Climax:** the result loads — a tailored CV, an application letter, and the Reflection Note: a 78%-style match score badge, matched keyword chips, missing keyword chips, and a suggestion callout explaining that "cross-functional collaboration" appears in the posting but not her CV, with a pointer to the semester group project that already covers it, just not phrased that way yet. For the first time, Violet sees *why* the system is judging her application the way it is, not just a pass/fail score.
+6. She submits; the Generating state shows explicit progress copy ("Sammenligner CV-en din med stillingsannonsen …") rather than a bare spinner.
+7. **Climax:** the result loads — a tailored CV, an application letter, and the Reflection Note: a 78 %-style match score badge, matched keyword chips, missing keyword chips, and a suggestion callout explaining that «tverrfaglig samarbeid» appears in the posting but not her CV, with a pointer to the semester group project that already covers it, just not phrased that way yet. For the first time, Violet sees *why* the system is judging her application the way it is, not just a pass/fail score.
 8. She downloads the CV and letter files and continues editing them in her own tools outside the app — no in-app editor exists, by design.
 
 Failure: generation fails mid-request → inline error with her pasted job description preserved, retry available without re-pasting.

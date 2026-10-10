@@ -2,7 +2,7 @@
 title: JobAssistant
 status: final
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-10-10
 sources:
   - ../../briefs/brief-JobAssistant-2026-09-11/brief.md
   - ../../briefs/brief-JobAssistant-2026-09-11/addendum.md
@@ -203,13 +203,15 @@ Avoid: any additional chromatic color beyond this list, gradients, colored surfa
 
 [ASSUMPTION — no typography decision exists in the memlog; this is a fast-path default.] One shared system-sans family (`{typography.display.fontFamily}`) carries every role except `mono-score`. The ramp is deliberately shallow — this is a utility interface, not a display-typography showcase:
 
-- `{typography.display}` — page-level moment, used once per surface at most (for example, "Welcome back" on Home, a result-page headline). Bold, tight letter-spacing.
+- `{typography.display}` — page-level moment, used once per surface at most (for example, "Velkommen tilbake" on Home, a result-page headline). Bold, tight letter-spacing.
 - `{typography.heading-lg}` / `{typography.heading-md}` — page titles and card/section headers respectively.
 - `{typography.body}` / `{typography.body-sm}` — primary copy and secondary/meta copy.
-- `{typography.label}` — uppercase, tracked-out labels for card headers ("ATS MATCH SCORE"), form field labels, and nav-adjacent microcopy.
+- `{typography.label}` — uppercase, tracked-out labels for card headers ("ATS-SAMSVAR"), form field labels, and nav-adjacent microcopy.
 - `{typography.mono-score}` — monospace, used exclusively for the match-score percentage. The one deliberate typographic flourish in the system: it makes the score read as a measurement, not a marketing number.
 
 No serif, no display-weight body text, no italics as a primary device.
+
+The UI is Norwegian (bokmål; label glossary in `EXPERIENCE.md.Language`). Two consequences for type: every font in the stack must render æ, ø and å (the listed system fonts all do), and Norwegian compound words run long ("Stillingsannonse", "Tilbakemelding"), so buttons, chips and labels size to their content and may wrap to a second line rather than truncate. Never give a text-bearing component a fixed width. The match score is written with a space before the percent sign ("78 %").
 
 ## Layout & Spacing
 
@@ -229,11 +231,11 @@ Two functional radii plus a pill: `{rounded.sm}` (6px) for buttons, inputs, chip
 
 Visual reference mocks for the three load-bearing surfaces: [Home](mockups/key-home.html), [Application result](mockups/key-application-result.html), [Mobile nav, collapsed](mockups/key-mobile-nav.html). These illustrate the tokens/components below; where a mock and this spine ever disagree, the spine wins.
 
-- **Navbar** — `{colors.surface}` background, `{colors.border}` bottom hairline. Flat six items: Home, Application, Profile, History, Account, Logout. Home and Application render with `{components.nav-link-primary}` (bold, `{colors.text}`); the remaining four render with `{components.nav-link-secondary}` (`{colors.text-secondary}`, regular weight). Active item takes `{colors.accent}` regardless of primary/secondary weight class.
-- **Persistent CTA** — [ASSUMPTION, see EXPERIENCE.md.Responsive & Platform for the reasoning] a `{components.button-primary}`-styled button that stays outside the hamburger on collapsed/mobile navbars, pointing at the Application flow. Compact by design: labeled "Create application" (shortened from Home's full "Create tailored application," which has room to spell it out) and sized down from `{components.button-primary}`'s default — `{typography.body-sm}` label, `{spacing.2}`/`{spacing.3}` padding — so it doesn't crowd the collapsed navbar next to the hamburger toggle.
-- **Button, primary** — `{colors.accent}` fill, `{colors.accent-text}` label, `{rounded.sm}` corner. Used for the single primary action per screen (Home's "Create tailored application," a form's submit, a result page's "Download").
-- **Button, secondary** — transparent fill, `{colors.border}` outline, `{colors.text}` label. Used for secondary actions (for example, "Cancel," "Upload a different file").
-- **Button, review** — `{colors.accent-strong}` fill (a lighter brown than the primary accent), `{colors.accent-text}` label, `{rounded.sm}` corner. Used specifically for the standalone "Review CV" / "Review application" entry points on Home — visually actionable and on-brand, but a clear step down from the primary "Create tailored application" CTA so Home's hierarchy stays legible: one dominant action, two secondary-but-colored ones. Contrast note: `accent-strong` (#937A62) against `accent-text` (#FFF6EE) is ~3.8:1 — passes AA for large/bold UI text and component boundaries (3:1) but is under the 4.5:1 normal-text threshold; worth revisiting if this label's size or weight ever changes.
+- **Navbar** — `{colors.surface}` background, `{colors.border}` bottom hairline. Flat six items: Home, Application, Profile, History, Account, Logout (UI labels: Hjem, Søknad, Profil, Historikk, Konto, Logg ut). Home and Application render with `{components.nav-link-primary}` (bold, `{colors.text}`); the remaining four render with `{components.nav-link-secondary}` (`{colors.text-secondary}`, regular weight). Active item takes `{colors.accent}` regardless of primary/secondary weight class.
+- **Persistent CTA** — [ASSUMPTION, see EXPERIENCE.md.Responsive & Platform for the reasoning] a `{components.button-primary}`-styled button that stays outside the hamburger on collapsed/mobile navbars, pointing at the Application flow. Compact by design: labeled "Lag søknad" (shortened from Home's full "Lag skreddersydd søknad," which has room to spell it out) and sized down from `{components.button-primary}`'s default — `{typography.body-sm}` label, `{spacing.2}`/`{spacing.3}` padding — so it doesn't crowd the collapsed navbar next to the hamburger toggle.
+- **Button, primary** — `{colors.accent}` fill, `{colors.accent-text}` label, `{rounded.sm}` corner. Used for the single primary action per screen (Home's "Lag skreddersydd søknad," a form's submit, a result page's "Last ned").
+- **Button, secondary** — transparent fill, `{colors.border}` outline, `{colors.text}` label. Used for secondary actions (for example, "Avbryt," "Last opp en annen fil").
+- **Button, review** — `{colors.accent-strong}` fill (a lighter brown than the primary accent), `{colors.accent-text}` label, `{rounded.sm}` corner. Used specifically for the standalone "Vurder CV" / "Vurder søknad" entry points on Home — visually actionable and on-brand, but a clear step down from the primary "Lag skreddersydd søknad" CTA so Home's hierarchy stays legible: one dominant action, two secondary-but-colored ones. Contrast note: `accent-strong` (#937A62) against `accent-text` (#FFF6EE) is ~3.8:1 — passes AA for large/bold UI text and component boundaries (3:1) but is under the 4.5:1 normal-text threshold; worth revisiting if this label's size or weight ever changes.
 - **Card** — `{colors.surface}` fill, `{colors.border}` outline, `{rounded.md}` corner. The base container for the match-score panel, history rows, and profile sections.
 - **Match-score badge** — `{components.match-score-badge-strong}` (success tokens) or `{components.match-score-badge-weak}` (warning tokens) depending on threshold [ASSUMPTION threshold not specified — see EXPERIENCE.md.Component Patterns]. Percentage set in `{typography.mono-score}`.
 - **Keyword chip** — matched (`{components.keyword-chip-matched}`) or missing (`{components.keyword-chip-missing}`). Always paired with a ✓ / ✕ glyph, never color alone (accessibility requirement, see EXPERIENCE.md.Accessibility Floor).
