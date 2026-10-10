@@ -2,7 +2,7 @@
 title: JobAssistant
 status: final
 created: 2026-09-11
-updated: 2026-10-09
+updated: 2026-10-10
 ---
 
 # Product brief: JobAssistant
@@ -53,8 +53,9 @@ JobAssistant is self-serve and used directly by the student — there is no inst
 6. CV improvement suggestions each name the specific CV section they're based on, so a reviewer can verify the suggestion isn't invented.
 7. The full core flow — upload CV (PDF or TXT), paste job ad, view match score with explanation, receive tailored letter — completes end-to-end without manual intervention.
 8. A test mode exists that reproduces this full flow using one pre-recorded example CV and job ad with cached responses, so it can be verified without a live LLM API key.
+9. All interface text and all generated content (letter, CV suggestions, gap analysis, explanations) are in Norwegian (bokmål), including when the job ad contains English terms.
 
-**How the match-score is calculated**: the score is produced by code, not by asking the language model to invent a number. Keywords/skills are extracted from the job ad text and compared against the CV text (e.g., exact and near-match string/keyword comparison); the result is a 0–100 score (percentage of job-ad keywords found in the CV) plus a present/missing breakdown per keyword. This keeps the score auditable and testable against fixture data — the language model is used only for the explanatory text and the letter/gap-analysis content, not for deciding the score itself.
+**How the match-score is calculated**: the score is produced by code, not by asking the language model to invent a number. Keywords/skills are extracted from the job ad text and compared against the CV text (e.g., exact and near-match string/keyword comparison); the result is a 0–100 score (percentage of job-ad keywords found in the CV) plus a present/missing breakdown per keyword. Because CVs and job ads are in Norwegian, the comparison must normalise text before matching: case-insensitive, and inflected forms count as the same keyword ("prosjektleder", "prosjektlederen", "prosjektledere"). English terms that are common in Norwegian job ads (tool names, "stakeholder", "Agile") are treated as keywords like any other. How far to go with Norwegian compound words ("prosjektledelse" vs. "ledelse av prosjekter") is an architecture decision; whatever is chosen must be covered by the answer-key fixtures. This keeps the score auditable and testable against fixture data — the language model is used only for the explanatory text and the letter/gap-analysis content, not for deciding the score itself.
 
 **User success** (directional, not graded within the semester): over time, students should find JobAssistant's suggestions honest and useful rather than generic filler, and understand *why* a change was suggested well enough to defend it in an interview. This is a long-term outcome the functional criteria above are designed to make possible, not something measured during the course.
 
@@ -72,12 +73,14 @@ JobAssistant is self-serve and used directly by the student — there is no inst
 
 Items 1–3 form the core flow (upload CV → paste job ad → see explained match score → get tailored letter) and must be finished and stable before work starts on items 4–7. DOC files are not supported in v1, because text extraction from them is unreliable and adds risk without strengthening the core flow.
 
+**Language**: v1 is Norwegian only (bokmål). The interface, all generated content, and all test data (example CVs, job ads, answer keys, cached test-mode responses) are in Norwegian. CVs and job ads are expected to be written in Norwegian.
+
 **Privacy and data handling**: CVs contain personal data. Besides encrypting stored content, v1 tells the student plainly that CV and job-ad text is sent to an external language-model provider to generate the letter, gap analysis, suggestions, and explanations. The match score itself is computed locally and does not require sending data out. Only made-up example CVs are used as test data; real CVs never go into the repository.
 
 **Explicitly out of v1**:
 - Learning the student's voice from former applications (past applications are not yet used to personalize output)
 - Mobile app
-- Multi-language support
+- Multi-language support (v1 is Norwegian only: no English interface, no English output, no nynorsk)
 - Direct job-board integration or auto-apply
 - Interview preparation features
 - LinkedIn import
