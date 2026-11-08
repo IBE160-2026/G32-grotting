@@ -25,4 +25,4 @@
 - [x] 2026-11-08 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — bekreft fordelingen av de fem ekstra dagene i PRD §5.2 (S4 + S5 til 1. des, S6 + S7 2.–11. des, sluttperiode 12.–15. des) (løst 2026-11-08: bekreftet)
 - [ ] 2026-11-08 [ux-oppdatering-etter-prd](995-2026-11-08-13-21-28-ux-oppdatering-etter-prd.md) — gå gjennom mikrotekstene som ble skrevet uten fast PRD-ordlyd (lista nederst i ux-designs/…/reconcile-prd.md)
 - [ ] 2026-11-08 [ux-oppdatering-etter-prd](995-2026-11-08-13-21-28-ux-oppdatering-etter-prd.md) — valgfritt: kjør bmad-ux-validering og bmad-review-polish på de oppdaterte UX-spines
-- [ ] 2026-11-08 [ux-oppdatering-etter-prd](995-2026-11-08-13-21-28-ux-oppdatering-etter-prd.md) — valgfritt: mockup av Søknad-skjemaet (CV-tekst, Tone-kort, KI-varsel)
+- [x] 2026-11-08 [ux-oppdatering-etter-prd](995-2026-11-08-13-21-28-ux-oppdatering-etter-prd.md) — valgfritt: mockup av Søknad-skjemaet (CV-tekst, Tone-kort, KI-varsel) (løst 2026-11-08: mockups/key-application-form.html)

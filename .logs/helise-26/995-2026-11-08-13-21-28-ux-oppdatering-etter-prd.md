@@ -24,3 +24,21 @@ Helene ba om «bmad ux»: les den ferdige PRD-en og oppdater UX-dokumentene (DES
 - Gå gjennom mikrotekstene som ble skrevet uten fast PRD-ordlyd (lista nederst i `reconcile-prd.md`): gap-etiketter, Verdict-setninger, formel og forbehold, navbar uten meny før S6, plassholder for signatur m.m.
 - Valgfritt: kjør bmad-ux sin reviewer-gate (validering) og bmad-review-polish (struktur, prosa) på de oppdaterte spines; ikke kjørt i denne økten.
 - Valgfritt: mockup av Søknad-skjemaet (CV-tekst, Tone-kort, KI-varsel), som nå bare er beskrevet i spines.
+
+## 2026-11-08 kl. 13:30 — Helise-26
+
+### Oppgave
+Helene ba om en mockup av Søknad-skjemaet (åpent punkt fra forrige økt).
+
+### Plan
+- Renderte `.working/key-application-form.html` etter EXPERIENCE.md og DESIGN.md, sjekket den med et skjermbilde fra headless Edge, og flyttet den til `mockups/`.
+- Tok ny mikrotekst fra mocken inn i EXPERIENCE.md, så spines fortsatt er kontrakten.
+
+### Resultat
+- `mockups/key-application-form.html` har tre rammer: (1) før kontoer, CV-teksten er hentet ut og venter på «Bekreft CV-teksten»; (2) full v1, CV-tekst fra Profil og KI-varselet åpent; (3) mobil i testmodus med «Bruk eksempelet», tonekort under hverandre og feil på lengden.
+- EXPERIENCE.md: skjemaoppsett («Ny søknad», tre nummererte kort, undertitler, notat ved «Lag søknad»), tittelen «Før vi sender teksten din», linja om kontaktinformasjon (FR-26), «Du ser dette varselet bare én gang» og teksten i eksempel-linja. Mocken er lenket fra EXPERIENCE.md og DESIGN.md. Memlog oppdatert.
+- UX-endringene er fortsatt ikke committet.
+
+### Åpne punkter
+- Navnet på KI-leverandøren og antall lagringsdager i KI-varselet er plassholdere til arkitekturen har valgt leverandør (OQ3); dette inngår i det eksisterende arkitekturpunktet.
+
