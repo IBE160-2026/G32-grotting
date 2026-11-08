@@ -2,307 +2,227 @@
 <html lang="nb">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JobAssistant — Søknadsresultat (key screen mock)</title>
 <style>
 /*
-  Illustrates:
-  - DESIGN.md Components: match-score-badge-strong, keyword-chip-matched, keyword-chip-missing,
-    suggestion-callout, card, button-primary, button-secondary
-  - DESIGN.md Colors / Typography / Shapes / Elevation & Depth tokens (exact hex/px values) — Rich Mocha
-    theme (warm beige/cream base, warm dark-brown text, single brown/mocha accent)
-  - DESIGN.md Typography: mono-score (match score number), label (ATS MATCH SCORE, section labels)
-  - DESIGN.md Shapes: rounded.full for the score badge only; rounded.sm for chips/buttons; rounded.md for cards
-  - EXPERIENCE.md Component Patterns: "Match Score panel" (score badge + keyword-chip row + suggestion
-    callouts), "Keyword chip" (✓/✕ glyph pairing), "Suggestion callout" (what's missing / why it matters /
-    which coursework could fill it), "Reflection Note" (the bundle name for this panel)
-  - EXPERIENCE.md Accessibility Floor: glyph + text label pairing, never color-only
-  - EXPERIENCE.md Key Flows > Flow 1, step 7 (the Climax): 78%-style match score, matched/missing chips,
-    "cross-functional collaboration" suggestion pointing at the semester group project
-  - EXPERIENCE.md Voice and Tone: "78 % samsvar. Her er hvorfor." register — evidence-first, no cheerleading
-  - EXPERIENCE.md Accessibility Floor: downloadable files named descriptively, not output.pdf
+  Updated 2026-11-08 to match the PRD (prd-JobAssistant-2026-10-31, D1, D3, D4, D15, D16, D19).
+  Illustrates the Søknad page after submit, full v1 (S1–S7 built), phase 2 complete:
+  - EXPERIENCE.md Component Patterns > Results: collapsed form summary, Score panel (badge with Verdict
+    text, «5 av 7 nøkkelord», Verdict sentence, formula line, estimate disclaimer), Keyword lists with
+    Evidence excerpts and code-written Missing lines, «Det som mangler» with a Rewordable-gap callout
+    (citation + Forslag + Kopier) and a Real-gap callout, Letter view with AI-draft label, one Letter flag
+    and its warning, Kopier / Last ned (.docx) / Lag nytt utkast, «Lagret i Historikk.»
+  - Flow 1 climax (PRD UJ-1): 71 % = 5 of 7 keywords. The Letter flag on «Kubernetes» is added here only
+    to show the component; Flow 1 itself has no flagged word.
+  - No tailored CV file and no Reflection Note download (D1, D4).
+  - DESIGN.md tokens as of 2026-11-08 (WCAG AA palette, border-strong, warning-text).
+  Spines win on any conflict with this mock.
 */
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --background: #F2E4CF;
-  --surface: #FAF1E1;
-  --text: #3A2A1D;
-  --text-secondary: #8A7157;
-  --border: #E0CBA8;
-  --accent: #7F6244;
-  --accent-strong: #937A62;
-  --accent-text: #FFF6EE;
-  --accent-bg: #7F62441F;
-  --success: #4C7A3F;
-  --success-bg: #4C7A3F1A;
-  --success-border: #4C7A3F40;
-  --warning: #B8860B;
-  --warning-bg: #B8860B1F;
-  --warning-border: #B8860B45;
+  --background: #F2E4CF; --surface: #FAF1E1; --text: #3A2A1D; --text-secondary: #745F49;
+  --border: #E0CBA8; --border-strong: #9A7D5D;
+  --accent: #795D41; --accent-text: #FFF6EE; --accent-bg: #795D411F;
+  --success: #406735; --success-bg: #4067351A; --success-border: #40673540;
+  --warning: #B8860B; --warning-text: #7A5907; --warning-bg: #B8860B1F; --warning-border: #B8860B45;
 }
-
-body {
-  background: var(--background);
-  color: var(--text);
+body { background: var(--background); color: var(--text);
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.browser-frame {
-  max-width: 1180px;
-  margin: 24px auto;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.browser-chrome {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+  font-size: 15px; line-height: 1.6; }
+.browser-frame { max-width: 1180px; margin: 24px auto; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.browser-chrome { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
 .browser-chrome .dot { width: 10px; height: 10px; border-radius: 9999px; background: var(--border); }
-.browser-chrome .addr {
-  margin-left: 12px;
-  background: var(--background);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  flex: 1;
-}
-
-.navbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  height: 60px;
-}
+.browser-chrome .addr { margin-left: 12px; background: var(--background); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--text-secondary); flex: 1; }
+.navbar { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 60px; }
 .navbar .brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; margin-right: 32px; }
-.nav-links { display: flex; align-items: center; gap: 24px; flex: 1; }
-.nav-link-primary { color: var(--text); font-weight: 700; text-decoration: none; font-size: 15px; }
-.nav-link-primary.active { color: var(--accent); }
-.nav-link-secondary { color: var(--text-secondary); font-weight: 500; text-decoration: none; font-size: 15px; }
-
-.page { padding: 48px 20px; }
+.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-links a { text-decoration: none; font-size: 15px; padding: 10px 0; }
+.nav-link-primary { color: var(--text); font-weight: 700; }
+.nav-link-secondary { color: var(--text-secondary); font-weight: 500; }
+.active { color: var(--accent) !important; }
+.page { padding: 40px 20px 64px; }
 .page-inner { max-width: 760px; margin: 0 auto; }
-
-h1.display {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  margin-bottom: 4px;
-}
-.subhead { color: var(--text-secondary); font-size: 15px; margin-bottom: 48px; }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 24px;
-  margin-bottom: 48px;
-}
-
-.label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-}
-
-/* Match score */
-.score-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border-radius: 9999px;
-  padding: 8px 18px;
-  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.2;
-}
+.summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--text-secondary); margin-bottom: 32px; }
+.summary strong { color: var(--text); }
+h1.display { font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 24px; }
+h2 { font-size: 17px; font-weight: 700; line-height: 1.35; }
+.section-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.label { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 48px; }
+.score-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 12px 0 12px; }
+.badge { display: inline-flex; align-items: center; gap: 10px; border-radius: 9999px; padding: 8px 18px; }
+.badge .num { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 16px; font-weight: 700; }
+.badge .sep { width: 1px; height: 16px; background: currentColor; opacity: .35; }
+.badge .verdict { font-size: 13px; font-weight: 700; }
 .badge-strong { color: var(--success); background: var(--success-bg); border: 1px solid var(--success-border); }
-.score-verdict { font-size: 15px; }
-.score-verdict strong { font-weight: 700; }
-
-/* Keyword chips */
-.chip-section { margin-bottom: 24px; }
-.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 500;
-}
+.count { font-weight: 600; }
+.verdict-sentence { margin-bottom: 16px; }
+.formula, .disclaimer { font-size: 13px; color: var(--text-secondary); }
+.formula { margin-bottom: 4px; }
+.kw-group { margin-top: 28px; }
+.kw-group .label { margin-bottom: 12px; display: block; }
+.kw { margin-bottom: 14px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 600; min-height: 32px; }
 .chip-matched { color: var(--success); background: var(--success-bg); border: 1px solid var(--success-border); }
-.chip-missing { color: var(--warning); background: var(--warning-bg); border: 1px solid var(--warning-border); }
-.chip .glyph { font-weight: 700; }
-
-.missing-line {
-  color: var(--text-secondary);
-  font-size: 13px;
-  margin-top: 10px;
-}
-.missing-line strong { color: var(--text); font-weight: 600; }
-
-/* Suggestion callout */
-.callout {
-  background: var(--accent-bg);
-  border-left: 3px solid var(--accent);
-  border-radius: 6px;
-  padding: 16px 20px;
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
+.chip-missing { color: var(--warning-text); background: var(--warning-bg); border: 1px solid var(--warning-border); }
+.evidence { border-left: 2px solid var(--border-strong); padding: 2px 0 2px 12px; margin: 6px 0 0 4px; font-size: 13px; }
+.evidence .ev-label { color: var(--text-secondary); display: block; }
+.code-line { font-size: 13px; margin: 6px 0 0 4px; }
+.jump { font-size: 13px; color: var(--accent); font-weight: 600; margin-left: 4px; display: inline-block; padding: 6px 0; }
+.ai-label { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); }
+.callout { border-radius: 6px; padding: 16px 20px; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
 .callout p { margin-bottom: 8px; }
-.callout p:last-child { margin-bottom: 0; }
-.callout .emphasis { color: var(--accent-strong); font-weight: 600; }
-
-/* Downloads */
-.download-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-.download-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 20px;
-  margin-bottom: 12px;
-}
-.file-meta { display: flex; flex-direction: column; gap: 2px; }
-.file-name { font-weight: 600; font-size: 14px; }
-.file-sub { color: var(--text-secondary); font-size: 12px; }
-.btn-primary {
-  background: var(--accent);
-  color: var(--accent-text);
-  border: none;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 14px;
-  padding: 10px 18px;
-  cursor: pointer;
-}
-.btn-secondary {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 13px;
-  padding: 9px 16px;
-  cursor: pointer;
-}
+.callout-reword { background: var(--accent-bg); border-left: 3px solid var(--accent); }
+.callout-reword .gap-label { color: var(--accent); }
+.callout-reword .emphasis { color: var(--accent); font-weight: 600; }
+.callout-real { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--warning); }
+.callout-real .gap-label { color: var(--warning-text); }
+.gap-label { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+.suggestion { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; margin-top: 10px; }
+.suggestion .s-label { font-size: 13px; color: var(--text-secondary); display: block; }
+.btn-primary, .btn-secondary { border-radius: 6px; font-weight: 600; font-size: 14px; padding: 10px 16px; min-height: 44px; cursor: pointer; font-family: inherit; }
+.btn-primary { background: var(--accent); color: var(--accent-text); border: none; font-weight: 700; }
+.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-strong); white-space: nowrap; }
+.draft-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.warnings { list-style: none; margin-bottom: 12px; }
+.warnings li { color: var(--warning-text); font-size: 13px; font-weight: 600; padding-left: 20px; position: relative; }
+.warnings li::before { content: "✕"; position: absolute; left: 0; }
+.letter { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 32px; font-size: 16px; line-height: 1.7; }
+.letter p { margin-bottom: 14px; }
+.flag { background: var(--warning-bg); text-decoration: underline; text-decoration-color: var(--warning-text); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
 .saved-note { color: var(--text-secondary); font-size: 13px; margin-top: 16px; }
+@media (max-width: 640px) { .letter { padding: 20px; } .nav-links { display: none; } }
 </style>
 </head>
 <body>
 <div class="browser-frame">
   <div class="browser-chrome">
     <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-    <div class="addr">jobassistant.app/application/result</div>
+    <div class="addr">jobassistant.vercel.app/soknad/8f3c…</div>
   </div>
 
   <nav class="navbar">
     <div style="display:flex; align-items:center;">
       <span class="brand">JobAssistant</span>
       <div class="nav-links">
-        <a class="nav-link-secondary" href="#">Hjem</a>
-        <a class="nav-link-primary active" href="#">Søknad</a>
+        <a class="nav-link-primary" href="#">Hjem</a>
+        <a class="nav-link-primary active" href="#" aria-current="page">Søknad</a>
         <a class="nav-link-secondary" href="#">Profil</a>
         <a class="nav-link-secondary" href="#">Historikk</a>
         <a class="nav-link-secondary" href="#">Konto</a>
       </div>
     </div>
-    <a class="nav-link-secondary" href="#">Logg ut</a>
+    <a class="nav-link-secondary" href="#" style="text-decoration:none;">Logg ut</a>
   </nav>
 
-  <div class="page">
+  <main class="page">
     <div class="page-inner">
-      <h1 class="display">Frontendutvikler — Nordic Digital</h1>
-      <p class="subhead">78 % samsvar. Her er hvorfor.</p>
+      <div class="summary">
+        <span><strong>Frontendutvikler – Nordic Digital</strong> · Tone: Formell · CV-tekst fra profilen</span>
+        <button class="btn-secondary">Endre</button>
+      </div>
 
-      <div class="card">
-        <div class="label">ATS-SAMSVAR</div>
+      <h1 class="display">Frontendutvikler – Nordic Digital</h1>
+
+      <!-- Phase 1: Score panel + keyword lists (code, no AI) -->
+      <section class="card" aria-labelledby="score-h">
+        <span class="label" id="score-h">ATS-samsvar</span>
         <div class="score-row">
-          <span class="badge badge-strong">78 %</span>
-          <span class="score-verdict">Sterkt samsvar – CV-en din dekker det meste annonsen ser etter.</span>
+          <span class="badge badge-strong" aria-label="Samsvar 71 prosent, sterkt samsvar">
+            <span class="num">71 %</span><span class="sep"></span><span class="verdict">Sterkt samsvar</span>
+          </span>
+          <span class="count">5 av 7 nøkkelord</span>
+        </div>
+        <p class="verdict-sentence">CV-en din dekker de fleste nøkkelordene annonsen nevner.</p>
+        <p class="formula">Samsvar = nøkkelord funnet i CV-en ÷ alle nøkkelord i annonsen</p>
+        <p class="disclaimer">Dette er et anslag på hvor mye av annonsens ordbruk CV-en din dekker – ikke resultatet fra et ekte ATS, og ingen spådom om intervjusjanser.</p>
+
+        <div class="kw-group">
+          <span class="label">Nøkkelord du har</span>
+          <div class="kw">
+            <span class="chip chip-matched"><span aria-hidden="true">✓</span>React</span>
+            <div class="evidence"><span class="ev-label">Funnet i CV-en</span>«… utviklet frontend i <strong>React</strong> og TypeScript for gruppeappen …»</div>
+          </div>
+          <div class="kw">
+            <span class="chip chip-matched"><span aria-hidden="true">✓</span>TypeScript</span>
+            <div class="evidence"><span class="ev-label">Funnet i CV-en</span>«… utviklet frontend i React og <strong>TypeScript</strong> for gruppeappen …»</div>
+          </div>
+          <div class="kw">
+            <span class="chip chip-matched"><span aria-hidden="true">✓</span>REST-API</span>
+            <div class="evidence"><span class="ev-label">Funnet i CV-en</span>«… koblet appen mot et <strong>REST-API</strong> skrevet i Node.js …»</div>
+          </div>
+          <div class="kw">
+            <span class="chip chip-matched"><span aria-hidden="true">✓</span>Smidig utvikling</span>
+            <div class="evidence"><span class="ev-label">Funnet i CV-en</span>«… jobbet i to-ukers sprinter etter <strong>smidig</strong> metode …»</div>
+          </div>
+          <div class="kw">
+            <span class="chip chip-matched"><span aria-hidden="true">✓</span>Git</span>
+            <div class="evidence"><span class="ev-label">Funnet i CV-en</span>«Verktøy: <strong>Git</strong>, VS Code, Figma»</div>
+          </div>
         </div>
 
-        <div class="chip-section">
-          <div class="label">NØKKELORD DU HAR</div>
-          <div class="chip-row">
-            <span class="chip chip-matched"><span class="glyph">✓</span>React</span>
-            <span class="chip chip-matched"><span class="glyph">✓</span>TypeScript</span>
-            <span class="chip chip-matched"><span class="glyph">✓</span>REST APIs</span>
-            <span class="chip chip-matched"><span class="glyph">✓</span>Smidig utvikling</span>
-            <span class="chip chip-matched"><span class="glyph">✓</span>Git</span>
+        <div class="kw-group">
+          <span class="label">Nøkkelord som mangler</span>
+          <div class="kw">
+            <span class="chip chip-missing"><span aria-hidden="true">✕</span>Tverrfaglig samarbeid</span>
+            <p class="code-line">Annonsen ber om «tverrfaglig samarbeid». CV-en din viser det ikke ennå.</p>
+            <div class="evidence"><span class="ev-label">Fra annonsen</span>«Du trives med <strong>tverrfaglig samarbeid</strong> med designere og testere.»</div>
+            <a class="jump" href="#gap-1">Se vurdering</a>
+          </div>
+          <div class="kw">
+            <span class="chip chip-missing"><span aria-hidden="true">✕</span>Kubernetes</span>
+            <p class="code-line">Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.</p>
+            <div class="evidence"><span class="ev-label">Fra annonsen</span>«Erfaring med Docker og <strong>Kubernetes</strong> er en fordel.»</div>
+            <a class="jump" href="#gap-2">Se vurdering</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Phase 2: Gap analysis + Rewording suggestions (AI) -->
+      <section class="card" aria-labelledby="gaps-h">
+        <div class="section-head"><h2 id="gaps-h">Det som mangler</h2><span class="ai-label">Skrevet med KI</span></div>
+
+        <div class="callout callout-reword" id="gap-1">
+          <span class="gap-label">Kan omformuleres</span>
+          <p>Rekrutterere som leser CV-er til denne stillingen, ser etter <span class="emphasis">«tverrfaglig samarbeid»</span>. CV-en din sier det ikke ennå. Semesterprosjektet ditt dekker trolig dette – vurder å ta det med.</p>
+          <div class="evidence"><span class="ev-label">Fra CV-en din</span>«Semesterprosjekt: gruppeapp for emneplanlegging. Fem studenter fra informatikk og interaksjonsdesign; jeg hadde ansvar for frontend og testet med brukere.»</div>
+          <div class="suggestion">
+            <div><span class="s-label">Forslag</span>«Samarbeidet tverrfaglig med studenter fra interaksjonsdesign om en gruppeapp, med ansvar for frontend og brukertesting.»</div>
+            <button class="btn-secondary">Kopier</button>
           </div>
         </div>
 
-        <div class="chip-section">
-          <div class="label">NØKKELORD SOM MANGLER</div>
-          <div class="chip-row">
-            <span class="chip chip-missing"><span class="glyph">✕</span>Tverrfaglig samarbeid</span>
-            <span class="chip chip-missing"><span class="glyph">✕</span>Kubernetes</span>
-          </div>
-          <div class="missing-line">Mangler: <strong>tverrfaglig samarbeid, Kubernetes.</strong></div>
+        <div class="callout callout-real" id="gap-2">
+          <span class="gap-label"><span aria-hidden="true">✕ </span>Mangler i CV-en</span>
+          <p>Annonsen ber om Kubernetes, og CV-en din viser det ikke. Har du brukt det i et emne eller prosjekt, kan du nevne det. Hvis ikke er dette et reelt gap.</p>
         </div>
+      </section>
 
-        <div class="label" style="margin-top: 24px;">FORSLAG</div>
-        <div class="callout">
-          <p>Rekrutterere som ser etter folk til denne stillingen, leter etter <span class="emphasis">«tverrfaglig samarbeid»</span>. Søknaden din viser det ikke ennå.</p>
-          <p>Semesterprosjektet ditt om <span class="emphasis">gruppeappen for emneplanlegging</span> dekker trolig dette – vurder å ta det med.</p>
+      <!-- Phase 2: Letter (AI) -->
+      <section aria-labelledby="letter-h">
+        <div class="section-head"><h2 id="letter-h">Søknadsbrev</h2></div>
+        <p class="draft-label">Utkast skrevet med KI – les gjennom og tilpass før du sender.</p>
+        <ul class="warnings">
+          <li>Brevet nevner «Kubernetes», men CV-en din viser det ikke. Sjekk at brevet ikke påstår noe CV-en din ikke støtter.</li>
+        </ul>
+        <div class="letter">
+          <p>Til Nordic Digital</p>
+          <p>Jeg søker stillingen som frontendutvikler. I semesterprosjektet vårt utviklet jeg frontend i React og TypeScript for en gruppeapp for emneplanlegging, koblet mot et REST-API, og testet løsningen med brukere underveis.</p>
+          <p>Vi jobbet i to-ukers sprinter, og jeg lærte å planlegge arbeidet sammen med studenter fra interaksjonsdesign. Jeg er også kjent med <span class="flag">Kubernetes</span> fra kursarbeid …</p>
+          <p>Med vennlig hilsen<br>Violet Hansen</p>
         </div>
-        <div class="callout">
-          <p>Kubernetes står blant kravene i annonsen, men finnes ikke i CV-en din.</p>
-          <p>Har du ikke brukt det selv, kan dette være et reelt hull og ikke bare et spørsmål om ordvalg. Tenk over om et emne eller prosjekt berørte containerorkestrering før du legger det til.</p>
+        <div class="actions">
+          <button class="btn-secondary">Kopier</button>
+          <button class="btn-secondary">Last ned (.docx)</button>
+          <button class="btn-secondary">Lag nytt utkast</button>
         </div>
-      </div>
-
-      <div class="download-section">
-        <h2>Filene dine</h2>
-        <div class="download-row">
-          <div class="file-meta">
-            <span class="file-name">violet-hansen-cv-nordic-digital-2026.pdf</span>
-            <span class="file-sub">Tilpasset CV</span>
-          </div>
-          <button class="btn-primary">Last ned</button>
-        </div>
-        <div class="download-row">
-          <div class="file-meta">
-            <span class="file-name">violet-hansen-soknadsbrev-nordic-digital-2026.pdf</span>
-            <span class="file-sub">Søknadsbrev</span>
-          </div>
-          <button class="btn-primary">Last ned</button>
-        </div>
-        <div class="download-row">
-          <div class="file-meta">
-            <span class="file-name">violet-hansen-refleksjonsnotat-nordic-digital-2026.pdf</span>
-            <span class="file-sub">Refleksjonsnotat — samsvar, nøkkelord, forslag</span>
-          </div>
-          <button class="btn-secondary">Last ned</button>
-        </div>
-        <p class="saved-note">Lagret. Last ned filene dine nedenfor.</p>
-      </div>
+        <p class="saved-note">Lagret i Historikk.</p>
+      </section>
     </div>
-  </div>
+  </main>
 </div>
 </body>
 </html>

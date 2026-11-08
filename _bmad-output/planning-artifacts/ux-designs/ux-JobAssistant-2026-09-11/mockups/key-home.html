@@ -2,258 +2,81 @@
 <html lang="nb">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JobAssistant — Hjem (key screen mock)</title>
 <style>
 /*
+  Updated 2026-11-08 to match the PRD (prd-JobAssistant-2026-10-31, D1, D2, D5, D16, D20).
+  Frame 1: Hjem, full v1 (after S6), logged in, with history.
+  Frame 2: Hjem before accounts exist (S1–S5, or permanently if S6 + S7 are cut): two-item navbar,
+           headline + CTA card only, CTA goes straight to Søknad.
   Illustrates:
-  - DESIGN.md Components: navbar, nav-link-primary/secondary, persistent-cta (desktop form: button-primary),
-    button-primary, button-secondary, card, match-score-badge-strong/weak
-  - DESIGN.md Colors / Typography / Shapes / Elevation & Depth tokens (exact hex/px values) — Rich Mocha
-    theme (warm beige/cream base, warm dark-brown text, single brown/mocha accent)
-  - EXPERIENCE.md Information Architecture: Home row (recent past applications, CTA, Review CV / Review
-    Application entry points)
-  - EXPERIENCE.md Component Patterns: History row (job title, date, type, match score badge at a glance)
-  - EXPERIENCE.md Key Flows > Flow 1, step 1 & step 4 (CTA placement, Kickresume-inspired "don't bury it")
-  - EXPERIENCE.md Key Flows > Flow 2, step 2 (standalone Review CV entry point on Home)
-
-  NOTE: This mock renders the authenticated state WITH history present (richer to review).
-  An additional Empty-history state variant also exists per EXPERIENCE.md State Patterns
-  ("No applications yet. Start with your first job description." + primary CTA) and an
-  Unauthenticated variant (same CTA-forward layout, CTA routes to Signup) — not rendered here,
-  see EXPERIENCE.md State Patterns table, rows "Unauthenticated" and "Empty history".
+  - EXPERIENCE.md Information Architecture (Hjem row), Build-order variants (Before S6)
+  - Component Patterns: History row («Stillingstittel – Arbeidsgiver», date, score badge WITH Verdict
+    text; no type tag), CTA card copy without the tailored-CV promise
+  - «Vurder CV» / «Vurder søknad» cards removed (D2; decision 2026-11-08: removed, not disabled)
+  - DESIGN.md tokens as of 2026-11-08 (WCAG AA palette, warning-text).
+  Not rendered: logged-out (same layout, CTA routes to «Registrer deg») and empty history
+  («Ingen søknader ennå. Start med din første stillingsannonse.» + CTA) — see EXPERIENCE.md State Patterns.
+  Spines win on any conflict with this mock.
 */
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --background: #F2E4CF;
-  --surface: #FAF1E1;
-  --text: #3A2A1D;
-  --text-secondary: #8A7157;
-  --border: #E0CBA8;
-  --accent: #7F6244;
-  --accent-strong: #937A62;
-  --accent-text: #FFF6EE;
-  --accent-bg: #7F62441F;
-  --success: #4C7A3F;
-  --success-bg: #4C7A3F1A;
-  --success-border: #4C7A3F40;
-  --warning: #B8860B;
-  --warning-bg: #B8860B1F;
-  --warning-border: #B8860B45;
+  --background: #F2E4CF; --surface: #FAF1E1; --text: #3A2A1D; --text-secondary: #745F49;
+  --border: #E0CBA8; --border-strong: #9A7D5D;
+  --accent: #795D41; --accent-text: #FFF6EE;
+  --success: #406735; --success-bg: #4067351A; --success-border: #40673540;
+  --warning-text: #7A5907; --warning-bg: #B8860B1F; --warning-border: #B8860B45;
 }
-
-body {
-  background: var(--background);
-  color: var(--text);
+body { background: var(--background); color: var(--text);
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-/* Desktop browser frame */
-.browser-frame {
-  max-width: 1180px;
-  margin: 24px auto;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.browser-chrome {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+  font-size: 15px; line-height: 1.6; }
+.frame-caption { max-width: 1180px; margin: 32px auto 0; padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.browser-frame { max-width: 1180px; margin: 8px auto 24px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.browser-chrome { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
 .browser-chrome .dot { width: 10px; height: 10px; border-radius: 9999px; background: var(--border); }
-.browser-chrome .addr {
-  margin-left: 12px;
-  background: var(--background);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  flex: 1;
-}
-
-/* Navbar */
-.navbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  height: 60px;
-}
-.navbar .brand {
-  font-weight: 700;
-  font-size: 17px;
-  letter-spacing: -0.01em;
-  color: var(--text);
-  margin-right: 32px;
-}
-.nav-links { display: flex; align-items: center; gap: 24px; flex: 1; }
-.nav-link-primary { color: var(--text); font-weight: 700; text-decoration: none; font-size: 15px; }
-.nav-link-primary.active { color: var(--accent); }
-.nav-link-secondary { color: var(--text-secondary); font-weight: 500; text-decoration: none; font-size: 15px; }
-
-/* Page body */
+.browser-chrome .addr { margin-left: 12px; background: var(--background); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--text-secondary); flex: 1; }
+.navbar { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 60px; }
+.navbar .brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; margin-right: 32px; }
+.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-links a, .navbar > a { text-decoration: none; font-size: 15px; padding: 10px 0; }
+.nav-link-primary { color: var(--text); font-weight: 700; }
+.nav-link-secondary { color: var(--text-secondary); font-weight: 500; }
+.active { color: var(--accent) !important; }
 .page { padding: 48px 20px; }
 .page-inner { max-width: 900px; margin: 0 auto; }
-
-h1.display {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
-}
-.subhead { color: var(--text-secondary); font-size: 15px; margin-bottom: 32px; }
-
-/* Primary CTA card — Kickresume-inspired, front and center, not buried */
-.cta-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 48px;
-}
-.cta-card .cta-copy h2 {
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  margin-bottom: 6px;
-}
-.cta-card .cta-copy p { color: var(--text-secondary); font-size: 14px; }
-.btn-primary {
-  background: var(--accent);
-  color: var(--accent-text);
-  border: none;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 15px;
-  padding: 14px 24px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.btn-secondary {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 11px 18px;
-  cursor: pointer;
-}
-.btn-review {
-  background: var(--accent-strong);
-  color: var(--accent-text);
-  border: none;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 15px;
-  padding: 14px 24px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-/* Standalone review entry points */
-.review-entries {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 48px;
-}
-.review-card {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
-}
-.review-card .label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.review-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
-.review-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
-
-/* Recent activity */
-.section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
+h1.display { font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 8px; }
+.subhead { color: var(--text-secondary); margin-bottom: 32px; }
+.cta-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 48px; flex-wrap: wrap; }
+.cta-copy { flex: 1 1 360px; }
+.cta-copy h2 { font-size: 22px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; margin-bottom: 6px; }
+.cta-copy p { color: var(--text-secondary); font-size: 14px; }
+.btn-primary { background: var(--accent); color: var(--accent-text); border: none; border-radius: 6px; font-weight: 700; font-size: 15px; padding: 14px 24px; min-height: 44px; cursor: pointer; font-family: inherit; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
 .section-head h2 { font-size: 17px; font-weight: 700; }
-.section-head a { color: var(--text-secondary); font-size: 13px; text-decoration: none; }
-
-.history-row {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.history-row .row-main { display: flex; flex-direction: column; gap: 4px; }
-.history-row .row-title { font-weight: 700; font-size: 15px; }
-.history-row .row-meta { color: var(--text-secondary); font-size: 13px; }
-.history-row .row-right { display: flex; align-items: center; gap: 14px; }
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 9999px;
-  padding: 4px 12px;
-  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.2;
-}
+.section-head a { color: var(--accent); font-size: 13px; font-weight: 600; padding: 12px 0; }
+.history-row { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; text-decoration: none; color: inherit; flex-wrap: wrap; }
+.row-main { display: flex; flex-direction: column; gap: 2px; }
+.row-title { font-weight: 700; }
+.row-meta { color: var(--text-secondary); font-size: 13px; }
+.badge { display: inline-flex; align-items: center; gap: 10px; border-radius: 9999px; padding: 4px 14px; }
+.badge .num { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 16px; font-weight: 700; }
+.badge .sep { width: 1px; height: 14px; background: currentColor; opacity: .35; }
+.badge .verdict { font-size: 13px; font-weight: 700; }
 .badge-strong { color: var(--success); background: var(--success-bg); border: 1px solid var(--success-border); }
-.badge-weak { color: var(--warning); background: var(--warning-bg); border: 1px solid var(--warning-border); }
-
-.type-tag {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 3px 8px;
-}
+.badge-weak { color: var(--warning-text); background: var(--warning-bg); border: 1px solid var(--warning-border); }
 </style>
 </head>
 <body>
-<div class="browser-frame">
-  <div class="browser-chrome">
-    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-    <div class="addr">jobassistant.app/home</div>
-  </div>
 
+<div class="frame-caption">1 · Hjem, full v1 — innlogget, med historikk</div>
+<div class="browser-frame">
+  <div class="browser-chrome"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="addr">jobassistant.vercel.app/</div></div>
   <nav class="navbar">
     <div style="display:flex; align-items:center;">
       <span class="brand">JobAssistant</span>
       <div class="nav-links">
-        <a class="nav-link-primary active" href="#">Hjem</a>
+        <a class="nav-link-primary active" href="#" aria-current="page">Hjem</a>
         <a class="nav-link-primary" href="#">Søknad</a>
         <a class="nav-link-secondary" href="#">Profil</a>
         <a class="nav-link-secondary" href="#">Historikk</a>
@@ -262,73 +85,77 @@ h1.display {
     </div>
     <a class="nav-link-secondary" href="#">Logg ut</a>
   </nav>
-
-  <div class="page">
+  <main class="page">
     <div class="page-inner">
       <h1 class="display">Velkommen tilbake, Violet</h1>
-      <p class="subhead">Lim inn en stillingsannonse, så forteller JobAssistant deg hvorfor søknaden din treffer – eller ikke treffer.</p>
+      <p class="subhead">Lim inn en stillingsannonse, så viser JobAssistant hvor godt CV-en din treffer – og hvorfor.</p>
 
       <div class="cta-card">
         <div class="cta-copy">
           <h2>Lag skreddersydd søknad</h2>
-          <p>Lim inn en stillingsannonse. Få en tilpasset CV, et søknadsbrev og et refleksjonsnotat som forklarer samsvaret.</p>
+          <p>Se hvilke av annonsens nøkkelord CV-en din dekker, få forslag til hvordan du kan beskrive erfaringen du allerede har, og et utkast til søknadsbrev.</p>
         </div>
         <button class="btn-primary">Lag skreddersydd søknad</button>
       </div>
 
-      <div class="review-entries">
-        <div class="review-card">
-          <div class="label">Frittstående</div>
-          <h3>Vurder CV</h3>
-          <p>Last opp en CV uten å knytte den til en bestemt annonse, og få en skriftlig tilbakemelding.</p>
-          <button class="btn-review">Vurder CV</button>
-        </div>
-        <div class="review-card">
-          <div class="label">Frittstående</div>
-          <h3>Vurder søknad</h3>
-          <p>Last opp en søknad og få vite hva som er sterkt, og hva som kan bli bedre.</p>
-          <button class="btn-review">Vurder søknad</button>
-        </div>
-      </div>
-
       <div class="section-head">
-        <h2>Siste aktivitet</h2>
+        <h2>Siste søknader</h2>
         <a href="#">Se hele historikken</a>
       </div>
 
-      <div class="history-row">
+      <a class="history-row" href="#">
         <div class="row-main">
-          <span class="row-title">Frontendutvikler — Nordic Digital</span>
-          <span class="row-meta">Søknad · 8. sep. 2026</span>
+          <span class="row-title">Junior produktanalytiker – Fjord Analytics</span>
+          <span class="row-meta">29. okt. 2026</span>
         </div>
-        <div class="row-right">
-          <span class="type-tag">Søknad</span>
-          <span class="badge badge-strong">78 %</span>
-        </div>
-      </div>
+        <span class="badge badge-weak" aria-label="Samsvar 54 prosent, bør forbedres"><span class="num">54 %</span><span class="sep"></span><span class="verdict">Bør forbedres</span></span>
+      </a>
 
-      <div class="history-row">
+      <a class="history-row" href="#">
         <div class="row-main">
-          <span class="row-title">Junior produktanalytiker — Fjord Analytics</span>
-          <span class="row-meta">Søknad · 27. aug. 2026</span>
+          <span class="row-title">Frontendutvikler – Nordic Digital</span>
+          <span class="row-meta">8. okt. 2026</span>
         </div>
-        <div class="row-right">
-          <span class="type-tag">Søknad</span>
-          <span class="badge badge-weak">54 %</span>
-        </div>
-      </div>
+        <span class="badge badge-strong" aria-label="Samsvar 71 prosent, sterkt samsvar"><span class="num">71 %</span><span class="sep"></span><span class="verdict">Sterkt samsvar</span></span>
+      </a>
 
-      <div class="history-row">
+      <a class="history-row" href="#">
         <div class="row-main">
-          <span class="row-title">CV-vurdering — generell sjekk</span>
-          <span class="row-meta">CV-vurdering · 12. aug. 2026</span>
+          <span class="row-title">Junior IT-konsulent – Vestland Data</span>
+          <span class="row-meta">2. okt. 2026</span>
         </div>
-        <div class="row-right">
-          <span class="type-tag">CV-vurdering</span>
-        </div>
+        <span class="badge badge-strong" aria-label="Samsvar 80 prosent, sterkt samsvar"><span class="num">80 %</span><span class="sep"></span><span class="verdict">Sterkt samsvar</span></span>
+      </a>
+    </div>
+  </main>
+</div>
+
+<div class="frame-caption">2 · Hjem før kontoer finnes (S1–S5, eller hvis S6 + S7 kuttes) — knappen går rett til Søknad</div>
+<div class="browser-frame">
+  <div class="browser-chrome"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="addr">jobassistant.vercel.app/</div></div>
+  <nav class="navbar">
+    <div style="display:flex; align-items:center;">
+      <span class="brand">JobAssistant</span>
+      <div class="nav-links">
+        <a class="nav-link-primary active" href="#" aria-current="page">Hjem</a>
+        <a class="nav-link-primary" href="#">Søknad</a>
       </div>
     </div>
-  </div>
+  </nav>
+  <main class="page">
+    <div class="page-inner">
+      <h1 class="display">Finn ut hvorfor CV-en din treffer – eller ikke</h1>
+      <p class="subhead">Lim inn en stillingsannonse, så viser JobAssistant hvor godt CV-en din treffer – og hvorfor.</p>
+      <div class="cta-card" style="margin-bottom:0;">
+        <div class="cta-copy">
+          <h2>Lag skreddersydd søknad</h2>
+          <p>Se hvilke av annonsens nøkkelord CV-en din dekker, få forslag til hvordan du kan beskrive erfaringen du allerede har, og et utkast til søknadsbrev.</p>
+        </div>
+        <button class="btn-primary">Lag skreddersydd søknad</button>
+      </div>
+    </div>
+  </main>
 </div>
+
 </body>
 </html>

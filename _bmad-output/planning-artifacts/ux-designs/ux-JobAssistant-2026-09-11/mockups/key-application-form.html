@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JobAssistant — Søknadsskjema (key screen mock)</title>
+<style>
+/*
+  Søknad form, before submit. Created 2026-11-08 against the PRD (prd-JobAssistant-2026-10-31).
+  Frame 1 — desktop, before S6 (no accounts): CV uploaded, extracted text in the CV text editor awaiting
+            «Bekreft CV-teksten»; Job ad fields filled; Tone radio cards with «Formell» selected; submit.
+  Frame 2 — desktop, full v1: CV from Profile (one collapsed line), AI notice dialog open over the form
+            (first AI request for this account).
+  Frame 3 — phone 375 px, Test mode: Test-mode banner, «Bruk eksempelet», Tone cards stacked, a
+            length-limit error on the Job ad with the counter in error colour.
+  Governing spine sections:
+  - EXPERIENCE.md Component Patterns > Global (Test-mode banner, Form field), Input (S1): Upload dropzone,
+    CV text editor, CV from Profile, Job ad fields, Tone choice, «Bruk eksempelet», Submit, AI notice dialog
+  - EXPERIENCE.md State Patterns: Length limit, CV not confirmed (wording), Access/Test mode banner
+  - EXPERIENCE.md Build-order variants (Before S6 vs Full v1); Responsive & Platform (Tone cards stack < 641 px)
+  - EXPERIENCE.md Key Flows: Flow 1 steps 2–4 (UJ-1), Flow 3 step 3 (UJ-3)
+  - DESIGN.md Components: input-field, upload-dropzone, tone-option(-selected), dialog, info-banner,
+    button-primary/secondary; Colors (border-strong outlines, overlay backdrop, error)
+  Provider name and retention period in the AI notice are placeholders until the architecture picks a
+  provider (PRD OQ3). Spines win on any conflict with this mock.
+*/
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --background: #F2E4CF; --surface: #FAF1E1; --text: #3A2A1D; --text-secondary: #745F49;
+  --border: #E0CBA8; --border-strong: #9A7D5D;
+  --accent: #795D41; --accent-text: #FFF6EE; --accent-bg: #795D411F;
+  --error: #A8341F; --overlay: #3A2A1D66;
+}
+body { background: var(--background); color: var(--text);
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px; line-height: 1.6; padding-bottom: 48px; }
+.frame-caption { max-width: 1180px; margin: 32px auto 0; padding: 0 16px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
+/* Browser frame */
+.browser-frame { max-width: 1180px; margin: 8px auto 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; position: relative; background: var(--background); }
+.browser-chrome { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
+.browser-chrome .dot { width: 10px; height: 10px; border-radius: 9999px; background: var(--border); }
+.browser-chrome .addr { margin-left: 12px; background: var(--background); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--text-secondary); flex: 1; }
+.navbar { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 60px; }
+.brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; margin-right: 32px; }
+.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-links a, .navbar > a { text-decoration: none; font-size: 15px; padding: 10px 0; }
+.nav-link-primary { color: var(--text); font-weight: 700; }
+.nav-link-secondary { color: var(--text-secondary); font-weight: 500; }
+.active { color: var(--accent) !important; }
+
+/* Page */
+.page { padding: 40px 20px 56px; }
+.page-inner { max-width: 760px; margin: 0 auto; }
+h1.display { font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 6px; }
+.subhead { color: var(--text-secondary); margin-bottom: 32px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
+.card h2 { font-size: 17px; font-weight: 700; line-height: 1.35; margin-bottom: 4px; }
+.card .card-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+
+/* Fields */
+.field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
+.field-label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text); margin-bottom: 6px; }
+.help { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+.input, .textarea { width: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px; color: var(--text); font: inherit; font-size: 15px; padding: 10px 12px; min-height: 44px; }
+.textarea { resize: vertical; line-height: 1.55; font-size: 14px; }
+.input:focus, .textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.row-2 { display: flex; gap: 16px; flex-wrap: wrap; }
+.row-2 .field { flex: 1 1 240px; }
+.counter { font-size: 13px; color: var(--text-secondary); text-align: right; margin-top: 4px; }
+.is-error .textarea, .is-error .input { border-color: var(--error); }
+.error-msg { color: var(--error); font-size: 13px; font-weight: 600; margin-top: 4px; }
+.is-error .counter { color: var(--error); }
+
+/* Dropzone (accepted, collapsed) */
+.file-accepted { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border: 1px dashed var(--border-strong); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+.file-accepted .fname { font-weight: 600; }
+.file-accepted .fmeta { color: var(--text-secondary); font-size: 13px; }
+.link { color: var(--accent); font-weight: 600; font-size: 13px; text-decoration: underline; text-underline-offset: 2px; display: inline-block; padding: 12px 0; }
+
+/* Collapsed CV line (from Profile) */
+.cv-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.cv-line .ok { font-weight: 600; }
+.cv-line .meta { color: var(--text-secondary); font-size: 13px; }
+
+/* Tone radio cards */
+.tone-group { border: 0; }
+.tone-group legend { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px; }
+.tone-cards { display: flex; gap: 12px; }
+.tone { flex: 1 1 0; position: relative; }
+.tone input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tone label { display: block; height: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 10px; padding: 14px 16px 14px 44px; cursor: pointer; min-height: 44px; position: relative; }
+.tone label::before { content: ""; position: absolute; left: 16px; top: 18px; width: 16px; height: 16px; border-radius: 9999px; border: 2px solid var(--border-strong); background: var(--surface); }
+.tone .t-name { display: block; font-size: 17px; font-weight: 700; line-height: 1.35; margin-bottom: 2px; }
+.tone .t-desc { display: block; font-size: 13px; color: var(--text-secondary); line-height: 1.45; }
+.tone input:checked + label { background: var(--accent-bg); border: 2px solid var(--accent); padding: 13px 15px 13px 43px; }
+.tone input:checked + label::before { border-color: var(--accent); background: radial-gradient(circle, var(--accent) 0 4px, var(--surface) 5px); left: 15px; top: 17px; }
+.tone input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Buttons */
+.btn-primary, .btn-secondary { border-radius: 6px; font: inherit; font-size: 15px; padding: 12px 22px; min-height: 44px; cursor: pointer; white-space: nowrap; }
+.btn-primary { background: var(--accent); color: var(--accent-text); border: none; font-weight: 700; }
+.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-strong); font-weight: 600; font-size: 14px; padding: 10px 16px; }
+.submit-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+.submit-note { font-size: 13px; color: var(--text-secondary); }
+
+/* Info banner (Test mode) */
+.info-banner { display: flex; align-items: center; gap: 10px; background: var(--surface); border-bottom: 1px solid var(--border-strong); padding: 10px 16px; font-size: 13px; font-weight: 600; }
+.info-banner .i { width: 18px; height: 18px; border: 1.5px solid var(--text); border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex: none; }
+.example-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px; padding: 12px 14px; margin-bottom: 20px; font-size: 13px; }
+
+/* Dialog */
+.overlay { position: absolute; inset: 0; background: var(--overlay); display: flex; align-items: flex-start; justify-content: center; padding: 120px 20px 20px; }
+.dialog { background: var(--surface); border-radius: 14px; max-width: 520px; width: 100%; padding: 28px; }
+.dialog h2 { font-size: 22px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; margin-bottom: 12px; }
+.dialog ul { padding-left: 20px; margin-bottom: 16px; }
+.dialog li { margin-bottom: 8px; }
+.dialog .placeholder { background: var(--accent-bg); border-radius: 4px; padding: 0 4px; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+/* Phone frame */
+.phone-wrap { display: flex; justify-content: center; margin-top: 8px; padding: 0 16px; }
+.phone { width: 375px; max-width: 100%; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--background); }
+.phone-notch { background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 0; display: flex; justify-content: center; }
+.phone-notch .bar { width: 60px; height: 5px; border-radius: 9999px; background: var(--border); }
+.navbar-mobile { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 56px; }
+.nav-inline { display: flex; gap: 20px; }
+.nav-inline a { display: inline-flex; align-items: center; min-height: 44px; color: var(--text); font-weight: 700; text-decoration: none; }
+.phone .page { padding: 20px 16px 32px; }
+.phone h1.display { font-size: 22px; }
+.phone .card { padding: 16px; }
+.phone .tone-cards { flex-direction: column; }
+.phone .btn-primary { width: 100%; }
+@media (max-width: 640px) { .tone-cards { flex-direction: column; } .nav-links { display: none; } .overlay { padding-top: 40px; } }
+</style>
+</head>
+<body>
+
+<!-- ============ FRAME 1 ============ -->
+<div class="frame-caption">1 · Søknad før kontoer finnes — CV-teksten er hentet ut og venter på bekreftelse (Flow 1, uten kontoer)</div>
+<div class="browser-frame">
+  <div class="browser-chrome"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="addr">jobassistant.vercel.app/soknad</div></div>
+  <nav class="navbar">
+    <div style="display:flex; align-items:center;">
+      <span class="brand">JobAssistant</span>
+      <div class="nav-links">
+        <a class="nav-link-primary" href="#">Hjem</a>
+        <a class="nav-link-primary active" href="#" aria-current="page">Søknad</a>
+      </div>
+    </div>
+  </nav>
+  <main class="page">
+    <div class="page-inner">
+      <h1 class="display">Ny søknad</h1>
+      <p class="subhead">Legg inn CV-en din og stillingsannonsen. Du får samsvaret med en gang, og brevet og vurderingen innen omtrent ett minutt.</p>
+
+      <form>
+        <section class="card" aria-labelledby="cv-h">
+          <h2 id="cv-h">1. CV-en din</h2>
+          <p class="card-sub">PDF eller TXT, maks 2 MB. Teksten blir bare liggende i denne nettleserøkten.</p>
+
+          <div class="file-accepted">
+            <span><span class="fname">violet-hansen-cv.pdf</span> <span class="fmeta">· 184 kB · teksten er hentet ut</span></span>
+            <button type="button" class="btn-secondary">Last opp en annen fil</button>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="cvtext">CV-tekst</label>
+            <p class="help" id="cvtext-help">Sjekk at teksten er riktig. PDF-er med kolonner eller tabeller blir ofte stokket om.</p>
+            <textarea class="textarea" id="cvtext" rows="15" aria-describedby="cvtext-help cvtext-count">Violet Hansen
+
+UTDANNING
+Bachelor i informatikk, Universitetet i Bergen, 2023–2026
+
+PROSJEKTER
+Semesterprosjekt: gruppeapp for emneplanlegging. Fem studenter fra informatikk og interaksjonsdesign; jeg hadde ansvar for frontend og testet med brukere.
+Utviklet frontend i React og TypeScript for gruppeappen, og koblet appen mot et REST-API skrevet i Node.js. Jobbet i to-ukers sprinter etter smidig metode.
+
+VERKTØY                         FRIVILLIG
+Git, VS Code, Figma Linjeforeningen, arrangementsansvarlig 2024–2025</textarea>
+            <p class="counter" id="cvtext-count">517 / 20 000 tegn</p>
+          </div>
+          <div class="submit-row" style="margin-top:0;">
+            <button type="button" class="btn-primary">Bekreft CV-teksten</button>
+            <a class="link" href="#">Lim inn teksten i stedet</a>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="ad-h">
+          <h2 id="ad-h">2. Stillingsannonsen</h2>
+          <p class="card-sub">Stillingstittelen og arbeidsgiveren brukes i brevet og i filnavnet.</p>
+          <div class="row-2">
+            <div class="field">
+              <label class="field-label" for="title1">Stillingstittel</label>
+              <input class="input" id="title1" value="Frontendutvikler">
+            </div>
+            <div class="field">
+              <label class="field-label" for="emp1">Arbeidsgiver</label>
+              <input class="input" id="emp1" value="Nordic Digital">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="ad1">Stillingsannonse</label>
+            <p class="help" id="ad1-help">Lim inn hele annonsen, også kravene.</p>
+            <textarea class="textarea" id="ad1" rows="6" aria-describedby="ad1-help ad1-count">Nordic Digital søker frontendutvikler til teamet vårt i Bergen.
+
+Vi ser etter deg som har erfaring med React og TypeScript, og som har jobbet mot REST-API-er. Du trives med tverrfaglig samarbeid med designere og testere, og er vant til å jobbe smidig. Erfaring med Docker og Kubernetes er en fordel. Vi bruker Git til versjonskontroll …</textarea>
+            <p class="counter" id="ad1-count">1 240 / 15 000 tegn</p>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="tone-h">
+          <h2 id="tone-h">3. Tone i brevet</h2>
+          <p class="card-sub">Du kan lage et nytt utkast i en annen tone etterpå.</p>
+          <fieldset class="tone-group">
+            <legend class="sr">Velg tone</legend>
+            <div class="tone-cards">
+              <div class="tone">
+                <input type="radio" name="tone1" id="t1f" checked>
+                <label for="t1f"><span class="t-name">Formell</span><span class="t-desc">Høflig og saklig, med hele setninger og uten personlige anekdoter.</span></label>
+              </div>
+              <div class="tone">
+                <input type="radio" name="tone1" id="t1p">
+                <label for="t1p"><span class="t-name">Personlig</span><span class="t-desc">Varmere; viser motivasjon og litt personlighet, men holder seg profesjonell.</span></label>
+              </div>
+              <div class="tone">
+                <input type="radio" name="tone1" id="t1d">
+                <label for="t1d"><span class="t-name">Direkte</span><span class="t-desc">Kort og konkret; åpner med det som passer best og bruker få høflighetsfraser.</span></label>
+              </div>
+            </div>
+          </fieldset>
+        </section>
+
+        <div class="submit-row">
+          <button type="button" class="btn-primary">Lag søknad</button>
+          <span class="submit-note">Samsvaret regnes ut i appen. Brevet og vurderingen skrives med KI.</span>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<!-- ============ FRAME 2 ============ -->
+<div class="frame-caption">2 · Søknad i full v1 — CV-teksten kommer fra Profil, KI-varselet vises før første KI-forespørsel (Flow 1, steg 3–4)</div>
+<div class="browser-frame" style="min-height: 760px;">
+  <div class="browser-chrome"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="addr">jobassistant.vercel.app/soknad</div></div>
+  <nav class="navbar">
+    <div style="display:flex; align-items:center;">
+      <span class="brand">JobAssistant</span>
+      <div class="nav-links">
+        <a class="nav-link-primary" href="#">Hjem</a>
+        <a class="nav-link-primary active" href="#" aria-current="page">Søknad</a>
+        <a class="nav-link-secondary" href="#">Profil</a>
+        <a class="nav-link-secondary" href="#">Historikk</a>
+        <a class="nav-link-secondary" href="#">Konto</a>
+      </div>
+    </div>
+    <a class="nav-link-secondary" href="#">Logg ut</a>
+  </nav>
+  <main class="page" aria-hidden="true">
+    <div class="page-inner">
+      <h1 class="display">Ny søknad</h1>
+      <p class="subhead">Lim inn stillingsannonsen. Du får samsvaret med en gang, og brevet og vurderingen innen omtrent ett minutt.</p>
+      <section class="card">
+        <div class="cv-line">
+          <span><span class="ok">Bruker CV-teksten fra profilen din</span> <span class="meta">· 517 tegn · sist endret 8. okt. 2026</span></span>
+          <a class="link" href="#">Endre i Profil</a>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Stillingsannonsen</h2>
+        <div class="row-2" style="margin-top:12px;">
+          <div class="field"><span class="field-label">Stillingstittel</span><div class="input">Frontendutvikler</div></div>
+          <div class="field"><span class="field-label">Arbeidsgiver</span><div class="input">Nordic Digital</div></div>
+        </div>
+        <div class="field"><span class="field-label">Stillingsannonse</span><div class="textarea" style="min-height:120px; color: var(--text-secondary);">Nordic Digital søker frontendutvikler til teamet vårt i Bergen …</div></div>
+      </section>
+    </div>
+  </main>
+  <div class="overlay">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ai-h">
+      <h2 id="ai-h">Før vi sender teksten din</h2>
+      <ul>
+        <li>CV-teksten og stillingsannonsen sendes til <span class="placeholder">[KI-leverandør]</span> for å skrive søknadsbrevet og vurdere det som mangler. E-postadresser og telefonnumre fjernes først.</li>
+        <li>Samsvaret regnes ut i appen. Det sendes ingen steder.</li>
+        <li><span class="placeholder">[KI-leverandør]</span> bruker ikke teksten til å trene modellene sine, og sletter den etter <span class="placeholder">[N]</span> dager.</li>
+        <li>Ta ikke med sensitive opplysninger som helse eller fødselsnummer.</li>
+      </ul>
+      <p class="help">Du ser dette varselet bare én gang.</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn-secondary">Avbryt</button>
+        <button type="button" class="btn-primary">Jeg forstår, fortsett</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FRAME 3 ============ -->
+<div class="frame-caption">3 · Mobil, testmodus — «Bruk eksempelet», tonekort under hverandre, feil på lengden (Flow 3, steg 3)</div>
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="phone-notch"><div class="bar"></div></div>
+    <div class="navbar-mobile">
+      <span class="brand" style="margin:0;">JobAssistant</span>
+      <nav class="nav-inline"><a href="#">Hjem</a><a class="active" href="#" aria-current="page">Søknad</a></nav>
+    </div>
+    <div class="info-banner" role="status"><span class="i" aria-hidden="true">i</span>Testmodus – KI-svarene er forhåndslagret</div>
+    <main class="page">
+      <h1 class="display">Ny søknad</h1>
+      <div class="example-bar">
+        <span>Prøv hele flyten med en fiktiv CV og annonse.</span>
+        <button type="button" class="btn-secondary">Bruk eksempelet</button>
+      </div>
+
+      <section class="card">
+        <h2>1. CV-en din</h2>
+        <div class="cv-line" style="margin-top:8px;">
+          <span><span class="ok">CV-tekst bekreftet</span> <span class="meta">· 3 412 tegn</span></span>
+          <a class="link" href="#">Endre</a>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2. Stillingsannonsen</h2>
+        <div class="field" style="margin-top:12px;"><label class="field-label" for="title3">Stillingstittel</label><input class="input" id="title3" value="Sykepleier"></div>
+        <div class="field"><label class="field-label" for="emp3">Arbeidsgiver</label><input class="input" id="emp3" value="Fjordvik sykehus"></div>
+        <div class="field is-error">
+          <label class="field-label" for="ad3">Stillingsannonse</label>
+          <textarea class="textarea" id="ad3" rows="3" aria-invalid="true" aria-describedby="ad3-err ad3-count">Vi søker sykepleier med kompetanse i sårvurdering.</textarea>
+          <p class="error-msg" id="ad3-err">Stillingsannonsen må være mellom 200 og 15 000 tegn.</p>
+          <p class="counter" id="ad3-count">50 / 15 000 tegn</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3. Tone i brevet</h2>
+        <fieldset class="tone-group" style="margin-top:12px;">
+          <legend class="sr">Velg tone</legend>
+          <div class="tone-cards">
+            <div class="tone"><input type="radio" name="tone3" id="t3f" checked><label for="t3f"><span class="t-name">Formell</span><span class="t-desc">Høflig og saklig, med hele setninger og uten personlige anekdoter.</span></label></div>
+            <div class="tone"><input type="radio" name="tone3" id="t3p"><label for="t3p"><span class="t-name">Personlig</span><span class="t-desc">Varmere; viser motivasjon og litt personlighet, men holder seg profesjonell.</span></label></div>
+            <div class="tone"><input type="radio" name="tone3" id="t3d"><label for="t3d"><span class="t-name">Direkte</span><span class="t-desc">Kort og konkret; åpner med det som passer best og bruker få høflighetsfraser.</span></label></div>
+          </div>
+        </fieldset>
+      </section>
+
+      <button type="button" class="btn-primary">Lag søknad</button>
+    </main>
+  </div>
+</div>
+
+<style>.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }</style>
+</body>
+</html>

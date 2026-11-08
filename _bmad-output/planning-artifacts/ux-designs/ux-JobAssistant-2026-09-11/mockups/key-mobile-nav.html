@@ -1,10 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nb">
 <head>
 <meta charset="UTF-8">
 <title>JobAssistant — Mobilmeny (key screen mock)</title>
 <style>
 /*
+  Updated 2026-11-08 to match the PRD (D16 palette, D20 version without accounts): new tokens,
+  hamburger outline in border-strong (3:1 non-text contrast), and a third frame showing the two-item
+  navbar used before accounts exist (Hjem + Søknad inline, no hamburger, no persistent CTA).
   Illustrates:
   - DESIGN.md Components: navbar, hamburger-toggle, persistent-cta, nav-link-primary/secondary, card
   - DESIGN.md Colors / Shapes / Elevation & Depth tokens (exact hex/px values) — Rich Mocha theme (warm
@@ -27,16 +30,13 @@
   --background: #F2E4CF;
   --surface: #FAF1E1;
   --text: #3A2A1D;
-  --text-secondary: #8A7157;
+  --text-secondary: #745F49;
   --border: #E0CBA8;
-  --accent: #7F6244;
-  --accent-strong: #937A62;
-  --accent-text: #FFF6EE;
-  --accent-bg: #7F62441F;
-  --success: #4C7A3F;
-  --success-bg: #4C7A3F1A;
-  --success-border: #4C7A3F40;
-}
+  --border-strong: #9A7D5D;
+  --accent: #795D41;
+    --accent-text: #FFF6EE;
+  --accent-bg: #795D411F;
+  }
 
 body {
   background: var(--background);
@@ -114,7 +114,7 @@ body {
 .hamburger {
   width: 44px;
   height: 44px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
   background: transparent;
   display: flex;
@@ -170,6 +170,10 @@ body {
   min-height: 140px;
   opacity: 0.35;
 }
+.nav-inline { display: flex; gap: 20px; }
+.nav-inline a { display: inline-flex; align-items: center; min-height: 44px; color: var(--text); font-weight: 700; font-size: 15px; text-decoration: none; }
+.nav-inline a.active { color: var(--accent); }
+
 .dim-body h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
 .dim-body p { color: var(--text-secondary); font-size: 13px; }
 </style>
@@ -192,7 +196,7 @@ body {
       </div>
       <div class="body-fill">
         <h1>Velkommen tilbake, Violet</h1>
-        <p>Lim inn en stillingsannonse, så forteller JobAssistant deg hvorfor søknaden din treffer – eller ikke treffer.</p>
+        <p>Lim inn en stillingsannonse, så viser JobAssistant hvor godt CV-en din treffer – og hvorfor.</p>
       </div>
     </div>
   </div>
@@ -220,7 +224,25 @@ body {
       </div>
       <div class="dim-body">
         <h1>Velkommen tilbake, Violet</h1>
-        <p>Lim inn en stillingsannonse, så forteller JobAssistant deg hvorfor søknaden din treffer – eller ikke treffer.</p>
+        <p>Lim inn en stillingsannonse, så viser JobAssistant hvor godt CV-en din treffer – og hvorfor.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-block">
+    <div class="frame-caption">Før kontoer finnes — to lenker, ingen meny</div>
+    <div class="phone">
+      <div class="phone-notch"><div class="bar"></div></div>
+      <div class="navbar-mobile">
+        <span class="brand-mobile">JobAssistant</span>
+        <nav class="nav-inline">
+          <a class="active" href="#" aria-current="page">Hjem</a>
+          <a href="#">Søknad</a>
+        </nav>
+      </div>
+      <div class="body-fill">
+        <h1>Finn ut hvorfor CV-en din treffer – eller ikke</h1>
+        <p>Lim inn en stillingsannonse, så viser JobAssistant hvor godt CV-en din treffer – og hvorfor.</p>
       </div>
     </div>
   </div>
