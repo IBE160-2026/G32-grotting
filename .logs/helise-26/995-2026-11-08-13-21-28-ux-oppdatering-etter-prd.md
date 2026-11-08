@@ -42,3 +42,18 @@ Helene ba om en mockup av Søknad-skjemaet (åpent punkt fra forrige økt).
 ### Åpne punkter
 - Navnet på KI-leverandøren og antall lagringsdager i KI-varselet er plassholdere til arkitekturen har valgt leverandør (OQ3); dette inngår i det eksisterende arkitekturpunktet.
 
+
+## 2026-11-08 kl. 13:46 — Helise-26
+
+### Oppgave
+Helene ba om å committe og pushe UX-endringene.
+
+### Plan
+- Committet hele UX-mappen direkte på `main` (samme praksis som for PRD-en), med en melding som navngir D-ID-ene, slik NFR-10 krever.
+
+### Resultat
+- Commit `487e34b` «Oppdater UX etter PRD: D1-D5, D10-D11, D14-D16, D19-D20, D23»: 9 filer (DESIGN.md, EXPERIENCE.md, .memlog.md, reconcile-prd.md, fire mockups, `.working/key-application-form.html`).
+- Pushet til `origin/main` (693321a..487e34b), inkludert de to loggcommitene fra tidligere i dag.
+
+### Åpne punkter
+Ingen nye.
