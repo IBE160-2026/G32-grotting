@@ -22,4 +22,4 @@
 - [ ] 2026-11-01 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — utvid sesjonslogg-malen med et felt for KI-styring (hva KI foreslo, og hva som ble presisert, avvist eller rettet), slik PRD NFR-10 krever
 - [x] 2026-11-01 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — bekreft eller endre de 15 antakelsene i PRD §14 innen tidspunktene som er satt der (løst 2026-11-08: antakelse 7 endret til 30 minutters utlogging, de andre bekreftet)
 - [ ] 2026-11-08 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — spør foreleser: testmodus lokalt og live KI på hostet versjon for sensor (OQ5), mocking av KI i tester (OQ8), og addendum §5 spørsmål 4–5
-- [ ] 2026-11-08 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — bekreft fordelingen av de fem ekstra dagene i PRD §5.2 (S4 + S5 til 1. des, S6 + S7 2.–11. des, sluttperiode 12.–15. des)
+- [x] 2026-11-08 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — bekreft fordelingen av de fem ekstra dagene i PRD §5.2 (S4 + S5 til 1. des, S6 + S7 2.–11. des, sluttperiode 12.–15. des) (løst 2026-11-08: bekreftet)
