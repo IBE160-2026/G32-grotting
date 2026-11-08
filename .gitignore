@@ -50,6 +50,7 @@ _bmad/config.user.toml
 _bmad/custom/*.user.toml
 _bmad/render/
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # Operating system / editors
 .DS_Store
