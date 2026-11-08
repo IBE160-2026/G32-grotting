@@ -2,14 +2,14 @@
 title: JobAssistant PRD
 status: final
 created: 2026-10-31
-updated: 2026-11-01
+updated: 2026-11-08
 ---
 
 # PRD: JobAssistant
 
 ## 0. Document purpose
 
-This PRD defines what JobAssistant v1 must do by the IBE160 portfolio deadline in early December 2026. It has three readers:
+This PRD defines what JobAssistant v1 must do by the IBE160 portfolio deadline on 15 December 2026. It has three readers:
 - Helene, the product owner, who builds the app alone and makes the product decisions.
 - The IBE160 examiner (*sensor*), who grades the app, the repository and its history against the plan.
 - The next BMad steps (architecture, epics and stories), which must reuse its IDs.
@@ -34,7 +34,7 @@ It builds on these documents and does not repeat them:
   - the brief's scope items S1 to S7 and success criteria SC1 to SC9.
 - Each FR and NFR ends with a **Verify** line: *Auto* (automated test), *Manual* (a manual check), or both. The Verify lines are authoritative; §9 says how the checks run and where the results are recorded.
 - Decisions A1a to A4a are the product owner's answers recorded in this PRD's `.memlog.md` on 2026-10-31.
-- `[ASSUMPTION]` marks something inferred but not yet confirmed. §14 lists every assumption.
+- `[ASSUMPTION]` marks something inferred but not yet confirmed. §14 lists every assumption; as of 2026-11-08, none is open.
 
 ## 1. Vision
 
@@ -196,18 +196,18 @@ Hosting is set up in step 1, so problems show up early. If the Hosted version ca
 
 Every cut, and every criterion it leaves undelivered, is reported in §11.
 
-### 5.2 Delivery milestones `[ASSUMPTION]`
+### 5.2 Delivery milestones
 
-Planned against the working deadline of about 10 December 2026, with one developer.
+Planned against the submission deadline of 15 December 2026, with one developer. The last commit on `main` at the deadline is what gets graded.
 
-| Week | Dates | Goal |
+| Weeks | Dates | Goal |
 |---|---|---|
 | 45 | 2–8 Nov | Architecture; UX update (addendum §4); epics and stories; project skeleton deployed to the host with the Access code; S1 |
 | 46 | 9–15 Nov | S2: Fixtures and Answer keys first, then the Keyword engine and automated tests. Decide on the FR-5 fallback at the end of the week |
 | 47 | 16–22 Nov | S3: Letter, Test mode, AI safeguards. **Core-flow checkpoint** |
-| 48 | 23–29 Nov | S4 and S5, with their Integrity guards |
-| 49 | 30 Nov–6 Dec | S6 + S7: accounts, Profile, History, encryption |
-| 50 | 7–10 Dec | README, checklist runs (§9.2), clean-machine dry run, final deploy, check of every planning document against the delivered app, repository clean-up (including the UX `.working/` folder), buffer |
+| 48–49 | 23 Nov–1 Dec | S4 and S5, with their Integrity guards |
+| 49–50 | 2–11 Dec | S6 + S7: accounts, Profile, History, encryption |
+| 50–51 | 12–15 Dec | README, checklist runs (§9.2), clean-machine dry run, final deploy, check of every planning document against the delivered app, repository clean-up (including the UX `.working/` folder), buffer |
 
 Some weeks will have less working time than others, so the plan relies on two decision points instead of long working weeks:
 - **22 November, core-flow checkpoint.** S1–S3 count as stable when:
@@ -217,9 +217,9 @@ Some weeks will have less working time than others, so the plan relies on two de
   - the wrong-input tour (§9.3) causes no crash.
 
   If not, finish S1–S3 before anything else, and apply the cut order in §5.1.
-- **29 November.** S4 and S5 count as stable when the automated tests for FR-13 to FR-17 pass, and one live Fixture run has no G2 or R1 failures. If not, use week 49 to finish them, and drop S6 + S7.
+- **1 December.** S4 and S5 count as stable when the automated tests for FR-13 to FR-17 pass, and one live Fixture run has no G2 or R1 failures. If not, use 2–11 December to finish them, and drop S6 + S7.
 
-The final week is never compressed. In it, every planning document (PRD, UX, architecture, epics) is checked against the delivered app: each assumption and open question is closed or resolved, any cut or use of the FR-5 fallback is logged in §11, and the documents are committed.
+The final period (12–15 December) is never compressed. In it, every planning document (PRD, UX, architecture, epics) is checked against the delivered app: each assumption and open question is closed or resolved, any cut or use of the FR-5 fallback is logged in §11, and the documents are committed.
 
 ### 5.3 Deferred to after v1
 
@@ -243,7 +243,7 @@ The final week is never compressed. In it, every planning document (PRD, UX, arc
 
 #### FR-1: Upload a CV file
 The Student can upload a CV as a PDF or TXT file, and the system extracts its text.
-- Accepts .pdf and .txt files up to 2 MB `[ASSUMPTION]`. Any other type or size is rejected at the upload field before anything is sent, with the UX messages «Bare PDF- og TXT-filer støttes.» or «Filen er for stor.».
+- Accepts .pdf and .txt files up to 2 MB. Any other type or size is rejected at the upload field before anything is sent, with the UX messages «Bare PDF- og TXT-filer støttes.» or «Filen er for stor.».
 - If a PDF has no extractable text (for example, a scan), the system says so and asks the Student to paste the text instead (FR-2).
 - The uploaded file is discarded after extraction (FR-23).
 
@@ -251,7 +251,7 @@ The Student can upload a CV as a PDF or TXT file, and the system extracts its te
 
 #### FR-2: Paste CV text
 The Student can paste the CV text instead of uploading a file.
-- Accepts 200–20,000 characters `[ASSUMPTION]`. Text outside this range gets an inline message.
+- Accepts 200–20,000 characters. Text outside this range gets an inline message.
 
 **Verify:** Auto.
 
@@ -264,7 +264,7 @@ After an upload, the Student sees the extracted CV text in an editable field and
 
 #### FR-4: Enter a Job ad
 The Student pastes the Job ad text and types the job title and employer.
-- The Job ad text must be 200–15,000 characters `[ASSUMPTION]`. The job title and the employer are required, with at most 200 characters each `[ASSUMPTION]`.
+- The Job ad text must be 200–15,000 characters. The job title and the employer are required, with at most 200 characters each.
 - Job ads cannot be uploaded as files or imported from a URL.
 - If the Keyword engine finds fewer than 3 Keywords, the system says the ad is too short or unclear to analyse, and shows no score.
 - Only bokmål Job ads are supported. The app doesn't detect other languages, and its results for an English or nynorsk ad are undefined (§5.3).
@@ -315,7 +315,7 @@ The Reflection Note shows how the score was reached.
 - It shows «X av Y nøkkelord» next to the score, plus a one-line explanation of the formula.
 - Every Matched keyword shows its Evidence (SC1).
 - Every Missing keyword is listed with a one-line explanation written by code from a template, such as «Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.» The line in the Job ad where the Keyword appears is quoted below it (SC1; final wording in the UX). Once S4 exists, each one links to its Gap.
-- A short note says the Match score estimates keyword coverage and is neither the result of a real ATS nor a prediction of interview chances. `[ASSUMPTION: final wording in UX]`
+- A short note says the Match score estimates keyword coverage and is neither the result of a real ATS nor a prediction of interview chances.
 - The score and the keyword lists appear without waiting for any AI output (NFR-4; changes under the FR-5 fallback).
 
 **Verify:** Auto + Manual.
@@ -325,9 +325,9 @@ The Reflection Note shows how the score was reached.
 **Description:** One AI request writes a draft Letter in bokmål. It uses the CV text, the Job ad, the job title, the employer and the chosen Tone. The Letter is shown on screen, where the Student can copy it or download it to edit in their own tools. There is no editor in the app (UX decision). Realises UJ-1.
 
 #### FR-9: Generate a Letter
-- The Letter is in bokmål and addressed to the employer for the named job. It is about one page (250–400 words) `[ASSUMPTION]`. It is built on 2–3 concrete examples from the CV text, chosen to show the Student's skills and strengths that best match the ad, rather than repeating the CV or copying the ad.
+- The Letter is in bokmål and addressed to the employer for the named job. It is about one page (250–400 words). It is built on 2–3 concrete examples from the CV text, chosen to show the Student's skills and strengths that best match the ad, rather than repeating the CV or copying the ad.
 - It uses only qualifications that can be traced to the CV text (SC5). The prompt asks the AI not to mention qualifications the Student lacks. FR-11 flags breaches, and §9.2 checks the result.
-- It is labelled «Utkast skrevet med KI – les gjennom og tilpass før du sender.» `[ASSUMPTION: wording]`
+- It is labelled «Utkast skrevet med KI – les gjennom og tilpass før du sender.»
 - The sign-off uses the name in the Profile. Without a Profile, it uses a visible placeholder.
 
 **Verify:** Manual (checklist §9.2) + Auto (in Test mode: structure and label).
@@ -344,7 +344,7 @@ The Reflection Note shows how the score was reached.
 - When both AI requests have finished, the Keyword engine scans the Letter. The job title and the employer name are skipped.
 - A Missing keyword in the Letter is let through if Gap analysis made it a Rewordable gap whose Evidence citation passed FR-15. Every other Missing keyword in the Letter is an Unsupported claim. If Gap analysis fails, or S4 is cut, every Missing keyword in the Letter is an Unsupported claim.
 - The Letter is also scanned for Upgrade words. An Upgrade word that appears in the Letter but nowhere in the CV text is flagged in the same way. Other forms of the word count as the same word.
-- Each flagged word is highlighted, with a warning that asks the Student to check the sentence rather than telling them to delete it, for example «Brevet nevner «X», men CV-en din viser det ikke. Sjekk at brevet ikke påstår noe CV-en din ikke støtter.» `[ASSUMPTION: wording]` The Student decides what to change (P3).
+- Each flagged word is highlighted, with a warning that asks the Student to check the sentence rather than telling them to delete it, for example «Brevet nevner «X», men CV-en din viser det ikke. Sjekk at brevet ikke påstår noe CV-en din ikke støtter.» The Student decides what to change (P3).
 
 **Verify:** Auto (planted Cached responses that contain a Real-gap Keyword, a Rewordable-gap Keyword, the job title and an Upgrade word).
 
@@ -404,9 +404,9 @@ The Reflection Note shows how the score was reached.
 **Description:** Accounts let the Student upload the CV once and come back to earlier Applications. There is one role, and each Student sees only their own data. This section also covers Konto, the account page (FR-21). Realises UJ-1, UJ-2 and UJ-3.
 
 #### FR-18: Register, log in and log out
-- The Student registers with name, email and password; the password must be at least 8 characters `[ASSUMPTION]`. Each email can be registered only once. The name replaces the UX username field (D14).
+- The Student registers with name, email and password; the password must be at least 8 characters. Each email can be registered only once. The name replaces the UX username field (D14).
 - The Student logs in with email and password, and logs out with one click (UX).
-- A session ends after 1 hour without activity `[ASSUMPTION]`. The Student is then sent to «Logg inn» with the UX message «Økten din er avsluttet. Logg inn igjen for å fortsette.». A Job ad pasted on Søknad is kept and offered again after login.
+- A session ends after 30 minutes without activity. The Student is then sent to «Logg inn» with the UX message «Økten din er avsluttet. Logg inn igjen for å fortsette.». A Job ad pasted on Søknad is kept and offered again after login.
 - Once S6 exists, Søknad and the other Student pages require login. On the Hosted version, registration also requires the Access code (FR-31).
 
 **Verify:** Auto.
@@ -430,7 +430,7 @@ The Reflection Note shows how the score was reached.
   - the Match score and the keyword lists
   - the Gaps and Rewording suggestions
   - the latest Letter (FR-12)
-- Historikk lists Applications newest first, 20 per page. Each row shows "job title – employer", the date and the score badge with its Verdict text, so the two Verdicts never differ by colour alone. Hjem shows the 3 most recent. `[ASSUMPTION: page size and count]`
+- Historikk lists Applications newest first, 20 per page. Each row shows "job title – employer", the date and the score badge with its Verdict text, so the two Verdicts never differ by colour alone. Hjem shows the 3 most recent.
 - Reopening an Application shows its Reflection Note and Letter read-only, with the copy buttons and the Letter download (FR-12, FR-16). History has no search, delete or rename.
 - The empty state uses the UX copy «Ingen søknader ennå. Start med din første stillingsannonse.».
 - Konto shows the Student's email, the logout button and a short note on how data is stored and when it is deleted (FR-23). It has no password change and no self-service deletion (D14).
@@ -452,9 +452,9 @@ The Reflection Note shows how the score was reached.
 **Verify:** Auto.
 
 #### FR-23: Store as little as possible
-- Uploaded files are discarded after text extraction. Only the confirmed CV text is stored. `[ASSUMPTION: deviation D12]`
+- Uploaded files are discarded after text extraction. Only the confirmed CV text is stored.
 - AI prompts and responses are never written to logs. Logs hold only metadata: time, token counts and errors.
-- All stored Student data is deleted when the course ends. This is a developer task, documented in the README. When grading is finished, the Hosted version is taken down and its database deleted. `[ASSUMPTION]`
+- All stored Student data is deleted when the course ends. This is a developer task, documented in the README. When grading is finished, the Hosted version is taken down and its database deleted.
 
 **Verify:** Auto (logs) + Manual.
 
@@ -526,7 +526,7 @@ The Reflection Note shows how the score was reached.
 #### FR-30: Deploy a Hosted version
 - The app is deployed to Vercel (product owner, 2026-10-31) and served over HTTPS only, at a stable URL named in the README and the submission.
 - The Hosted version uses the live AI, with the Daily cap (FR-25) and the provider's monthly spending limit (NFR-8).
-- The Hosted version meets the same data rules as the AI provider (§8.1): its functions and its database run in an EU region, and Vercel's data processing agreement and transfer basis cover the data. It fits Vercel's free Hobby plan and a free database tier. `[ASSUMPTION]`
+- The Hosted version meets the same data rules as the AI provider (§8.1): its functions and its database run in an EU region, and Vercel's data processing agreement and transfer basis cover the data. It fits Vercel's free Hobby plan and a free database tier.
 - Its secrets are stored as NFR-7 requires.
 - It is first deployed in week 45 and redeployed as stories are merged.
 
@@ -644,13 +644,13 @@ The Reflection Note shows how the score was reached.
 - The folder and module structure matches the architecture document.
 - No dead code, duplicated files or commented-out remains of earlier AI attempts are delivered.
 
-**Verify:** Auto (the linter runs with the tests) + Manual (week-50 check).
+**Verify:** Auto (the linter runs with the tests) + Manual (final-period check, §5.2).
 
 ## 8. Constraints and guardrails
 
 ### 8.1 Privacy and personal data
 - CVs are personal data. Who may use v1 is set in §2.2 and FR-31, and the repository contains only fictional CVs (FR-28).
-- Whether real CVs may be used in testing depends on the institution's rules for personal data in student projects (Open question 4). Until that is answered, testing uses fictional CVs only. `[ASSUMPTION]`
+- Only fictional CVs are used in testing (decided 2026-11-08; closes Open question 4).
 - **Requirements for the AI provider**, for the architecture to apply when choosing one:
   - Use a paid or commercial API tier only.
   - The provider's terms must state that inputs are not used for training.
@@ -667,7 +667,7 @@ The Reflection Note shows how the score was reached.
 ### 8.3 Team and timeline
 - One developer, with no other course deadlines in November and December.
 - The developer's available time varies from week to week, so work is split into small pieces that can be finished in short sessions.
-- Deadline, milestones and decision points: §5.2. The exact deadline is Open question 1.
+- The deadline is 15 December 2026, and the last commit on `main` at the deadline counts. Milestones and decision points: §5.2.
 
 ### 8.4 Course requirements
 - Part 1 of the examiner guide grades the app, the repository and its history together, and makes up 70 % of the grade:
@@ -709,13 +709,13 @@ The Verify line on each FR and NFR is authoritative. This section lists the main
 ### 9.2 Manual checklist for AI-written text
 The lecturer's feedback asks the PRD to describe this checklist.
 - **When:** run it on every Fixture with the live AI before delivery, and again after any prompt change. The first run happens as soon as S5 works, so there is time to fix the prompts.
-- **Where:** record pass or fail per item, with the date, in `docs/qa/`, and commit the live outputs next to the results. `[ASSUMPTION: location]`
+- **Where:** record pass or fail per item, with the date, in `docs/qa/`, and commit the live outputs next to the results.
 - **Helper:** a small script compares the live outputs with the Answer keys for G2 and G4.
 
 **Letter**
 - L1. Bokmål throughout; no English sentences.
 - L2. Every qualification, tool, employer, date and number in the Letter exists in the CV text.
-- L3. No sentence copies the Job ad: no run of 8 or more words in a row from the ad. `[ASSUMPTION: threshold]`
+- L3. No sentence copies the Job ad: no run of 8 or more words in a row from the ad.
 - L4. The job title and the employer are correct.
 - L5. 250–400 words (FR-9), with 2–3 concrete examples from the CV that show the skills and strengths best matching the ad.
 - L6. The tone matches the chosen Tone.
@@ -768,7 +768,7 @@ The Examiner judges scope against the approved proposal (the brief), and changed
 | D1 | No generated tailored CV file; help with the CV comes as Rewording suggestions | UX Flow 1 and result mockup | Decision A1a: one fewer AI generation (cost), and a rewritten CV is where invented skills slip in most easily |
 | D2 | «Vurder CV» and «Vurder søknad» deferred | UX Flow 2 and the Hjem cards | Decision A2a: two extra AI features; one developer; deadline |
 | D3 | The Letter is shown on screen, with copy and a .docx download | UX: PDF download only, never shown | Decision A4a: the Student must be able to check the Letter for invented claims, and a PDF is hard to edit |
-| D4 | Reflection Note on screen only; no download | UX result mockup (third file) | Its content is already on screen, so no document generator is needed `[ASSUMPTION]` |
+| D4 | Reflection Note on screen only; no download | UX result mockup (third file) | Its content is already on screen, so no document generator is needed |
 | D5 | Minimal History: newest first, reopen only; no search or delete | UX History | Decision A3a |
 | D6 | History added | Brief (not mentioned) | Implied by "upload a CV once" and per-Student storage; the lecturer's feedback expects history per ad |
 | D7 | Keyword explanations are written by code templates, not by AI | Brief ("the language model is used only for the explanatory text and the letter/gap-analysis content") | The lecturer's item (a) asks for a «match-score med nøkkelordforklaring beregnet i kode». This keeps S2 free, deterministic, testable and usable before any AI work. AI-written reasoning moves to Gap analysis (S4) |
@@ -776,7 +776,7 @@ The Examiner judges scope against the approved proposal (the brief), and changed
 | D9 | S5 defined as Rewording suggestions for Rewordable gaps | Brief S5 (not defined) | Makes S5 testable (SC6) and distinct from S4 |
 | D10 | The Student types the job title and the employer | New input; the UX derived them without saying how | Correct names in the Letter, History and file names, with no AI guessing |
 | D11 | The extracted CV text is shown for correction, and the CV can also be pasted | UX Profil and dropzone (file upload only) | PDF extraction is unreliable for CVs with columns and tables (lecturer feedback) |
-| D12 | Only the CV text is stored; the uploaded file is discarded | Brief S7 ("uploaded and generated content") | Data minimisation `[ASSUMPTION]` |
+| D12 | Only the CV text is stored; the uploaded file is discarded | Brief S7 ("uploaded and generated content") | Data minimisation |
 | D13 | Integrity guards, Daily cap and removal of contact details added | New | Make SC3, SC5 and SC6 enforceable; stay within 200 NOK per month; privacy |
 | D14 | Registration asks for name instead of username; no password change | UX «Registrer deg» and Konto | The username was never used (login is by email), the Letter needs the name, and only the developer and the Examiner use v1 |
 | D15 | The score explanation shows «X av Y nøkkelord» and an estimate disclaimer | UX (no copy about the formula) | Principle P2; research found that no official ATS score exists |
@@ -833,7 +833,7 @@ The brief's success criteria SC1–SC9 remain the acceptance criteria. They map 
   - Validates FR-27, FR-29, FR-30 and NFR-9.
 - **SM-5. The suggestions are useful.**
   - Definition: in the live Fixture runs (§9.2), the share of the Answer keys' expected Rewordable gaps that the app finds and shows with a Rewording suggestion that passed FR-17. Counted across all Fixtures together.
-  - Target: at least 70 %. `[ASSUMPTION: starting threshold]`
+  - Target: at least 70 %.
   - Why: an app that never suggests anything would pass SM-3. This sets a minimum, so the app can't be honest simply by saying nothing.
   - Validates FR-13, FR-16 and FR-17.
 
@@ -857,10 +857,10 @@ User success remains directional and is not measured during the course (brief). 
 
 ## 13. Open questions
 
-1. **Deadline.** What is the exact submission deadline, and how is the cut-off commit determined? The answer affects the cut line. *Owner:* Helene, to ask the lecturer.
+1. **Deadline.** *Resolved 2026-11-08:* 15 December 2026; the last commit on `main` at the deadline counts (§5.2).
 2. **Keyword extraction.** Does code-only extraction pass the test in FR-5? This is decided at the end of week 46; if it doesn't, the approved fallback is used. *Owner:* architecture, with Helene.
 3. **AI provider, model and hosted database.** Which AI provider meets §8.1, fits 200 NOK per month and writes good bokmål? Which database works on Vercel in an EU region, on a free tier, while the local run stays free of a database server (NFR-9)? *Owner:* architecture.
-4. **Real CVs in testing.** May real CVs, such as the developer's own, be used in testing under the institution's rules for personal data in student projects? *Owner:* Helene, to ask the lecturer. Until then, fictional CVs only.
+4. **Real CVs in testing.** *Resolved 2026-11-08:* only fictional CVs are used in testing (§8.1).
 5. **AI access for the Examiner.** The plan is Test mode for the README run and live AI on the Hosted version, with the README also describing how to run with a key of one's own. Is that acceptable? *Owner:* Helene, to ask the lecturer.
 6. **Keyword vocabulary.** Where do the Keywords and aliases come from: for example, the Norwegian skill labels in ESCO (the EU's classification of skills and occupations), a custom list, or both? The vocabulary must cover job ads from any field, not only technology (FR-5). *Owner:* architecture.
 7. **UX updates.** EXPERIENCE.md, DESIGN.md and the mockups must be updated to match §11, because the lecturer asked that the UX and the PRD point to the same v1 items. *Owner:* Helene, in week 45, before the epics are written.
@@ -868,22 +868,22 @@ User success remains directional and is not measured during the course (brief). 
 
 ## 14. Assumptions index
 
-These assumptions are still open after the coaching round of 2026-10-31. Design choices that Helene confirmed in that round are no longer tagged.
+Helene settled every assumption on 2026-11-08: numbers 1, 7 and 12 changed as shown, and the rest were confirmed as written. None is open, so the tags have been removed. The table is kept so that the numbers used in the memory log still resolve.
 
-| # | Assumption | Where |
-|---|---|---|
-| 1 | Delivery milestones, and a working deadline of about 10 December 2026 | §5.2 |
-| 2 | Upload limit of 2 MB | FR-1 |
-| 3 | CV text of 200–20,000 characters; Job ad text of 200–15,000 characters; job title and employer up to 200 characters each | FR-2, FR-4 |
-| 4 | Wording of the estimate disclaimer | FR-8 |
-| 5 | Letter length of 250–400 words, and the AI-draft label wording | FR-9 |
-| 6 | Wording of the Letter warning | FR-11 |
-| 7 | Minimum password length of 8; 1-hour inactivity timeout | FR-18 |
-| 8 | History shows 20 per page; Hjem shows the 3 most recent | FR-21 |
-| 9 | The uploaded file is discarded and only the CV text is stored | FR-23, D12 |
-| 10 | All stored data is deleted when the course ends, and the Hosted version is taken down after grading | FR-23 |
-| 11 | Reflection Note on screen only | D4 |
-| 12 | Testing uses fictional CVs only until Open question 4 is answered | §8.1 |
-| 13 | QA records kept in `docs/qa/`; copy threshold of 8 words | §9.2 |
-| 14 | Usefulness threshold of 70 % | SM-5 |
-| 15 | On Vercel, the functions and the database run in an EU region under Vercel's data processing agreement, on the free Hobby plan and a free database tier | FR-30 |
+| # | Assumption | Where | Outcome |
+|---|---|---|---|
+| 1 | Delivery milestones, and a working deadline of about 10 December 2026 | §5.2 | Changed: deadline 15 December 2026; build milestones re-planned (§5.2) |
+| 2 | Upload limit of 2 MB | FR-1 | Confirmed |
+| 3 | CV text of 200–20,000 characters; Job ad text of 200–15,000 characters; job title and employer up to 200 characters each | FR-2, FR-4 | Confirmed |
+| 4 | Wording of the estimate disclaimer | FR-8 | Confirmed |
+| 5 | Letter length of 250–400 words, and the AI-draft label wording | FR-9 | Confirmed |
+| 6 | Wording of the Letter warning | FR-11 | Confirmed |
+| 7 | Minimum password length of 8; 1-hour inactivity timeout | FR-18 | Changed: 30-minute inactivity timeout; password length of 8 confirmed |
+| 8 | History shows 20 per page; Hjem shows the 3 most recent | FR-21 | Confirmed |
+| 9 | The uploaded file is discarded and only the CV text is stored | FR-23, D12 | Confirmed |
+| 10 | All stored data is deleted when the course ends, and the Hosted version is taken down after grading | FR-23 | Confirmed |
+| 11 | Reflection Note on screen only | D4 | Confirmed |
+| 12 | Testing uses fictional CVs only until Open question 4 is answered | §8.1 | Confirmed as a rule; Open question 4 closed |
+| 13 | QA records kept in `docs/qa/`; copy threshold of 8 words | §9.2 | Confirmed |
+| 14 | Usefulness threshold of 70 % | SM-5 | Confirmed |
+| 15 | On Vercel, the functions and the database run in an EU region under Vercel's data processing agreement, on the free Hobby plan and a free database tier | FR-30 | Confirmed |

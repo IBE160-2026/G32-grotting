@@ -1,7 +1,7 @@
 ---
 title: JobAssistant PRD addendum
 created: 2026-10-31
-updated: 2026-11-01
+updated: 2026-11-08
 ---
 
 # JobAssistant PRD addendum
@@ -49,7 +49,7 @@ The findings below are why the Match score is presented as an estimate of keywor
   - Google Gemini, unpaid tier: content may be used to improve products; personal data is forbidden; EEA apps must use the paid tier.
   - Mistral, free Studio tier: may train on input.
 - **Minimisation.** Send only what is needed, and don't log prompts. Datatilsynet's guidance is that data should normally be deleted within one month after a customer relationship ends.
-- **Student projects.** Several Norwegian institutions have their own rules for personal data in student projects. Which rules apply to IBE160 hasn't been verified (Open question 4).
+- **Student projects.** Several Norwegian institutions have their own rules for personal data in student projects. Which rules apply to IBE160 hasn't been verified. v1 sidesteps the question: only fictional CVs are used in testing (Open question 4, closed 2026-11-08).
 
 ### 1.5 Letter expectations in Norway
 - FINN's survey found that 86 % of recruiters notice AI use, and 69 % find applications more impersonal.
@@ -212,13 +212,14 @@ These follow from PRD §11. They make the UX and the PRD point to the same v1 it
 
 ### 4.4 All UX files
 - Tag UX flows and screens with the S and FR IDs they realise.
+- Replace "early December 2026" with the 15 December 2026 deadline (EXPERIENCE.md, overview paragraph).
 
 ## 5. Questions for the lecturer
 
 From the analysis of the examiner guide, the most important first. Each question names the PRD's matching Open question, if there is one.
-1. What is the exact submission deadline, and how is the cut-off commit determined? (Open question 1)
+1. *Settled 2026-11-08:* the deadline is 15 December 2026, and the last commit on `main` at the deadline counts (Open question 1).
 2. Is Test mode for the README run, plus live AI on the Hosted version, acceptable for the AI features? (Open question 5)
-3. May real CVs, such as the developer's own, be used in testing, and do the institution's rules for personal data in student projects apply? (Open question 4)
+3. *Settled 2026-11-08, no longer needed:* only fictional CVs are used in testing (Open question 4).
 4. The app will also be hosted on Vercel. Is the README run on a clean machine still what criterion 6 (README and runnability) grades? (This file only; owner Helene.)
 5. Are curated session logs (`.logs/`) enough as "lagrede prompts og KI-økter", or are raw transcripts expected? (This file only; owner Helene.)
 6. Is mocking the AI acceptable in automated tests, with a manual checklist for the quality of AI-written text? (Open question 8)
