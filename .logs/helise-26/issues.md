@@ -30,4 +30,4 @@
 - [ ] 2026-11-08 [arkitektur-jobassistant](993-2026-11-08-16-29-15-arkitektur-jobassistant.md) — før bake-off: sjekk begge leverandører på DPF-lista; står ikke vinneren der, oppdater PRD §8.1 til å godta SCC
 - [ ] 2026-11-08 [arkitektur-jobassistant](993-2026-11-08-16-29-15-arkitektur-jobassistant.md) — oppsett uke 45: Supabase i Frankfurt (Data API av, RLS på), Supabase- og Vercel-DPA dokumentert i docs/qa/, keep-alive-workflow to ganger daglig
 - [ ] 2026-11-08 [arkitektur-jobassistant](993-2026-11-08-16-29-15-arkitektur-jobassistant.md) — når sensuren starter: sjekk at keep-alive-workflowen fortsatt er aktiv
-- [ ] 2026-11-08 [arkitektur-jobassistant](993-2026-11-08-16-29-15-arkitektur-jobassistant.md) — oppdater PRD etter arkitekturen: OQ3 (database avgjort, leverandør til bake-off) og OQ6 (vokabularets retning), med memlog-oppføring
+- [x] 2026-11-08 [arkitektur-jobassistant](993-2026-11-08-16-29-15-arkitektur-jobassistant.md) — oppdater PRD etter arkitekturen: OQ3 (database avgjort, leverandør til bake-off) og OQ6 (vokabularets retning), med memlog-oppføring (løst 2026-11-09: [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md), memlogg U8–U9)
