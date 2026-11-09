@@ -34,3 +34,5 @@
 - [x] 2026-11-09 [impeccable-init](992-2026-11-09-12-31-22-impeccable-init.md) — bestem om `.claude/skills/impeccable/` og `.claude/agents/` skal committes, og om Windows-binæren (ca. 23 MB) under `scripts/bin/` skal git-ignoreres (løst 2026-11-09: ikke committes foreløpig, filene blir liggende ukommittert)
 - [ ] 2026-11-09 [impeccable-init](992-2026-11-09-12-31-22-impeccable-init.md) — neste UX-steg: velg første flate (forslag: Søknad med Refleksjonsnotat) og kjør `/impeccable shape` / new-work, som lager ny DESIGN.md
 - [ ] 2026-11-09 [impeccable-init](992-2026-11-09-12-31-22-impeccable-init.md) — når ny DESIGN.md finnes: oppdater PRD §0 og andre lenker som peker på den gamle UX-mappa som UX-autoritet
+- [ ] 2026-11-09 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — vurder de 10 designkonseptene (ux-designs/ux-JobAssistant-2026-11-09/.working/concepts/index.html) og velg én eller to retninger
+- [ ] 2026-11-09 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — etter valget: fortsett bmad-ux-Discovery (innsats, journeys, formfaktor) og rett detektorfunnene i valgt konsept (_hook-findings.md)
