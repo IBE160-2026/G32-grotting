@@ -62,7 +62,7 @@ The findings below are why the Match score is presented as an estimate of keywor
 These notes are suggestions, not decisions. The architecture document must make and justify the choices; the lecturer asked for justified choices of language model, storage and encryption.
 
 ### 2.1 Keyword engine (FR-5 to FR-7)
-- **Vocabulary is the main quality risk.** Extraction by code alone probably needs a curated vocabulary: the Norwegian labels in ESCO, which span all occupations, plus a list of technology terms. It must work for ads from any field, such as nursing, not only IT (Open questions 2 and 6).
+- **Vocabulary is the main quality risk.** Extraction by code alone probably needs a curated vocabulary: the Norwegian labels in ESCO, which span all occupations, plus a list of technology terms. It must work for ads from any field, such as nursing, not only IT (Open questions 2 and 6). *Direction decided 2026-11-08 (architecture AD-2):* a curated core list, with selected ESCO Norwegian labels as backup, as versioned JSON in `data/vocabulary/`.
 - **AI fallback.** Approved on 2026-10-31 and specified in full in FR-5; decided at the end of week 46. Keep extraction behind one interface, so either path fits.
 - A possible pipeline:
   1. Normalise: case, æøå, hyphens and spaces.
@@ -127,7 +127,7 @@ All three guards reuse the Keyword engine, so they are deterministic and easy to
 - A budget of 200 NOK per month should cover development, Fixture runs and the demonstration. The Daily cap stops a runaway loop, and a monthly spending limit set with the provider is the backstop.
 
 ### 2.8 Hosting on Vercel (FR-30, FR-31)
-- **Database.** Serverless functions have no persistent file system, so the Hosted version needs a hosted database with an EU region and a free tier. The local run must still work without a database server (NFR-9), for example with a file database behind the same data layer. The architecture decides (Open question 3).
+- **Database.** Serverless functions have no persistent file system, so the Hosted version needs a hosted database with an EU region and a free tier. The local run must still work without a database server (NFR-9), for example with a file database behind the same data layer. *Decided 2026-11-08 (architecture AD-8, Open question 3):* Supabase Postgres in Frankfurt, used as a plain database, and PGlite in `.data/` for the local run.
 - **Function time limits.** Check the Hobby plan's limit on function duration against NFR-4 (AI sections within 60 seconds; AI requests time out after 90 seconds). Streaming the response, or running the two AI requests in separate function calls, may be needed.
 - Everything else about hosting is set in FR-30, FR-31 and PRD §8.1–§8.2. Details the PRD leaves out:
   - run the functions in an EU region, close to the database;

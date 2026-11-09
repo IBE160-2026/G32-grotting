@@ -2,7 +2,7 @@
 title: JobAssistant PRD
 status: final
 created: 2026-10-31
-updated: 2026-11-08
+updated: 2026-11-09
 ---
 
 # PRD: JobAssistant
@@ -661,7 +661,7 @@ The Reflection Note shows how the score was reached.
 - **Requirements for the host:** the host is Vercel. Its functions and the database run in an EU region, and Vercel's data processing agreement and transfer basis must cover the data. The architecture checks this (FR-30).
 
 ### 8.2 Cost
-- The AI budget is about 200 NOK per month (NFR-8). The architecture chooses the provider and model, with a cost estimate per Application based on prices at that time.
+- The AI budget is about 200 NOK per month (NFR-8). A bake-off at the start of week 47 chooses the provider and model (Open question 3), with a cost estimate per Application based on prices at that time.
 - Hosting uses Vercel's free Hobby plan, which is meant for non-commercial projects, and the hosted database must fit a free tier too (FR-30).
 
 ### 8.3 Team and timeline
@@ -859,10 +859,14 @@ User success remains directional and is not measured during the course (brief). 
 
 1. **Deadline.** *Resolved 2026-11-08:* 15 December 2026; the last commit on `main` at the deadline counts (§5.2).
 2. **Keyword extraction.** Does code-only extraction pass the test in FR-5? This is decided at the end of week 46; if it doesn't, the approved fallback is used. *Owner:* architecture, with Helene.
-3. **AI provider, model and hosted database.** Which AI provider meets §8.1, fits 200 NOK per month and writes good bokmål? Which database works on Vercel in an EU region, on a free tier, while the local run stays free of a database server (NFR-9)? *Owner:* architecture.
+3. **AI provider, model and hosted database.** *Partly resolved 2026-11-08 by the architecture (spine AD-8):*
+   - **Hosted database: decided.** A free-tier Postgres database in an EU region (Frankfurt). The local run uses a file database, so it still needs no database server (NFR-9).
+   - **AI provider and model: still open.** A bake-off at the start of week 47 decides between two contenders. They are scored on checklist items L1–L8, G1–G3 and R1 (§9.2) and on the Integrity guard results. The winner must also meet §8.1 and the 200 NOK monthly budget (NFR-8).
+   - Before the bake-off, both contenders are checked against the EU–US Data Privacy Framework list. If the winner isn't listed, §8.1 is amended to also accept Standard Contractual Clauses in the provider's data processing agreement.
+   - *Owner:* Helene, at the start of week 47.
 4. **Real CVs in testing.** *Resolved 2026-11-08:* only fictional CVs are used in testing (§8.1).
 5. **AI access for the Examiner.** The plan is Test mode for the README run and live AI on the Hosted version, with the README also describing how to run with a key of one's own. Is that acceptable? *Owner:* Helene, to ask the lecturer.
-6. **Keyword vocabulary.** Where do the Keywords and aliases come from: for example, the Norwegian skill labels in ESCO (the EU's classification of skills and occupations), a custom list, or both? The vocabulary must cover job ads from any field, not only technology (FR-5). *Owner:* architecture.
+6. **Keyword vocabulary.** Where do the Keywords and aliases come from: for example, the Norwegian skill labels in ESCO (the EU's classification of skills and occupations), a custom list, or both? The vocabulary must cover job ads from any field, not only technology (FR-5). *Direction resolved 2026-11-08 by the architecture (spine AD-2):* a curated core list, with selected Norwegian ESCO labels as backup, stored as versioned data. Helene's nursing terms seed the list. Its final shape is settled together with the FR-5 decision at the end of week 46, and its contents are tuned against the Answer keys in Epic 2. *Owner:* Helene.
 7. **UX updates.** EXPERIENCE.md, DESIGN.md and the mockups must be updated to match §11, because the lecturer asked that the UX and the PRD point to the same v1 items. *Owner:* Helene, in week 45, before the epics are written.
 8. **Mocked AI in tests.** Is mocking the AI in automated tests acceptable, with the manual checklist (§9.2) covering the quality of AI-written text? *Owner:* Helene, to ask the lecturer.
 
