@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Riso-plakat – konsept 05</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap" rel="stylesheet">
+<style>
+/* ---------- Tokens ---------- */
+:root{
+  --paper:#F5F2EA;      /* uncoated white */
+  --sheet:#FFFDF8;      /* field / letter sheet */
+  --ink:#171515;        /* black ink, all body text */
+  --ink-2:#47424D;      /* secondary text, 9:1 on paper */
+  --blue:#3255A4;       /* riso medium blue, 6.4:1 on paper */
+  --pink:#FF48B0;       /* fluorescent pink, fills and display only */
+  --purple:#321871;     /* overprint pink x blue */
+  --pink-tint:#FFD6EC;
+  --blue-tint:#DCE2F1;
+  --board:#D8D5CD;
+  --display:"Anton","Archivo",sans-serif;
+  --body:"Archivo",system-ui,sans-serif;
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .09  0 0 0 0 .08  0 0 0 0 .07  0 0 0 .08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scrollbar-color:var(--ink) var(--board);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--board) var(--grain);color:var(--ink);font:400 1rem/1.55 var(--body);font-variation-settings:"wdth" 100;caret-color:var(--blue)}
+::selection{background:var(--pink);color:var(--ink)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+a{color:inherit;text-underline-offset:.2em;text-decoration-thickness:2px}
+h1,h2,h3,h4,p,ul,ol,blockquote,dl,dd{margin:0}
+ul,ol{padding:0;list-style:none}
+svg.i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2.25;stroke-linecap:square;stroke-linejoin:miter}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- Riso effects ---------- */
+.riso{position:relative;display:inline-block;color:var(--pink)}
+.riso::after{content:attr(data-t) / "";position:absolute;inset:0;color:var(--blue);mix-blend-mode:multiply;transform:translate(2px,1.5px);pointer-events:none}
+.ht{background-image:radial-gradient(var(--c,var(--pink)) 0 42%,transparent 45%);background-size:var(--s,8px) var(--s,8px)}
+.mult{mix-blend-mode:multiply}
+.cut{clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
+
+/* ---------- Board chrome ---------- */
+.board{max-width:1320px;margin:0 auto;padding:32px 24px 64px}
+.masthead{position:relative;overflow:hidden;background:var(--paper) var(--grain);padding:40px 48px 36px;margin-bottom:56px;box-shadow:0 14px 30px -18px rgba(23,21,21,.45),0 2px 3px rgba(23,21,21,.12)}
+.masthead .blob{position:absolute;right:-60px;top:-80px;width:360px;height:360px;border-radius:50%;--s:9px}
+.masthead .bar{position:absolute;right:120px;top:40px;width:300px;height:150px;background:var(--blue);transform:rotate(-8deg);clip-path:polygon(0 12%,100% 0,94% 100%,4% 88%)}
+.masthead-in{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 40px;align-items:end}
+.mh-num{font:400 9rem/.82 var(--display)}
+.mh-title{font:400 3.75rem/.95 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.mh-copy{grid-column:1/-1;max-width:68ch;margin-top:20px;font-size:1.0625rem}
+.mh-copy p+p{margin-top:8px;color:var(--ink-2);font-size:.95rem}
+.index{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.index a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border:2px solid var(--ink);background:var(--sheet);font-weight:700;font-size:.9rem;text-decoration:none;font-variation-settings:"wdth" 85}
+.index a:hover{background:var(--pink)}
+.frame{margin:0 0 72px;scroll-margin-top:24px}
+.frame-label{display:flex;align-items:center;gap:12px;margin:0 0 14px;font:800 1.05rem/1.2 var(--body);font-variation-settings:"wdth" 78;text-transform:uppercase;letter-spacing:.04em}
+.frame-label::before{content:"";width:44px;height:16px;background:var(--pink);opacity:.85;transform:rotate(-4deg);mix-blend-mode:multiply}
+.frame-note{margin:-6px 0 14px 56px;font-size:.9rem;color:var(--ink-2);max-width:80ch}
+.screen{container:screen / inline-size;width:100%;max-width:1240px;background:var(--paper) var(--grain);box-shadow:0 18px 36px -20px rgba(23,21,21,.5),0 2px 3px rgba(23,21,21,.14);position:relative;overflow:hidden}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:40px;align-items:start}
+.foot{border-top:3px solid var(--ink);padding-top:16px;font-weight:700}
+
+/* ---------- Shared UI ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 20px;border:2px solid var(--ink);border-radius:0;background:transparent;color:var(--ink);font:700 1rem/1.1 var(--body);font-variation-settings:"wdth" 90;text-decoration:none;cursor:pointer;transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-primary:hover{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn-pink{background:var(--pink);color:var(--ink)}
+.btn-pink:hover{background:var(--ink);color:var(--pink)}
+.btn-lg{min-height:60px;padding:0 28px;font-size:1.125rem}
+.btn[disabled]{border-style:dashed;color:var(--ink-2);background:transparent;cursor:not-allowed}
+.link{font-weight:700;color:var(--blue)}
+.link:hover{color:var(--purple)}
+.field{display:grid;gap:6px}
+.field>label,.ad-head label,.legend{font-weight:700;font-size:.95rem}
+.hint{font-size:.875rem;color:var(--ink-2)}
+.input,.ta{width:100%;min-height:48px;padding:11px 13px;border:2px solid var(--ink);border-radius:0;background:var(--sheet);color:var(--ink);font:400 1rem/1.5 var(--body)}
+.input::placeholder,.ta::placeholder{color:#645E6B}
+.input:hover,.ta:hover{background:#fff}
+.ta{resize:vertical;font-size:.95rem}
+.ta[readonly]{background:var(--paper)}
+.err{display:flex;gap:10px;align-items:flex-start;background:var(--pink-tint);padding:12px 14px;font-weight:600;font-size:.95rem}
+.err svg{margin-top:1px}
+.field.invalid .input,.field.invalid .drop{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--pink)}
+.counter{font-size:.85rem;color:var(--ink-2);justify-self:end}
+.tag{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border:2px solid var(--ink);font:700 .8rem/1 var(--body);text-transform:uppercase;letter-spacing:.06em;font-variation-settings:"wdth" 85;white-space:nowrap}
+.tag svg.i{width:16px;height:16px}
+.h1{font:400 2.75rem/1 var(--display);letter-spacing:.005em}
+.h2{font:800 1.375rem/1.2 var(--body);font-variation-settings:"wdth" 80;text-transform:uppercase;letter-spacing:.02em}
+.lead{font-size:1.0625rem;max-width:62ch;color:var(--ink-2)}
+.main{padding:40px 48px 56px}
+.rule{border:0;border-top:3px solid var(--ink);margin:40px 0}
+
+/* ---------- Navigation ---------- */
+.nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;padding:10px 32px;min-height:72px;border-bottom:3px solid var(--ink);background:var(--paper)}
+.wordmark{font:400 1.875rem/1 var(--display);text-decoration:none;letter-spacing:.01em;padding:4px 0}
+.nav-links{display:flex;gap:4px}
+.nav-links a{display:flex;align-items:center;min-height:44px;padding:0 14px;font-weight:600;text-decoration:none}
+.nav-links a:hover{background:var(--pink-tint)}
+.nav-links a[aria-current="page"]{background:var(--pink);font-weight:800;box-shadow:inset 0 -4px 0 var(--ink)}
+.nav-toggle{display:none}
+.nav-out{display:flex;gap:12px;align-items:center}
+
+/* ---------- Hjem (poster) ---------- */
+.hero{position:relative;min-height:640px;padding:56px 48px 64px;overflow:hidden}
+.hero-art{position:absolute;right:0;top:0;width:47%;height:100%}
+.hero-art .disc{position:absolute;right:-90px;top:30px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,var(--pink) 0 50%,transparent 50.5%),radial-gradient(var(--pink) 0 42%,transparent 45%) 0 0/9px 9px;-webkit-mask:radial-gradient(circle,#000 62%,transparent 71%);mask:radial-gradient(circle,#000 62%,transparent 71%);mix-blend-mode:multiply}
+.hero-art .wedge{position:absolute;right:240px;top:300px;width:300px;height:330px;background:var(--blue);clip-path:polygon(18% 0,100% 8%,82% 100%,0 86%);mix-blend-mode:multiply}
+.hero-art .tickets{position:absolute;right:56px;top:96px;display:flex;flex-direction:column;align-items:flex-end;gap:0}
+.hero-art .tk{transform:rotate(var(--r,0deg));margin-top:6px;mix-blend-mode:normal}
+.hero-copy{position:relative;max-width:62%}
+.poster-h{font:400 clamp(3rem,17cqi,8rem)/1 var(--display);text-transform:uppercase;letter-spacing:.005em}
+.poster-h .l1{display:block}
+.poster-h .riso{display:block;width:max-content;max-width:100%}
+.hero-copy .lead{color:var(--ink);font-size:1.25rem;max-width:44ch;margin-top:28px}
+.hero-cta{display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px;margin-top:32px}
+.hero-cta p{font-size:.95rem;color:var(--ink-2);max-width:32ch}
+.lineup{border-top:3px solid var(--ink);border-bottom:3px solid var(--ink);margin:0 48px}
+.lineup-h{font:400 3rem/1 var(--display);text-transform:uppercase;padding:32px 0 24px}
+.acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:3px solid var(--ink)}
+.act{padding:28px 28px 32px;display:grid;gap:14px;align-content:start}
+.act+.act{border-left:3px solid var(--ink)}
+.act:first-child{padding-left:0}.act:last-child{padding-right:0}
+.act-glyph{height:64px;position:relative}
+.act h3{font:400 2.5rem/.95 var(--display);text-transform:uppercase}
+.act p{max-width:40ch}
+.act .sample{margin-top:6px;padding:10px 12px;background:var(--sheet);border:2px solid var(--ink);font-weight:700;font-size:.95rem}
+.stance{position:relative;overflow:hidden;background:var(--blue);color:#fff;margin:56px 48px 0;padding:48px 48px 52px}
+.stance :focus-visible{outline-color:#fff}
+.stance .dots{position:absolute;right:-120px;bottom:-160px;width:460px;height:460px;border-radius:50%;--s:10px}
+.stance h2{position:relative;font:400 clamp(2.5rem,6.2cqi,4.75rem)/.92 var(--display);text-transform:uppercase;max-width:14ch}
+.stance ul{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:20px 48px;margin-top:36px;max-width:980px}
+.stance li{display:grid;grid-template-columns:18px 1fr;gap:14px;font-size:1.0625rem}
+.stance li::before{content:"";width:14px;height:14px;margin-top:6px;background:var(--pink)}
+.hjem-end{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px;padding:40px 48px 44px}
+.hjem-end p{font-size:.9rem;color:var(--ink-2);max-width:60ch}
+
+/* Tickets */
+.tk{display:inline-flex;flex-direction:column;justify-content:center;gap:3px;min-height:58px;padding:9px 18px 10px 14px;mix-blend-mode:multiply;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
+.tk small{font:700 .75rem/1 var(--body);letter-spacing:.08em;text-transform:uppercase}
+.tk b{font:800 1.0625rem/1.15 var(--body);font-variation-settings:"wdth" 85}
+.tk-hit{background:var(--blue);color:#fff}
+.tk-miss{background:var(--pink);color:var(--ink)}
+.strip{display:flex;flex-wrap:wrap;padding:6px 0 0 8px}
+.strip .tk{margin:-6px 0 0 -8px;transform:rotate(var(--r,0deg))}
+
+/* ---------- Auth ---------- */
+.auth{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);min-height:600px}
+.auth-poster{position:relative;overflow:hidden;background:var(--blue);color:#fff;padding:48px 40px}
+.auth-poster .dots{position:absolute;left:-80px;bottom:-120px;width:420px;height:420px;border-radius:50%;--s:10px}
+.auth-poster h1{position:relative;font:400 clamp(2.75rem,6cqi,4.5rem)/.92 var(--display);text-transform:uppercase}
+.auth-poster p{position:relative;margin-top:20px;max-width:34ch;font-size:1.0625rem}
+.auth-form{padding:56px 64px;display:grid;align-content:start;gap:20px;max-width:620px}
+.auth-form .btn-primary{justify-self:start;margin-top:4px}
+.auth-alt{padding-top:20px;border-top:2px solid var(--ink)}
+
+/* ---------- App screens ---------- */
+.page-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:16px 32px;margin-bottom:32px}
+.page-head .lead{margin-top:10px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:56px;align-items:start}
+.aside{border-top:3px solid var(--ink);padding-top:16px;display:grid;gap:12px;font-size:.95rem}
+.aside h2{font:800 1rem/1.2 var(--body);text-transform:uppercase;letter-spacing:.04em;font-variation-settings:"wdth" 80}
+.aside li{display:grid;grid-template-columns:14px 1fr;gap:10px}
+.aside li::before{content:"";width:10px;height:10px;margin-top:7px;background:var(--blue)}
+.aside li:nth-child(2)::before{background:var(--pink)}
+.aside li:nth-child(3)::before{background:var(--purple)}
+.stack{display:grid;gap:24px}
+.drop{display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px;padding:22px 24px;border:2px dashed var(--ink);background:var(--sheet)}
+.drop .ic{display:grid;place-items:center;width:52px;height:52px;background:var(--blue-tint)}
+.drop .ic svg{width:26px;height:26px}
+.drop-t{flex:1 1 220px}
+.drop-t b{display:block;font-size:1.0625rem}
+.file{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:.95rem}
+.file b{font-weight:700}
+.note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--blue-tint);font-size:.95rem}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.saved{font-size:.9rem;color:var(--ink-2)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+details.cv{border:2px solid var(--ink);background:var(--sheet)}
+details.cv summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-height:56px;padding:10px 16px;cursor:pointer;list-style:none}
+details.cv summary::-webkit-details-marker{display:none}
+details.cv summary .chev{transition:transform .2s cubic-bezier(.16,1,.3,1)}
+details.cv[open] summary .chev{transform:rotate(180deg)}
+details.cv summary b{flex:1 1 260px}
+details.cv summary span.link{font-size:.95rem}
+details.cv .in{padding:0 16px 16px}
+.ad-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+.tones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px;border:2px solid var(--ink)}
+.tone{position:relative}
+.tone+.tone{border-left:2px solid var(--ink)}
+.tone input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.tone label{display:grid;gap:2px;min-height:64px;padding:12px 14px 12px 44px;cursor:pointer;background:var(--sheet);position:relative}
+.tone label::before{content:"";position:absolute;left:14px;top:15px;width:18px;height:18px;border:2px solid var(--ink);border-radius:50%;background:var(--sheet)}
+.tone label b{font-size:1rem}
+.tone label span{font-size:.875rem;color:var(--ink-2)}
+.tone input:checked+label{background:var(--ink);color:var(--paper)}
+.tone input:checked+label span{color:#D9D4DE}
+.tone input:checked+label::before{border-color:var(--paper);background:radial-gradient(circle,var(--pink) 0 42%,var(--ink) 46%)}
+.tone input:focus-visible+label{outline:3px solid var(--blue);outline-offset:2px;z-index:1}
+.tone label:hover{background:var(--pink-tint)}
+.tone input:checked+label:hover{background:var(--purple)}
+
+/* Dialog frame */
+.scrim{position:relative;min-height:560px;display:grid;place-items:center;padding:48px 24px}
+.scrim-bg{position:absolute;inset:0;padding:40px 48px;display:grid;gap:20px;align-content:start;opacity:.55}
+.scrim-bg i{display:block;height:48px;border:2px solid var(--ink)}
+.scrim-bg i:nth-child(2){height:160px}
+.scrim::after{content:"";position:absolute;inset:0;background:rgba(50,24,113,.62)}
+.dlg{position:relative;z-index:1;width:100%;max-width:560px;background:var(--paper);border:3px solid var(--ink);padding:32px 32px 28px;display:grid;gap:16px;box-shadow:0 24px 48px -18px rgba(10,6,30,.6)}
+.dlg h2{font:400 2.25rem/1 var(--display);text-transform:uppercase}
+.dlg ul{display:grid;gap:8px}
+.dlg li{display:grid;grid-template-columns:22px 1fr;gap:10px}
+.dlg li svg{margin-top:2px;color:var(--blue)}
+
+/* ---------- Refleksjonsnotat ---------- */
+.res-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:16px 32px;margin-bottom:28px}
+.res-meta{margin-top:10px;color:var(--ink-2);font-size:.95rem}
+.scoreboard{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:40px 56px;padding:36px 0 40px;border-top:3px solid var(--ink);border-bottom:3px solid var(--ink)}
+.score-poster{position:relative;padding:8px 0 0}
+.score-poster .disc{position:absolute;left:35%;top:-50px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,var(--pink) 0 46%,transparent 46.5%),radial-gradient(var(--pink) 0 42%,transparent 45%) 0 0/8px 8px;-webkit-mask:radial-gradient(circle,#000 60%,transparent 71%);mask:radial-gradient(circle,#000 60%,transparent 71%);opacity:.9;mix-blend-mode:multiply}
+.score{position:relative;display:grid;gap:4px}
+.score-n{font:400 clamp(7.5rem,17cqi,13rem)/.86 var(--display);letter-spacing:-.01em;word-spacing:-.04em}
+.score-sub{font:400 clamp(1.5rem,3.1cqi,2.5rem)/1.02 var(--display);text-transform:uppercase;max-width:16ch}
+.verdict{position:relative;display:inline-flex;align-items:center;gap:10px;margin-top:22px;padding:12px 22px 12px 16px;background:var(--ink);color:var(--paper);font:800 1.25rem/1 var(--body);font-variation-settings:"wdth" 80;text-transform:uppercase;letter-spacing:.04em;transform:rotate(-2deg);clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
+.verdict svg{color:var(--pink)}
+.calc{display:grid;gap:16px;align-content:start}
+.calc h2{font:800 1rem/1.2 var(--body);text-transform:uppercase;letter-spacing:.05em;font-variation-settings:"wdth" 80}
+.formula{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:14px 16px;background:var(--sheet);border:2px solid var(--ink);font:800 1.375rem/1.2 var(--body);font-variation-settings:"wdth" 88}
+.formula .eq{color:var(--blue)}
+.disclaimer{font-size:.95rem;color:var(--ink-2);max-width:52ch}
+.legend-row{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.875rem;color:var(--ink-2)}
+.legend-row span{display:inline-flex;align-items:center;gap:8px}
+.legend-row i{width:14px;height:14px;display:inline-block}
+.kwcols{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:40px}
+.kwcol h2{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:3px solid var(--ink)}
+.kwcol h2 .cnt{font:400 1.75rem/1 var(--display)}
+.ev{padding:18px 0 20px;border-bottom:1px solid var(--ink);display:grid;gap:8px}
+.kw{display:flex;align-items:center;gap:10px;font:800 1.1875rem/1.2 var(--body);font-variation-settings:"wdth" 92}
+.mark{display:grid;place-items:center;width:28px;height:28px;flex:none}
+.mark svg.i{width:18px;height:18px;stroke-width:2.75}
+.mark-hit{background:var(--blue);color:#fff}
+.mark-miss{background:var(--pink);color:var(--ink)}
+.src{font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}
+.q{padding:10px 14px;font-size:.98rem;line-height:1.5}
+.q-cv{background:var(--blue-tint)}
+.q-ad{background:var(--pink-tint)}
+.q b{font-weight:800}
+.ev p.say{font-size:1rem}
+.sec-h{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:56px 0 8px}
+.sec-h h2{font:400 2.5rem/1 var(--display);text-transform:uppercase}
+.sec-intro{color:var(--ink-2);max-width:66ch;margin-bottom:8px}
+.gap{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px 48px;padding:32px 0;border-bottom:3px solid var(--ink)}
+.gap:first-of-type{border-top:3px solid var(--ink);margin-top:20px}
+.gap-name h3{font:400 2.25rem/1 var(--display);text-transform:uppercase;overflow-wrap:anywhere}
+.stamp{display:inline-flex;align-items:center;gap:8px;margin-top:14px;min-height:36px;padding:0 14px 0 10px;font:800 .95rem/1 var(--body);font-variation-settings:"wdth" 82;text-transform:uppercase;letter-spacing:.04em;clip-path:polygon(0 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%)}
+.stamp-rw{background:var(--blue);color:#fff}
+.stamp-real{background:var(--pink);color:var(--ink)}
+.gap-body{display:grid;gap:14px;max-width:72ch}
+.suggest{display:grid;gap:12px;padding:18px 20px;background:var(--sheet);border:2px solid var(--blue)}
+.suggest h4{font:800 .95rem/1.2 var(--body);text-transform:uppercase;letter-spacing:.05em;font-variation-settings:"wdth" 82;color:var(--blue)}
+.suggest p{font-size:1.0625rem}
+.suggest .btn{justify-self:start}
+.nothing{display:flex;gap:10px;align-items:center;font-size:.95rem;color:var(--ink-2);padding-top:4px}
+.ai-label{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--ink);color:var(--paper);font-weight:700;max-width:760px}
+.ai-label svg{color:var(--pink)}
+.letter{max-width:760px;background:var(--sheet);border:2px solid var(--ink);border-top:0;padding:36px 44px 40px;font-size:1.0625rem;line-height:1.65}
+.letter p+p{margin-top:1em}
+.letter-actions{margin-top:20px}
+.progress{display:grid;gap:12px;margin-top:40px;padding:20px 0;border-top:3px solid var(--ink)}
+.progress p{font-weight:700;font-size:1.0625rem}
+.roller{height:10px;position:relative;overflow:hidden;background:var(--blue-tint)}
+.roller::before,.roller::after{content:"";position:absolute;top:0;bottom:0;width:38%;mix-blend-mode:multiply;animation:roll 2.4s cubic-bezier(.65,0,.35,1) infinite}
+.roller::before{background:var(--pink)}
+.roller::after{background:var(--blue);top:2px;animation-delay:.12s}
+@keyframes roll{0%{left:-40%}100%{left:102%}}
+@media (prefers-reduced-motion:reduce){.roller::before,.roller::after{animation:none;left:0;width:30%}.btn,details.cv summary .chev{transition:none}}
+.ph{display:grid;gap:12px;padding:24px 0}
+.ph i{display:block;height:18px;--c:rgba(23,21,21,.18);--s:6px}
+.ph i:nth-child(1){width:38%;height:30px}
+.ph i:nth-child(2){width:92%}.ph i:nth-child(3){width:84%}.ph i:nth-child(4){width:60%}
+.ph-label{font-size:.9rem;color:var(--ink-2);font-weight:600}
+.testbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:14px 32px;background:var(--pink-tint);border-bottom:3px solid var(--ink);font-weight:700;position:relative}
+.testbar::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;--s:6px;background-image:radial-gradient(var(--pink) 0 45%,transparent 48%);background-size:6px 6px}
+.testbar svg{width:24px;height:24px}
+.testbar span.hint{font-weight:500;color:var(--ink-2)}
+
+/* ---------- Historikk ---------- */
+.hist{border-top:3px solid var(--ink)}
+.hrow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:16px 32px;align-items:center;padding:24px 0;border-bottom:2px solid var(--ink)}
+.hscore{display:grid;gap:4px;justify-items:start}
+.hscore .n{font:400 3rem/.9 var(--display)}
+.hscore .v{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 8px;font:800 .78rem/1 var(--body);text-transform:uppercase;letter-spacing:.05em;font-variation-settings:"wdth" 82}
+.v-strong{background:var(--blue);color:#fff}
+.v-weak{background:var(--pink);color:var(--ink)}
+.hmeta h2{font:800 1.25rem/1.25 var(--body);font-variation-settings:"wdth" 92}
+.hmeta p{color:var(--ink-2);font-size:.95rem;margin-top:4px}
+.hact{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.hact .btn{min-height:44px;padding:0 14px;font-size:.95rem}
+.empty{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:32px;align-items:center;padding:48px;border:3px solid var(--ink);background:var(--sheet)}
+.empty h2{font:400 3rem/.95 var(--display);text-transform:uppercase}
+.empty p{margin:14px 0 24px;max-width:46ch}
+.empty-art{position:relative;height:220px}
+.empty-art .a{position:absolute;inset:10px 40px 30px 0;border:4px dashed var(--blue);transform:rotate(-4deg)}
+.empty-art .b{position:absolute;right:0;bottom:0;width:150px;height:150px;border-radius:50%;--s:9px;mix-blend-mode:multiply}
+
+/* ---------- Konto ---------- */
+.kv{display:grid;grid-template-columns:200px 1fr;gap:0;border-top:3px solid var(--ink);max-width:760px}
+.kv dt,.kv dd{padding:18px 0;border-bottom:1px solid var(--ink)}
+.kv dt{font-weight:700}
+.store{max-width:760px;margin-top:40px;display:grid;gap:12px}
+.store h2{font:800 1.125rem/1.2 var(--body);text-transform:uppercase;letter-spacing:.04em;font-variation-settings:"wdth" 80}
+.store li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.store li svg{color:var(--blue);margin-top:2px}
+
+/* ---------- Mobile section ---------- */
+.phones{display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start}
+.phone{width:360px;flex:none}
+.phone .screen{max-width:360px}
+.phone-cap{font-weight:700;font-size:.9rem;margin:16px 0 8px}
+.phone-cap:first-of-type{margin-top:0}
+.gapline{height:0;border-top:3px dotted var(--ink);margin:28px 0;position:relative}
+.gapline span{white-space:nowrap;position:absolute;left:50%;top:-12px;transform:translateX(-50%);background:var(--paper);padding:0 10px;font-size:.85rem;color:var(--ink-2);font-weight:600}
+
+/* ---------- Container-query collapse ---------- */
+@container screen (max-width:900px){
+  .cols{grid-template-columns:1fr;gap:32px}
+  .gap{grid-template-columns:1fr;gap:16px}
+  .hrow{grid-template-columns:120px minmax(0,1fr)}
+  .hact{grid-column:1/-1;justify-content:flex-start}
+}
+@container screen (max-width:760px){
+  .hero{min-height:0;padding:28px 16px 40px;display:flex;flex-direction:column}
+  .hero-art{position:relative;order:2;width:100%;height:330px;margin-top:28px}
+  .hero-art .disc{width:300px;height:300px;right:-40px;top:0}
+  .hero-art .wedge{width:170px;height:190px;right:150px;top:130px}
+  .hero-art .tickets{right:16px;top:28px}
+  .hero-copy{max-width:none}
+  .hero-copy .lead{font-size:1.0625rem}
+  .lineup,.stance{margin-left:16px;margin-right:16px}
+  .acts{grid-template-columns:1fr}
+  .act{padding:24px 0}
+  .act+.act{border-left:0;border-top:3px solid var(--ink)}
+  .stance{padding:32px 20px}
+  .stance ul{grid-template-columns:1fr}
+  .hjem-end{padding:32px 16px}
+  .auth{grid-template-columns:1fr;min-height:0}
+  .auth-poster{padding:28px 16px}
+  .auth-form{padding:28px 16px 36px}
+  .main{padding:24px 16px 40px}
+  .scoreboard{grid-template-columns:1fr;gap:28px;padding:24px 0 28px}
+  .score-poster .disc{width:170px;height:170px;left:40%;top:-30px}
+  .kwcols{grid-template-columns:1fr;gap:32px;margin-top:28px}
+  .two{grid-template-columns:1fr}
+  .tones{grid-template-columns:1fr}
+  .tone+.tone{border-left:0;border-top:2px solid var(--ink)}
+  .letter{padding:24px 18px 28px;font-size:1rem}
+  .sec-h h2{font-size:2rem}
+  .gap-name h3{font-size:1.875rem}
+  .empty{grid-template-columns:1fr;padding:28px 20px}
+  .empty-art{display:none}
+  .kv{grid-template-columns:1fr}
+  .kv dt{padding-bottom:0;border-bottom:0}
+  .kv dd{padding-top:4px}
+  .h1{font-size:2.25rem}
+  .testbar{padding:12px 16px}
+  .ai-label{align-items:flex-start}
+}
+@container screen (max-width:640px){
+  .nav{padding:10px 16px;min-height:64px}
+  .nav-toggle{display:inline-flex;margin-left:auto}
+  .nav>nav{flex-basis:100%}
+  .nav[data-open="false"]>nav{display:none}
+  .wordmark{font-size:1.5rem}
+  .nav-links{display:none;flex-basis:100%;flex-direction:column;gap:0;border-top:2px solid var(--ink);margin:6px -16px -10px}
+  .nav[data-open="true"] .nav-links{display:flex}
+  .nav-links a{min-height:52px;padding:0 16px;border-bottom:1px solid var(--ink);font-size:1.0625rem}
+  .nav-out .btn{padding:0 14px}
+}
+@media (max-width:700px){
+  .board{padding:16px 12px 48px}
+  .masthead{padding:28px 20px}
+  .masthead-in{grid-template-columns:1fr}
+  .mh-num{font-size:6rem}
+  .mh-title{font-size:2.75rem}
+  .masthead .bar{right:-40px;width:200px;height:110px}
+  .frame-note{margin-left:0}
+  .phone{width:100%;max-width:360px}
+}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite: authored, 2.25 stroke, square caps -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><path d="M8 8h12v12H8z"/><path d="M16 4H4v12"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M4 20h16"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 4v4h-4"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V8"/><path d="M7 12.5l5-5 5 5"/><path d="M4 4h16"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 17.5v.5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14"/><path d="M14 4l4 4-4 4"/><path d="M20 16H6"/><path d="M10 12l-4 4 4 4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M15 4l5 5L9 20H4v-5z"/><path d="M12.5 6.5l5 5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><path d="M5 11h14v10H5z"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M10 4H4v16h6"/><path d="M14 8l4 4-4 4"/><path d="M8 12h10"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6L4 20h16l-6-11V3"/><path d="M7 15h10"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M3 11l18-7-7 18-3-8z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 15l6-6"/><path d="M10 9h5v5"/></symbol>
+</svg>
+
+<div class="board">
+
+<!-- ================= MASTHEAD ================= -->
+<header class="masthead">
+  <div class="blob ht" aria-hidden="true"></div>
+  <div class="bar mult" aria-hidden="true"></div>
+  <div class="masthead-in">
+    <div class="mh-num"><span class="riso" data-t="05">05</span></div>
+    <h1 class="mh-title">Riso-plakat</h1>
+    <div class="mh-copy">
+      <p>Plakatene på oppslagstavla i studentersamfunnet: tofarget risotrykk på ubestrøket papir, fluorescerende rosa og blått som trykkes over hverandre og blir lilla, rasterprikker og litt skjevt register. Hjem er en plakat med høy stemme. Appsidene bruker de samme fargene og skriftene, men står stille og lar skjemaene være lette å lese.</p>
+      <p>Uten kontoer (byggetrinn 1–5) finnes bare Hjem og Søknad, og menyen viser bare de to. Body-tekst er alltid svart; rosa og blått brukes til flater, stor display og grafikk.</p>
+    </div>
+    <nav class="index" aria-label="Skjermer i skissen">
+      <a href="#hjem">Hjem</a><a href="#registrer">Registrer deg</a><a href="#logginn">Logg inn</a><a href="#tilgang">Tilgangskode</a><a href="#profil">Profil</a><a href="#profil-feil">Profil – skannet PDF</a><a href="#soknad">Søknad – utfylling</a><a href="#dialog">KI-varsel</a><a href="#fase1">Resultat, fase 1</a><a href="#notat">Refleksjonsnotat</a><a href="#testmodus">Testmodus</a><a href="#historikk">Historikk</a><a href="#historikk-tom">Historikk – tom</a><a href="#konto">Konto</a><a href="#mobil">Mobil 360 px</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= 1 HJEM ================= -->
+<section class="frame" id="hjem">
+  <p class="frame-label">Hjem — utlogget</p>
+  <div class="screen">
+    <header class="nav">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <div class="nav-out">
+        <a class="link" href="#logginn">Logg inn</a>
+        <a class="btn" href="#registrer">Registrer deg</a>
+      </div>
+    </header>
+
+    <div class="hero">
+      <div class="hero-art" aria-hidden="true">
+        <div class="disc"></div>
+        <div class="wedge"></div>
+        <div class="tickets">
+          <span class="tk tk-hit" style="--r:-3deg"><small>Funnet</small><b>React</b></span>
+          <span class="tk tk-hit" style="--r:2deg"><small>Funnet</small><b>TypeScript</b></span>
+          <span class="tk tk-hit" style="--r:-1deg"><small>Funnet</small><b>universell utforming</b></span>
+          <span class="tk tk-miss" style="--r:3deg"><small>Kan omformuleres</small><b>Tverrfaglig samarbeid</b></span>
+          <span class="tk tk-miss" style="--r:-2deg"><small>Mangler i CV-en</small><b>Kubernetes</b></span>
+        </div>
+      </div>
+      <div class="hero-copy">
+        <h1 class="poster-h">
+          <span class="l1">CV-en din,</span>
+          <span class="riso" data-t="på annonsens">på annonsens</span>
+          <span class="riso" data-t="språk.">språk.</span>
+        </h1>
+        <p class="lead">Lim inn CV-en og en stillingsannonse. Du ser hvor mange av annonsens nøkkelord CV-en dekker, hvordan du kan si det du allerede har gjort med annonsens ord, og du får et utkast til søknadsbrev. Ingenting blir diktet opp.</p>
+        <div class="hero-cta">
+          <a class="btn btn-pink btn-lg" href="#soknad">Lag skreddersydd søknad <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <p>Har du ikke CV-en for hånden, kan du prøve med eksempelet.</p>
+        </div>
+      </div>
+    </div>
+
+    <section class="lineup" aria-labelledby="lineup-h">
+      <h2 class="lineup-h" id="lineup-h">Tre ting for hver annonse</h2>
+      <div class="acts">
+        <article class="act">
+          <div class="act-glyph" aria-hidden="true"><span style="position:absolute;left:0;top:0;width:64px;height:64px;border-radius:50%;background:var(--pink)"></span><span class="mult" style="position:absolute;left:30px;top:14px;width:50px;height:50px;background:var(--blue)"></span></div>
+          <h3>ATS-samsvar</h3>
+          <p>Hvor mange av annonsens nøkkelord CV-en din dekker, regnet ut av vanlig kode. Du ser formelen og linjen i CV-en bak hvert treff. Et anslag, ikke en ekte ATS-vurdering.</p>
+          <p class="sample num">5 av 7 nøkkelord funnet = 71 %</p>
+        </article>
+        <article class="act">
+          <div class="act-glyph" aria-hidden="true"><span style="position:absolute;left:0;top:4px;width:76px;height:56px;background:var(--blue);clip-path:polygon(0 0,100% 20%,80% 100%,8% 84%)"></span><span class="mult ht" style="position:absolute;left:44px;top:0;width:60px;height:60px;border-radius:50%;--s:6px"></span></div>
+          <h3>Gapanalyse</h3>
+          <p>For hvert nøkkelord som mangler, får du vite om CV-en sier det samme med andre ord, eller om det er et reelt gap. Der CV-en støtter det, får du et forslag til omformulering som siterer CV-en ordrett.</p>
+          <p class="sample">Kan omformuleres · Mangler i CV-en</p>
+        </article>
+        <article class="act">
+          <div class="act-glyph" aria-hidden="true"><span style="position:absolute;left:0;top:10px;width:56px;height:54px;background:var(--pink)"></span><span class="mult" style="position:absolute;left:28px;top:0;width:56px;height:54px;background:var(--blue)"></span></div>
+          <h3>Søknadsbrev</h3>
+          <p>Et kort utkast i tonen du velger: formell, personlig eller direkte. Det bygger bare på det CV-en din viser. Du leser gjennom, tilpasser og sender selv.</p>
+          <p class="sample">Utkast skrevet med KI</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="stance" aria-labelledby="stance-h">
+      <div class="dots ht mult" aria-hidden="true"></div>
+      <h2 id="stance-h">Viser arbeidet. Dikter aldri opp.</h2>
+      <ul>
+        <li>Tallet regnes ut av vanlig kode, ikke av KI. Du ser formelen og CV-linjen bak hvert nøkkelord.</li>
+        <li>Hvert forslag til omformulering siterer CV-en din ordrett, og koden sjekker sitatet før du ser det.</li>
+        <li>Kan ikke CV-en støtte en ferdighet, står det rett ut. Da er det ingenting å lime inn.</li>
+        <li>KI-teksten sjekkes for påstander CV-en ikke støtter, og for ord som «ledet» eller «forsket» som gjør rollen større enn den var.</li>
+        <li>Teksten din sendes til en KI-leverandør først når du har sagt ja.</li>
+        <li>Du velger selv hva du kopierer. Ingenting legges inn eller sendes for deg.</li>
+      </ul>
+    </section>
+
+    <div class="hjem-end">
+      <a class="btn btn-primary btn-lg" href="#soknad">Lag skreddersydd søknad <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <p>JobAssistant er et studentprosjekt i IBE160. Tallet er et anslag på hvor mange av annonsens nøkkelord CV-en dekker, ikke en spådom om intervju.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2 REGISTRER ================= -->
+<section class="frame" id="registrer">
+  <p class="frame-label">Registrer deg</p>
+  <div class="screen">
+    <header class="nav">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <div class="nav-out"><a class="link" href="#logginn">Logg inn</a></div>
+    </header>
+    <div class="auth">
+      <div class="auth-poster">
+        <div class="dots ht mult" aria-hidden="true"></div>
+        <h1>Registrer deg</h1>
+        <p>Med konto lagres CV-teksten din, så den er fylt inn neste gang. Søknadene du lager, finner du igjen i Historikk.</p>
+      </div>
+      <form class="auth-form" onsubmit="return false">
+        <div class="field"><label for="r-name">Navn</label><input class="input" id="r-name" autocomplete="name" value="Violet Hansen"></div>
+        <div class="field"><label for="r-mail">E-post</label><input class="input" id="r-mail" type="email" autocomplete="email" value="violet.hansen@example.no"></div>
+        <div class="field"><label for="r-pw">Passord</label><input class="input" id="r-pw" type="password" autocomplete="new-password" aria-describedby="r-pw-h" value="••••••••••"><p class="hint" id="r-pw-h">Minst 8 tegn.</p></div>
+        <div class="field"><label for="r-code">Tilgangskode</label><input class="input" id="r-code" autocomplete="off" spellcheck="false" aria-describedby="r-code-h" placeholder="Minst 16 tegn"><p class="hint" id="r-code-h">Den hostede versjonen er stengt for andre enn utvikleren og sensor. Koden følger med innleveringen.</p></div>
+        <button class="btn btn-primary" type="submit">Registrer deg</button>
+        <p class="auth-alt">Har du allerede konto? <a class="link" href="#logginn">Logg inn</a></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3 LOGG INN + 4 TILGANGSKODE ================= -->
+<div class="pair">
+<section class="frame" id="logginn">
+  <p class="frame-label">Logg inn</p>
+  <div class="screen">
+    <header class="nav"><a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a></header>
+    <form class="auth-form" onsubmit="return false" style="max-width:none">
+      <h1 class="h1">Logg inn</h1>
+      <div class="field"><label for="l-mail">E-post</label><input class="input" id="l-mail" type="email" autocomplete="email" value="violet.hansen@example.no"></div>
+      <div class="field"><label for="l-pw">Passord</label><input class="input" id="l-pw" type="password" autocomplete="current-password" value="••••••••••"></div>
+      <button class="btn btn-primary" type="submit">Logg inn</button>
+      <p class="auth-alt">Ny her? <a class="link" href="#registrer">Registrer deg</a></p>
+    </form>
+  </div>
+</section>
+
+<section class="frame" id="tilgang">
+  <p class="frame-label">Tilgangskode — hostet versjon</p>
+  <div class="screen">
+    <header class="nav"><a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a></header>
+    <form class="auth-form" onsubmit="return false" style="max-width:none">
+      <h1 class="h1">Tilgangskode</h1>
+      <p>Denne kopien av JobAssistant er stengt. Bare utvikleren og sensor har koden. Du blir spurt én gang per økt i nettleseren.</p>
+      <div class="field invalid">
+        <label for="t-code">Tilgangskode</label>
+        <input class="input num" id="t-code" autocomplete="off" spellcheck="false" aria-invalid="true" aria-describedby="t-code-e" value="k7Qm-29xa">
+        <p class="err" id="t-code-e"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>Koden er for kort. Den har minst 16 tegn.</p>
+      </div>
+      <button class="btn btn-primary" type="submit">Åpne</button>
+      <p class="hint">Kjører du appen lokalt fra README, trenger du ingen kode.</p>
+    </form>
+  </div>
+</section>
+</div>
+
+<!-- ================= 5 PROFIL ================= -->
+<section class="frame" id="profil">
+  <p class="frame-label">Profil — CV lest inn, til kontroll</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-p"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-p"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad">Søknad</a></li><li><a href="#profil" aria-current="page">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+    </header>
+    <div class="main">
+      <div class="page-head">
+        <div><h1 class="h1">Profil</h1><p class="lead">CV-teksten din lagres her og fylles inn i Søknad neste gang.</p></div>
+      </div>
+      <div class="cols">
+        <form class="stack" onsubmit="return false">
+          <div class="field">
+            <span class="legend" id="p-up-l">Last opp CV</span>
+            <div class="drop">
+              <span class="ic" aria-hidden="true"><svg class="i"><use href="#i-up"/></svg></span>
+              <div class="drop-t"><b>Velg en PDF- eller TXT-fil</b><span class="hint">Maks 2 MB. Eller lim inn teksten rett i feltet under.</span></div>
+              <label class="btn" for="p-file">Velg fil</label><input class="sr" id="p-file" type="file" accept=".pdf,.txt" aria-labelledby="p-up-l">
+            </div>
+            <p class="file"><svg class="i" aria-hidden="true"><use href="#i-file"/></svg><b>violet-hansen-cv.pdf</b><span class="hint">lest inn 8. nov. 2026</span></p>
+          </div>
+          <div class="note" id="p-cv-note"><svg class="i" aria-hidden="true"><use href="#i-swap"/></svg><span>Les gjennom teksten. PDF-er med to spalter kan stokke om linjene. Rett det som har havnet feil, før du lagrer.</span></div>
+          <div class="field">
+            <label for="p-cv">CV-tekst</label>
+            <textarea class="ta" id="p-cv" rows="14" aria-describedby="p-cv-note p-cv-c">Violet Hansen
+violet.hansen@example.no
+
+UTDANNING
+Bachelor i informatikk, siste år (2024–2027)
+
+PROSJEKTER
+Utviklet brukergrensesnitt i React og TypeScript i semesterprosjektet IBE160 (gruppe på fem)
+Smidig utvikling med tre ukers sprinter og daglige standups i semesterprosjektet
+Semesterprosjekt: samarbeidet med to studenter fra økonomi og en fra design om en app for studentboliger
+
+EMNER
+Testet prototypen mot WCAG 2.1 i emnet Universell utforming
+
+VERKTØY
+Brukte Git og GitHub til versjonskontroll i alle gruppeprosjekter
+
+DELTIDSJOBB
+Butikkmedarbeider i dagligvarehandel, 2022–i dag</textarea>
+            <p class="counter num" id="p-cv-c">624 av 20 000 tegn</p>
+          </div>
+          <div class="actions"><button class="btn btn-primary" type="submit">Lagre</button><span class="saved">Sist lagret 8. nov. 2026 kl. 14.12</span></div>
+        </form>
+        <aside class="aside" aria-labelledby="p-aside">
+          <h2 id="p-aside">Slik brukes CV-teksten</h2>
+          <ul>
+            <li>Tallet sammenligner annonsen med akkurat denne teksten.</li>
+            <li>Forslag til omformulering siterer linjer herfra ordrett.</li>
+            <li>CV-teksten lagres kryptert og slettes når emnet er ferdig.</li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="frame" id="profil-feil">
+  <p class="frame-label">Profil — feil: skannet PDF</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-pf"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-pf"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad">Søknad</a></li><li><a href="#profil" aria-current="page">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+    </header>
+    <div class="main">
+      <div class="page-head"><div><h1 class="h1">Profil</h1></div></div>
+      <form class="stack" style="max-width:820px" onsubmit="return false">
+        <div class="field invalid">
+          <span class="legend" id="pf-up-l">Last opp CV</span>
+          <div class="drop">
+            <span class="ic" aria-hidden="true"><svg class="i"><use href="#i-file"/></svg></span>
+            <div class="drop-t"><b>cv-skannet.pdf</b><span class="hint">1,4 MB</span></div>
+            <label class="btn" for="pf-file">Velg en annen fil</label><input class="sr" id="pf-file" type="file" accept=".pdf,.txt" aria-labelledby="pf-up-l" aria-invalid="true" aria-describedby="pf-err">
+          </div>
+          <p class="err" id="pf-err" role="alert"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>Vi fant ingen tekst i denne PDF-en. Den kan være skannet. Lim inn teksten fra CV-en din i stedet.</p>
+        </div>
+        <div class="field">
+          <label for="pf-cv">CV-tekst</label>
+          <textarea class="ta" id="pf-cv" rows="6" placeholder="Lim inn teksten fra CV-en din her" aria-describedby="pf-cv-c"></textarea>
+          <p class="counter num" id="pf-cv-c">0 av 20 000 tegn · minst 200</p>
+        </div>
+        <div class="actions"><button class="btn" type="submit" disabled>Lagre</button><span class="saved">Lagre blir tilgjengelig når feltet har minst 200 tegn.</span></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 6 SØKNAD ================= -->
+<section class="frame" id="soknad">
+  <p class="frame-label">Søknad — utfylling</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-s"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-s"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad" aria-current="page">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+    </header>
+    <div class="main">
+      <div class="page-head"><div><h1 class="h1">Søknad</h1><p class="lead">Sjekk CV-teksten, lim inn annonsen og velg tone.</p></div></div>
+      <div class="cols">
+        <form class="stack" onsubmit="return false">
+          <details class="cv">
+            <summary><svg class="i" aria-hidden="true" style="color:var(--blue)"><use href="#i-check"/></svg><b>CV-teksten fra Profil er fylt inn <span class="hint num">(624 tegn)</span></b><span class="link">Vis og endre</span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></summary>
+            <div class="in field"><label for="s-cv">CV-tekst</label><textarea class="ta" id="s-cv" rows="6">Violet Hansen
+Bachelor i informatikk, siste år (2024–2027)
+Utviklet brukergrensesnitt i React og TypeScript i semesterprosjektet IBE160 (gruppe på fem)
+…</textarea><p class="hint">Endringer her gjelder bare denne søknaden. Profilen din er uendret.</p></div>
+          </details>
+          <div class="field">
+            <div class="ad-head"><label for="s-ad">Stillingsannonse</label><button class="btn" type="button" style="min-height:44px">Bruk eksempelet</button></div>
+            <textarea class="ta" id="s-ad" rows="9" aria-describedby="s-ad-c">Nordic Digital søker en junior frontendutvikler.
+
+Du vil bygge brukergrensesnitt i React og TypeScript sammen med et lite team. Vi jobber med smidig utvikling i to ukers sprinter, og du trives med tverrfaglig samarbeid med design og produkt. Vi legger vekt på universell utforming i alt vi lager. Du bruker Git i det daglige.
+
+Erfaring med Docker og Kubernetes er en fordel.</textarea>
+            <p class="counter num" id="s-ad-c">412 av 15 000 tegn</p>
+          </div>
+          <div class="two">
+            <div class="field"><label for="s-title">Stillingstittel</label><input class="input" id="s-title" value="Junior frontendutvikler"></div>
+            <div class="field"><label for="s-emp">Arbeidsgiver</label><input class="input" id="s-emp" value="Nordic Digital"></div>
+          </div>
+          <fieldset>
+            <legend class="legend">Tone</legend>
+            <div class="tones">
+              <div class="tone"><input type="radio" name="s-tone" id="s-t1"><label for="s-t1"><b>Formell</b><span>Saklig og høflig</span></label></div>
+              <div class="tone"><input type="radio" name="s-tone" id="s-t2" checked><label for="s-t2"><b>Personlig</b><span>Varm, med litt om deg</span></label></div>
+              <div class="tone"><input type="radio" name="s-tone" id="s-t3"><label for="s-t3"><b>Direkte</b><span>Kort og rett på sak</span></label></div>
+            </div>
+          </fieldset>
+          <div class="actions"><button class="btn btn-primary btn-lg" type="submit">Analyser og skriv utkast <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        </form>
+        <aside class="aside" aria-labelledby="s-aside">
+          <h2 id="s-aside">Dette skjer</h2>
+          <ul>
+            <li>Tallet og nøkkelordene kommer først, på et par sekunder. De regnes ut av koden.</li>
+            <li>Så skriver KI gapanalyse, omformuleringer og søknadsbrev. Det tar under ett minutt.</li>
+            <li>Første gang spør vi før noe sendes til KI-leverandøren.</li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="frame" id="dialog">
+  <p class="frame-label">Søknad — KI-varsel (én gang)</p>
+  <div class="screen">
+    <div class="scrim">
+      <div class="scrim-bg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="d-h" aria-describedby="d-b">
+        <h2 id="d-h">Før teksten sendes</h2>
+        <p id="d-b">For å skrive gapanalyse, omformuleringer og søknadsbrev sender vi CV-teksten og annonsen til en KI-leverandør.</p>
+        <ul>
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span>Ingenting er sendt ennå. Vi sender først når du godtar.</span></li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span>Tallet og nøkkelordene regnes ut her, uten KI.</span></li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span>Du blir bare spurt én gang.</span></li>
+        </ul>
+        <div class="actions" style="margin-top:8px"><button class="btn btn-primary" type="button">Godta og fortsett</button><button class="btn" type="button">Avbryt</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 7 FASE 1 ================= -->
+<section class="frame" id="fase1">
+  <p class="frame-label">Søknad — resultat, fase 1</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-f"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-f"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad" aria-current="page">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+    </header>
+    <div class="main">
+      <div class="res-head"><div><h1 class="h1">Junior frontendutvikler, Nordic Digital</h1><p class="res-meta">Refleksjonsnotat · 8. nov. 2026 · Tone: Personlig</p></div></div>
+      <section class="scoreboard" aria-labelledby="f-score-h">
+        <h2 class="sr" id="f-score-h">ATS-samsvar</h2>
+        <div class="score-poster">
+          <div class="disc" aria-hidden="true"></div>
+          <p class="score"><span class="score-n riso num" data-t="71 %">71 %</span> <span class="score-sub">samsvar – 5 av 7 nøkkelord</span></p>
+          <p class="verdict"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Sterkt samsvar</p>
+        </div>
+        <div class="calc">
+          <h2>Slik er tallet regnet ut</h2>
+          <p class="formula num">5 av 7 nøkkelord funnet <span style="white-space:nowrap"><span class="eq">=</span> 71 %</span></p>
+          <p class="disclaimer">Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering.</p>
+        </div>
+      </section>
+      <div class="kwcols">
+        <section class="kwcol" aria-labelledby="f-hit"><h2 class="h2" id="f-hit"><span class="mark mark-hit" aria-hidden="true"><svg class="i"><use href="#i-check"/></svg></span>Funnet i CV-en <span class="cnt num">5</span></h2>
+          <p style="padding-top:14px">React · TypeScript · Git · universell utforming · smidig utvikling</p></section>
+        <section class="kwcol" aria-labelledby="f-miss"><h2 class="h2" id="f-miss"><span class="mark mark-miss" aria-hidden="true"><svg class="i"><use href="#i-minus"/></svg></span>Ikke funnet <span class="cnt num">2</span></h2>
+          <p style="padding-top:14px">Tverrfaglig samarbeid · Kubernetes</p></section>
+      </div>
+      <div class="progress">
+        <p role="status" aria-live="polite">Skriver gapanalyse, omformuleringer og søknadsbrev … dette tar under ett minutt.</p>
+        <div class="roller" aria-hidden="true"></div>
+      </div>
+      <div class="kwcols" style="margin-top:8px" aria-hidden="true">
+        <div class="ph"><span class="ph-label">Det som mangler</span><i class="ht"></i><i class="ht"></i><i class="ht"></i><i class="ht"></i></div>
+        <div class="ph"><span class="ph-label">Søknadsbrev</span><i class="ht"></i><i class="ht"></i><i class="ht"></i><i class="ht"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 8 REFLEKSJONSNOTAT ================= -->
+<section class="frame" id="notat">
+  <p class="frame-label">Søknad — Refleksjonsnotat (ferdig)</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-n"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-n"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad" aria-current="page">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+    </header>
+    <div class="main">
+      <div class="res-head">
+        <div><h1 class="h1">Junior frontendutvikler, Nordic Digital</h1><p class="res-meta">Refleksjonsnotat · 8. nov. 2026 · Tone: Personlig · Lagret i Historikk</p></div>
+        <a class="btn" href="#soknad">Ny søknad</a>
+      </div>
+
+      <section class="scoreboard" aria-labelledby="n-score-h">
+        <h2 class="sr" id="n-score-h">ATS-samsvar</h2>
+        <div class="score-poster">
+          <div class="disc" aria-hidden="true"></div>
+          <p class="score"><span class="score-n riso num" data-t="71 %">71 %</span> <span class="score-sub">samsvar – 5 av 7 nøkkelord</span></p>
+          <p class="verdict"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Sterkt samsvar</p>
+        </div>
+        <div class="calc">
+          <h2>Slik er tallet regnet ut</h2>
+          <p class="formula num">5 av 7 nøkkelord funnet <span style="white-space:nowrap"><span class="eq">=</span> 71 %</span></p>
+          <p class="disclaimer">Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering.</p>
+          <ul class="strip" aria-label="Annonsens 7 nøkkelord">
+            <li class="tk tk-hit" style="--r:-2deg"><small>Funnet</small><b>React</b></li>
+            <li class="tk tk-hit" style="--r:1.5deg"><small>Funnet</small><b>TypeScript</b></li>
+            <li class="tk tk-hit" style="--r:-1deg"><small>Funnet</small><b>Git</b></li>
+            <li class="tk tk-miss" style="--r:2deg"><small>Ikke funnet</small><b>Tverrfaglig samarbeid</b></li>
+            <li class="tk tk-hit" style="--r:-1.5deg"><small>Funnet</small><b>universell utforming</b></li>
+            <li class="tk tk-hit" style="--r:1deg"><small>Funnet</small><b>smidig utvikling</b></li>
+            <li class="tk tk-miss" style="--r:-2.5deg"><small>Ikke funnet</small><b>Kubernetes</b></li>
+          </ul>
+          <p class="legend-row" aria-hidden="true"><span><i style="background:var(--blue)"></i>Blått trykk: funnet</span><span><i style="background:var(--pink)"></i>Rosa trykk: ikke funnet</span></p>
+        </div>
+      </section>
+
+      <div class="kwcols">
+        <section class="kwcol" aria-labelledby="n-hit">
+          <h2 class="h2" id="n-hit"><span class="mark mark-hit" aria-hidden="true"><svg class="i"><use href="#i-check"/></svg></span>Funnet i CV-en <span class="cnt num">5</span></h2>
+          <ul>
+            <li class="ev"><h3 class="kw">React</h3><p class="src">Fra CV-en din</p><blockquote class="q q-cv">«Utviklet brukergrensesnitt i <b>React</b> og TypeScript i semesterprosjektet IBE160 (gruppe på fem)»</blockquote></li>
+            <li class="ev"><h3 class="kw">TypeScript</h3><p class="src">Fra CV-en din</p><blockquote class="q q-cv">«Utviklet brukergrensesnitt i React og <b>TypeScript</b> i semesterprosjektet IBE160 (gruppe på fem)»</blockquote></li>
+            <li class="ev"><h3 class="kw">Git</h3><p class="src">Fra CV-en din</p><blockquote class="q q-cv">«Brukte <b>Git</b> og GitHub til versjonskontroll i alle gruppeprosjekter»</blockquote></li>
+            <li class="ev"><h3 class="kw">universell utforming</h3><p class="src">Fra CV-en din</p><blockquote class="q q-cv">«Testet prototypen mot WCAG 2.1 i emnet <b>Universell utforming</b>»</blockquote></li>
+            <li class="ev"><h3 class="kw">smidig utvikling</h3><p class="src">Fra CV-en din</p><blockquote class="q q-cv">«<b>Smidig utvikling</b> med tre ukers sprinter og daglige standups i semesterprosjektet»</blockquote></li>
+          </ul>
+        </section>
+        <section class="kwcol" aria-labelledby="n-miss">
+          <h2 class="h2" id="n-miss"><span class="mark mark-miss" aria-hidden="true"><svg class="i"><use href="#i-minus"/></svg></span>Ikke funnet <span class="cnt num">2</span></h2>
+          <ul>
+            <li class="ev"><h3 class="kw">Tverrfaglig samarbeid</h3><p class="say">Annonsen ber om «tverrfaglig samarbeid». CV-en din viser det ikke ennå.</p><p class="src">Fra annonsen</p><blockquote class="q q-ad">«Du trives med <b>tverrfaglig samarbeid</b> med design og produkt»</blockquote></li>
+            <li class="ev"><h3 class="kw">Kubernetes</h3><p class="say">Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.</p><p class="src">Fra annonsen</p><blockquote class="q q-ad">«Erfaring med Docker og <b>Kubernetes</b> er en fordel»</blockquote></li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="sec-h"><h2 id="n-gaps">Det som mangler</h2><span class="tag"><svg class="i" aria-hidden="true"><use href="#i-pen"/></svg>Skrevet med KI</span></div>
+      <p class="sec-intro">Hvert nøkkelord som mangler, er vurdert: sier CV-en det samme med andre ord, eller er det et reelt gap?</p>
+
+      <article class="gap" aria-labelledby="g1">
+        <div class="gap-name"><h3 id="g1">Tverrfaglig samarbeid</h3><p class="stamp stamp-rw"><svg class="i" aria-hidden="true"><use href="#i-swap"/></svg>Kan omformuleres</p></div>
+        <div class="gap-body">
+          <p>Annonsen ber om tverrfaglig samarbeid. CV-en din bruker ikke de ordene, men semesterprosjektet der du jobbet med studenter fra andre fag dekker trolig dette – vurder å ta det med.</p>
+          <p class="src">Fra CV-en din, ordrett</p>
+          <blockquote class="q q-cv">«Semesterprosjekt: samarbeidet med to studenter fra økonomi og en fra design om en app for studentboliger»</blockquote>
+          <div class="suggest">
+            <h4>Forslag til omformulering</h4>
+            <p id="sg1">Tverrfaglig samarbeid i semesterprosjektet: utviklet en app for studentboliger sammen med to studenter fra økonomi og en fra design.</p>
+            <button class="btn js-copy" type="button" aria-describedby="sg1"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><span>Kopier</span></button>
+          </div>
+        </div>
+      </article>
+      <article class="gap" aria-labelledby="g2">
+        <div class="gap-name"><h3 id="g2">Kubernetes</h3><p class="stamp stamp-real"><svg class="i" aria-hidden="true"><use href="#i-minus"/></svg>Mangler i CV-en</p></div>
+        <div class="gap-body">
+          <p>Annonsen ber om Kubernetes, og CV-en din viser det ikke. Har du brukt det i et emne, et prosjekt eller på egen hånd, kan du skrive det inn i CV-en med dine egne ord. Hvis ikke, er dette et reelt gap.</p>
+          <p class="src">Fra annonsen</p>
+          <blockquote class="q q-ad">«Erfaring med Docker og <b>Kubernetes</b> er en fordel»</blockquote>
+          <p class="nothing"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg>Her er det ingen tekst å kopiere, fordi CV-en ikke viser dette.</p>
+        </div>
+      </article>
+
+      <div class="sec-h"><h2 id="n-letter">Søknadsbrev</h2></div>
+      <p class="ai-label"><svg class="i" aria-hidden="true"><use href="#i-pen"/></svg>Utkast skrevet med KI – les gjennom og tilpass før du sender.</p>
+      <article class="letter" aria-labelledby="n-letter" id="letter-text">
+        <p>Til Nordic Digital,</p>
+        <p>Jeg søker stillingen som junior frontendutvikler. Jeg går siste år på bachelor i informatikk.</p>
+        <p>I semesterprosjektet i IBE160 utviklet jeg brukergrensesnitt i React og TypeScript i en gruppe på fem. Vi jobbet smidig med tre ukers sprinter og daglige standups, og brukte Git og GitHub til versjonskontroll. I emnet Universell utforming testet jeg en prototyp mot WCAG 2.1.</p>
+        <p>I et annet semesterprosjekt samarbeidet jeg med to studenter fra økonomi og en fra design om en app for studentboliger. Det lærte meg å jobbe sammen med folk som ser oppgaven fra en annen kant.</p>
+        <p>Jeg forteller gjerne mer i et intervju.</p>
+        <p>Vennlig hilsen<br>Violet Hansen</p>
+      </article>
+      <div class="actions letter-actions">
+        <button class="btn btn-primary js-copy" type="button"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><span>Kopier</span></button>
+        <button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg>Last ned (.docx)</button>
+        <button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-redo"/></svg>Lag nytt utkast</button>
+      </div>
+      <p class="sr" aria-live="polite" id="copy-live"></p>
+    </div>
+  </div>
+</section>
+
+<!-- Testmodus -->
+<section class="frame" id="testmodus">
+  <p class="frame-label">Søknad — Testmodus-banner (variant)</p>
+  <p class="frame-note">Vises øverst på Søknad og Refleksjonsnotat når appen kjører uten API-nøkkel.</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-t"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-t"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad" aria-current="page">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+    </header>
+    <div class="testbar" role="note"><svg class="i" aria-hidden="true"><use href="#i-flask"/></svg>Testmodus – KI-svarene er lagrede eksempelsvar. <span class="hint">Tallet regnes fortsatt ut av koden.</span></div>
+    <div class="main" style="padding-bottom:40px">
+      <div class="res-head" style="margin-bottom:0"><div><h1 class="h1">Junior frontendutvikler, Nordic Digital</h1><p class="res-meta">Refleksjonsnotat · 8. nov. 2026 · Tone: Personlig</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 9 HISTORIKK ================= -->
+<section class="frame" id="historikk">
+  <p class="frame-label">Historikk — med søknader</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-h"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-h"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk" aria-current="page">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+    </header>
+    <div class="main">
+      <div class="page-head"><div><h1 class="h1">Historikk</h1><p class="lead">Søknadene du har laget, nyeste først. Du kan åpne dem igjen, kopiere og laste ned, men ikke endre dem.</p></div></div>
+      <ul class="hist">
+        <li class="hrow">
+          <div class="hscore"><span class="n num">71 %</span><span class="v v-strong"><svg class="i" aria-hidden="true" style="width:14px;height:14px"><use href="#i-check"/></svg>Sterkt samsvar</span></div>
+          <div class="hmeta"><h2>Junior frontendutvikler</h2><p>Nordic Digital · 8. nov. 2026 · <span class="num">71 % samsvar – 5 av 7 nøkkelord</span></p></div>
+          <div class="hact"><a class="btn btn-primary" href="#notat"><svg class="i" aria-hidden="true"><use href="#i-open"/></svg>Åpne<span class="sr"> Junior frontendutvikler</span></a><button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg>Kopier brev</button><button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg>Last ned (.docx)</button></div>
+        </li>
+        <li class="hrow">
+          <div class="hscore"><span class="n num">57 %</span><span class="v v-weak"><svg class="i" aria-hidden="true" style="width:14px;height:14px"><use href="#i-minus"/></svg>Bør forbedres</span></div>
+          <div class="hmeta"><h2>Junior produktanalytiker</h2><p>Fjord Analytics · 21. okt. 2026 · <span class="num">57 % samsvar – 4 av 7 nøkkelord</span></p></div>
+          <div class="hact"><a class="btn btn-primary" href="#notat"><svg class="i" aria-hidden="true"><use href="#i-open"/></svg>Åpne<span class="sr"> Junior produktanalytiker</span></a><button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg>Kopier brev</button><button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg>Last ned (.docx)</button></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="frame" id="historikk-tom">
+  <p class="frame-label">Historikk — tom</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-he"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-he"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk" aria-current="page">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+    </header>
+    <div class="main">
+      <div class="page-head"><div><h1 class="h1">Historikk</h1></div></div>
+      <div class="empty">
+        <div>
+          <h2>Ingen søknader ennå</h2>
+          <p>Når du har laget en søknad, lagres Refleksjonsnotatet og brevet her. Da kan du åpne dem igjen, kopiere brevet og laste det ned.</p>
+          <a class="btn btn-primary" href="#soknad">Lag skreddersydd søknad <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="empty-art" aria-hidden="true"><div class="a"></div><div class="b ht"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 10 KONTO ================= -->
+<section class="frame" id="konto">
+  <p class="frame-label">Konto</p>
+  <div class="screen">
+    <header class="nav" data-open="false">
+      <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+      <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-k"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+      <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-k"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto" aria-current="page">Konto</a></li></ul></nav>
+    </header>
+    <div class="main">
+      <div class="page-head"><div><h1 class="h1">Konto</h1></div></div>
+      <dl class="kv">
+        <dt>Navn</dt><dd>Violet Hansen</dd>
+        <dt>E-post</dt><dd>violet.hansen@example.no</dd>
+      </dl>
+      <div class="actions" style="margin-top:24px"><button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-out"/></svg>Logg ut</button></div>
+      <section class="store" aria-labelledby="k-store">
+        <h2 id="k-store">Slik lagres dataene dine</h2>
+        <ul>
+          <li><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg><span>CV-en din og dokumentene som lages, lagres kryptert.</span></li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-send"/></svg><span>Teksten sendes til KI-leverandøren bare når du lager en søknad, og bare etter at du har godtatt det.</span></li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg><span>Alt som er lagret om deg, slettes når emnet IBE160 er ferdig. Den hostede versjonen tas ned etter sensur.</span></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MOBIL ================= -->
+<section class="frame" id="mobil">
+  <p class="frame-label">Mobil 360 px</p>
+  <div class="phones">
+    <div class="phone">
+      <p class="phone-cap">(a) Meny lukket</p>
+      <div class="screen">
+        <header class="nav" data-open="false">
+          <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+          <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-m1"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+          <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-m1"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad" aria-current="page">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+        </header>
+        <div class="main" style="padding-bottom:28px"><h1 class="h1">Søknad</h1><p class="lead" style="margin-top:8px">Sjekk CV-teksten, lim inn annonsen og velg tone.</p></div>
+      </div>
+      <p class="phone-cap">(a) Meny åpen</p>
+      <div class="screen">
+        <header class="nav" data-open="true">
+          <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+          <button class="btn nav-toggle" type="button" aria-expanded="true" aria-controls="nav-m2"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg><span>Lukk</span></button>
+          <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-m2"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad" aria-current="page">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+        </header>
+        <div class="main" style="padding-bottom:28px"><h1 class="h1">Søknad</h1></div>
+      </div>
+    </div>
+
+    <div class="phone">
+      <p class="phone-cap">(b) Refleksjonsnotat</p>
+      <div class="screen">
+        <header class="nav" data-open="false">
+          <a class="wordmark riso" data-t="JobAssistant" href="#hjem">JobAssistant</a>
+          <button class="btn nav-toggle" type="button" aria-expanded="false" aria-controls="nav-m3"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span>Meny</span></button>
+          <nav aria-label="Hovedmeny"><ul class="nav-links" id="nav-m3"><li><a href="#hjem">Hjem</a></li><li><a href="#soknad" aria-current="page">Søknad</a></li><li><a href="#profil">Profil</a></li><li><a href="#historikk">Historikk</a></li><li><a href="#konto">Konto</a></li></ul></nav>
+        </header>
+        <div class="main">
+          <h1 class="h1">Junior frontend&shy;utvikler, Nordic Digital</h1>
+          <p class="res-meta" style="margin-bottom:20px">8. nov. 2026 · Tone: Personlig</p>
+          <section class="scoreboard" aria-label="ATS-samsvar">
+            <div class="score-poster">
+              <div class="disc" aria-hidden="true"></div>
+              <p class="score"><span class="score-n riso num" data-t="71 %">71 %</span> <span class="score-sub">samsvar – 5 av 7 nøkkelord</span></p>
+              <p class="verdict"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Sterkt samsvar</p>
+            </div>
+            <div class="calc">
+              <p class="formula num">5 av 7 nøkkelord funnet <span style="white-space:nowrap"><span class="eq">=</span> 71 %</span></p>
+              <p class="disclaimer">Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering.</p>
+            </div>
+          </section>
+          <div class="kwcols">
+            <section class="kwcol" aria-label="Funnet i CV-en">
+              <h2 class="h2"><span class="mark mark-hit" aria-hidden="true"><svg class="i"><use href="#i-check"/></svg></span>Funnet i CV-en <span class="cnt num">5</span></h2>
+              <ul>
+                <li class="ev"><h3 class="kw">React</h3><p class="src">Fra CV-en din</p><blockquote class="q q-cv">«Utviklet brukergrensesnitt i <b>React</b> og TypeScript i semesterprosjektet IBE160 (gruppe på fem)»</blockquote></li>
+                <li class="ev"><h3 class="kw">TypeScript</h3><p class="src">Fra CV-en din</p><blockquote class="q q-cv">«Utviklet brukergrensesnitt i React og <b>TypeScript</b> i semesterprosjektet IBE160 (gruppe på fem)»</blockquote></li>
+              </ul>
+            </section>
+          </div>
+          <div class="gapline"><span>… resten av notatet</span></div>
+          <p class="ai-label"><svg class="i" aria-hidden="true"><use href="#i-pen"/></svg>Utkast skrevet med KI – les gjennom og tilpass før du sender.</p>
+          <div class="letter"><p>Til Nordic Digital,</p><p>Jeg søker stillingen som junior frontendutvikler. Jeg går siste år på bachelor i informatikk.</p></div>
+          <div class="actions letter-actions" style="display:grid">
+            <button class="btn btn-primary js-copy" type="button"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><span>Kopier</span></button>
+            <button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg>Last ned (.docx)</button>
+            <button class="btn" type="button"><svg class="i" aria-hidden="true"><use href="#i-redo"/></svg>Lag nytt utkast</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<p class="foot">Konsept 05 — skisse, ikke endelig design</p>
+</div>
+
+<script>
+document.querySelectorAll('.nav-toggle').forEach(function(b){
+  b.addEventListener('click',function(){
+    var nav=b.closest('.nav'),open=nav.dataset.open!=='true';
+    nav.dataset.open=open;b.setAttribute('aria-expanded',open);
+    b.querySelector('span').textContent=open?'Lukk':'Meny';
+    b.querySelector('use').setAttribute('href',open?'#i-x':'#i-menu');
+  });
+});
+var live=document.getElementById('copy-live');
+document.querySelectorAll('.js-copy').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.querySelector('span');s.textContent='Kopiert';live.textContent='Kopiert til utklippstavlen.';
+    setTimeout(function(){s.textContent='Kopier';live.textContent='';},2000);
+  });
+});
+</script>
+</body>
+</html>

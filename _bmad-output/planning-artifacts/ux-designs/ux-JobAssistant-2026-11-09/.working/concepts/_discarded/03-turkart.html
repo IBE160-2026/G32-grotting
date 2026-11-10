@@ -1,0 +1,1282 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konsept 03 — Turkart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500&family=Barlow:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --board: #D9D4C2;
+  --board-grid: #C8C1A9;
+  --paper: #F4F2E9;
+  --paper-2: #EAE6D6;
+  --card: #FFFEF8;
+  --ink: #1C1D1A;
+  --ink-2: #474740;
+  --line: #66635A;
+  --hair: #CFC9B5;
+  --contour: #C4874A;
+  --contour-ink: #8A4E1A;
+  --trail: #B8142D;
+  --trail-dark: #8F0E22;
+  --trail-tint: #F6DADB;
+  --water: #1E5C86;
+  --water-fill: #D3E5EE;
+  --water-mid: #9CC3DA;
+  --forest: #2E5B2B;
+  --forest-fill: #DDE8CC;
+  --focus: #1E5C86;
+
+  --f-label: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --r: 3px;
+}
+
+* { box-sizing: border-box; }
+html { scrollbar-color: var(--contour-ink) var(--paper-2); }
+body {
+  margin: 0;
+  font-family: var(--f-body);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--ink);
+  background-color: var(--board);
+  background-image:
+    linear-gradient(var(--board-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--board-grid) 1px, transparent 1px);
+  background-size: 160px 160px;
+  caret-color: var(--trail);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--trail-tint); color: var(--ink); }
+a { color: var(--water); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+h1, h2, h3, h4 { font-family: var(--f-label); font-weight: 600; line-height: 1.12; margin: 0; text-wrap: balance; letter-spacing: 0; }
+p { margin: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- board chrome ---------- */
+.board-head {
+  position: relative; overflow: hidden;
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+}
+.board-head .contours { color: var(--contour); opacity: .6; }
+.board-head-inner {
+  position: relative; max-width: 1280px; margin: 0 auto; padding: 40px 24px 32px;
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; align-items: end;
+}
+.sheet-title { background: var(--paper); padding: 20px 24px; border: 1.5px solid var(--ink); box-shadow: 0 0 0 4px var(--paper), 0 0 0 5.5px var(--ink); }
+.sheet-title h1 { font-size: 3rem; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; gap: 14px; }
+.sheet-title h1 svg { width: 44px; height: 44px; flex: none; }
+.sheet-title .sheet-no { font-family: var(--f-label); font-weight: 500; font-size: 1.125rem; color: var(--contour-ink); margin-top: 6px; }
+.sheet-title p.desc { margin-top: 14px; max-width: 60ch; color: var(--ink); }
+.sheet-title p.note { margin-top: 10px; font-size: .9375rem; color: var(--ink-2); font-style: italic; }
+.jump { background: var(--paper); border: 1.5px solid var(--ink); padding: 16px 20px; }
+.jump h2 { font-size: 1.125rem; margin-bottom: 8px; }
+.jump ol { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 24px; }
+.jump li { break-inside: avoid; }
+.jump a { display: flex; gap: 10px; align-items: baseline; min-height: 32px; padding: 4px 0; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--hair); }
+.jump a:hover { color: var(--trail-dark); }
+.jump a span { font-family: var(--f-label); font-weight: 600; color: var(--contour-ink); min-width: 2.2em; }
+
+.frame { max-width: 1280px; margin: 64px auto 0; padding: 0 24px; }
+.frame-label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 12px; font-family: var(--f-label); }
+.frame-label .ref { font-weight: 600; font-size: 1rem; background: var(--ink); color: var(--paper); padding: 2px 10px; border-radius: 2px; }
+.frame-label .name { font-weight: 600; font-size: 1.5rem; }
+.frame-label .aside { font-family: var(--f-body); font-style: italic; color: var(--ink-2); font-size: .9375rem; }
+.screen {
+  container-type: inline-size;
+  position: relative;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  box-shadow: 0 2px 4px rgba(28,29,26,.08), 0 14px 32px rgba(28,29,26,.14);
+  overflow: hidden;
+}
+.row-frames { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+.phone { width: 360px; flex: none; }
+.phone .frame-label .name { font-size: 1.25rem; }
+
+.board-foot { max-width: 1280px; margin: 80px auto 0; padding: 24px; border-top: 2px solid var(--ink); font-family: var(--f-label); font-size: 1.125rem; font-weight: 600; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.board-foot span { font-family: var(--f-body); font-weight: 400; font-style: italic; font-size: .9375rem; color: var(--ink-2); }
+
+/* contours texture */
+svg.contours { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; color: var(--contour); opacity: .5; }
+
+/* ---------- app bar / nav ---------- */
+.appbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 0 32px; min-height: 64px; background: var(--paper); border-bottom: 1.5px solid var(--ink); position: relative; z-index: 2;
+}
+.brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--f-label); font-weight: 700; font-size: 1.5rem; color: var(--ink); text-decoration: none; min-height: 44px; letter-spacing: -.005em; }
+.brand svg { width: 30px; height: 30px; }
+.nav { display: flex; align-items: center; }
+.navlist { list-style: none; display: flex; gap: 4px; margin: 0; padding: 0; }
+.navlist a {
+  display: flex; align-items: center; min-height: 44px; padding: 0 14px;
+  font-family: var(--f-label); font-weight: 600; font-size: 1.125rem; color: var(--ink); text-decoration: none; position: relative;
+}
+.navlist a:hover { color: var(--trail-dark); }
+.navlist a[aria-current="page"]::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 6px; height: 3px;
+  background: repeating-linear-gradient(90deg, var(--trail) 0 8px, transparent 8px 13px);
+}
+.navlist a[aria-current="page"] { color: var(--ink); }
+.nav-auth { display: flex; gap: 8px; align-items: center; }
+.btn.menu-btn { display: none; }
+
+@container (max-width: 640px) {
+  .appbar { padding: 0 16px; flex-wrap: wrap; }
+  .brand { font-size: 1.3rem; }
+  .btn.menu-btn { display: inline-flex; }
+  .nav { order: 3; width: 100%; display: none; }
+  .nav.open { display: block; }
+  .navlist { flex-direction: column; gap: 0; padding-bottom: 12px; }
+  .navlist li + li { border-top: 1px solid var(--hair); }
+  .navlist a { min-height: 52px; padding: 0 4px; font-size: 1.25rem; }
+  .navlist a[aria-current="page"]::after { left: auto; right: 4px; top: 50%; bottom: auto; width: 28px; transform: translateY(-50%); }
+  .navlist a[aria-current="page"]::before { content: "Du er her"; order: 2; margin-left: auto; margin-right: 40px; font-family: var(--f-body); font-style: italic; font-weight: 400; font-size: .9375rem; color: var(--ink-2); }
+  .nav-auth { display: none; }
+}
+
+/* ---------- buttons & fields ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 18px; border-radius: var(--r);
+  font-family: var(--f-label); font-weight: 600; font-size: 1.125rem; letter-spacing: .01em; line-height: 1;
+  border: 1.5px solid var(--ink); background: var(--card); color: var(--ink); cursor: pointer; text-decoration: none;
+  transition: background-color .16s ease-out, color .16s ease-out, border-color .16s ease-out;
+}
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn:hover { background: var(--paper-2); }
+.btn:active { background: var(--hair); }
+.btn-primary { background: var(--trail); border-color: var(--trail); color: #fff; }
+.btn-primary:hover { background: var(--trail-dark); border-color: var(--trail-dark); }
+.btn-primary:active { background: #6f0a1a; }
+.btn-lg { min-height: 52px; padding: 0 26px; font-size: 1.25rem; }
+.btn-text { border-color: transparent; background: transparent; color: var(--water); text-decoration: underline; text-underline-offset: 3px; padding: 0 8px; }
+.btn-text:hover { background: transparent; text-decoration-thickness: 2px; }
+.btn[disabled] { background: var(--paper-2); border-color: var(--hair); color: #6E6B62; cursor: not-allowed; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+.field { display: grid; gap: 6px; }
+.field + .field { margin-top: 20px; }
+.field label, .legend-label { font-family: var(--f-label); font-weight: 600; font-size: 1.125rem; }
+.hint { font-size: .9375rem; color: var(--ink-2); }
+.input, .textarea {
+  width: 100%; min-height: 44px; padding: 10px 12px;
+  font: inherit; color: var(--ink); background: var(--card);
+  border: 1.5px solid var(--line); border-radius: var(--r);
+  transition: border-color .16s ease-out;
+}
+.input:hover, .textarea:hover { border-color: var(--ink); }
+.input:focus-visible, .textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; border-color: var(--ink); }
+.textarea { line-height: 1.5; resize: vertical; }
+.input::placeholder, .textarea::placeholder { color: #66635A; }
+.field.has-error .input, .field.has-error .dropzone { border-color: var(--trail); border-width: 2px; }
+.error-msg { display: flex; gap: 8px; align-items: flex-start; color: var(--trail-dark); font-weight: 500; }
+.error-msg svg { width: 20px; height: 20px; flex: none; margin-top: 2px; }
+.counter { font-size: .9375rem; color: var(--ink-2); text-align: right; }
+
+/* ---------- shared layout ---------- */
+.page { padding: 40px 32px 56px; position: relative; }
+.page-title { font-size: 2.5rem; font-weight: 700; letter-spacing: -.01em; }
+.lede { font-size: 1.125rem; color: var(--ink-2); max-width: 62ch; margin-top: 10px; }
+@container (max-width: 640px) {
+  .page { padding: 24px 16px 40px; }
+  .page-title { font-size: 2rem; }
+}
+
+/* ---------- Hjem ---------- */
+.hero { position: relative; overflow: hidden; border-bottom: 1.5px solid var(--ink); }
+.hero-inner { position: relative; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 48px; padding: 64px 32px 56px; align-items: center; }
+.hero-copy { background: var(--paper); padding: 8px 8px 8px 0; box-shadow: 0 0 0 16px var(--paper); }
+.hero h2 { font-size: 4rem; font-weight: 700; line-height: 1.02; letter-spacing: -.015em; max-width: 14ch; }
+.hero p.sub { font-size: 1.1875rem; margin-top: 20px; max-width: 46ch; }
+.hero .btn-row { margin-top: 28px; }
+.hero-map { position: relative; background: var(--paper); border: 1.5px solid var(--ink); box-shadow: 0 0 0 4px var(--paper), 0 0 0 5.5px var(--ink); }
+.hero-map svg { display: block; width: 100%; height: auto; }
+.hero-map figcaption { font-size: .875rem; font-style: italic; color: var(--ink-2); padding: 8px 12px; border-top: 1px solid var(--hair); }
+.outputs { padding: 56px 32px 24px; display: grid; grid-template-columns: 280px 1fr; gap: 48px; }
+.outputs h3, .stance h3 { font-size: 2rem; font-weight: 700; }
+.outputs > div > p { margin-top: 10px; color: var(--ink-2); }
+.legend-list { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--ink); }
+.legend-list li { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--hair); align-items: start; }
+.legend-list .sym { height: 56px; display: grid; place-items: center; background: var(--card); border: 1px solid var(--hair); }
+.legend-list .sym svg { width: 44px; height: 44px; }
+.legend-list h4 { font-size: 1.5rem; }
+.legend-list p { margin-top: 4px; max-width: 66ch; }
+.stance { margin: 32px 32px 56px; padding: 32px; background: var(--forest-fill); border: 1.5px solid var(--forest); display: grid; grid-template-columns: 280px 1fr; gap: 48px; }
+.stance h3 { color: var(--forest); }
+.stance ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; }
+.stance li { padding-top: 10px; border-top: 1px solid #9DB58D; }
+.stance li strong { font-family: var(--f-label); font-weight: 600; font-size: 1.25rem; display: block; }
+@container (max-width: 900px) {
+  .hero-inner, .outputs, .stance { grid-template-columns: 1fr; gap: 28px; }
+  .hero h2 { font-size: 3rem; }
+  .stance ul { grid-template-columns: 1fr; }
+}
+@container (max-width: 640px) {
+  .hero-inner { padding: 32px 16px; }
+  .hero h2 { font-size: 2.4rem; }
+  .outputs { padding: 32px 16px 8px; }
+  .stance { margin: 24px 16px 32px; padding: 20px; }
+  .legend-list li { grid-template-columns: 56px 1fr; gap: 14px; }
+}
+
+/* ---------- auth ---------- */
+.auth { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 56px; padding: 56px 32px 64px; }
+.auth .contours { left: 45%; }
+.auth-card { position: relative; background: var(--card); border: 1.5px solid var(--ink); padding: 32px; }
+.auth-card .page-title { font-size: 2.25rem; }
+.auth-card form { margin-top: 24px; }
+.auth-card .btn-row { margin-top: 28px; }
+.auth-card .switch { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--hair); }
+.auth-side { position: relative; align-self: center; max-width: 42ch; background: var(--paper); padding: 20px 24px; border: 1px solid var(--hair); }
+.auth-side h3 { font-size: 1.375rem; margin-bottom: 6px; }
+.auth-side p + p { margin-top: 10px; }
+@container (max-width: 900px) { .auth { grid-template-columns: 1fr; gap: 24px; padding: 32px 16px; } .auth .contours { left: 0; } }
+
+/* ---------- Profil ---------- */
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; margin-top: 28px; align-items: start; }
+.panel { background: var(--card); border: 1.5px solid var(--ink); padding: 24px; }
+.panel h3 { font-size: 1.5rem; }
+.panel > p.hint { margin-top: 4px; }
+.dropzone { margin-top: 14px; border: 1.5px dashed var(--line); border-radius: var(--r); padding: 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; background: var(--paper); }
+.dropzone svg.ico { width: 28px; height: 28px; color: var(--ink-2); }
+.dropzone .file-name { font-weight: 500; }
+.or { display: flex; align-items: center; gap: 12px; margin: 20px 0; font-family: var(--f-label); font-weight: 600; color: var(--ink-2); }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--hair); }
+.notice { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--r); }
+.notice svg { width: 22px; height: 22px; flex: none; margin-top: 1px; }
+.notice-water { background: var(--water-fill); border: 1px solid var(--water); color: #123E5C; }
+.notice-error { background: var(--trail-tint); border: 1.5px solid var(--trail); color: #5E0915; }
+.notice-error strong, .notice-water strong { font-weight: 600; }
+.side-note h3 { font-size: 1.25rem; margin-bottom: 6px; }
+.side-note p + p { margin-top: 10px; }
+.side-note { padding: 20px; background: var(--paper-2); border: 1px solid var(--hair); }
+@container (max-width: 900px) { .two-col { grid-template-columns: 1fr; gap: 24px; } }
+
+/* ---------- Søknad form ---------- */
+.cv-confirm { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 16px 20px; border: 1.5px solid var(--ink); background: var(--card); border-radius: var(--r); }
+.cv-confirm .meta { display: flex; gap: 14px; align-items: center; }
+.cv-confirm .meta svg { width: 32px; height: 32px; flex: none; }
+.cv-confirm strong { font-family: var(--f-label); font-weight: 600; font-size: 1.1875rem; display: block; }
+.example-strip { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 16px; padding: 12px 16px; background: var(--water-fill); border: 1px solid var(--water); border-radius: var(--r); color: #123E5C; }
+.example-strip p { font-style: italic; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-2 .field + .field { margin-top: 0; }
+.form-block { margin-top: 28px; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.tone { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px; }
+.tone label { display: grid; grid-template-columns: 24px 1fr; gap: 4px 10px; padding: 14px; min-height: 44px; border: 1.5px solid var(--line); border-radius: var(--r); background: var(--card); cursor: pointer; }
+.tone label:hover { border-color: var(--ink); }
+.tone input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--trail); grid-row: span 2; }
+.tone .t { font-family: var(--f-label); font-weight: 600; font-size: 1.1875rem; }
+.tone .d { font-size: .9375rem; color: var(--ink-2); grid-column: 2; }
+.tone label:has(input:checked) { border-color: var(--trail); border-width: 2px; box-shadow: inset 0 0 0 1px var(--trail); }
+.tone label:has(input:checked) .t::after { content: " – valgt"; font-weight: 500; color: var(--trail-dark); }
+.submit-row { margin-top: 32px; padding-top: 24px; border-top: 1.5px solid var(--ink); display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.submit-row p { color: var(--ink-2); font-size: .9375rem; max-width: 52ch; }
+@container (max-width: 900px) { .tone { grid-template-columns: 1fr; } }
+@container (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* dialog frame */
+.dialog-stage { position: relative; min-height: 560px; display: grid; place-items: center; padding: 48px 16px; }
+.dialog-stage .ghost { position: absolute; inset: 0; padding: 40px 32px; opacity: .35; filter: blur(1.5px); }
+.dialog-stage .ghost .bar { height: 18px; background: var(--hair); margin-bottom: 14px; border-radius: 2px; }
+.dialog-stage::after { content: ""; position: absolute; inset: 0; background: rgba(28,29,26,.55); }
+.dialog { position: relative; z-index: 1; width: min(560px, 100%); background: var(--card); border: 1.5px solid var(--ink); box-shadow: 0 0 0 4px var(--card), 0 0 0 5.5px var(--ink), 0 24px 48px rgba(0,0,0,.3); padding: 32px; }
+.dialog h2 { font-size: 2rem; font-weight: 700; }
+.dialog p { margin-top: 12px; }
+.dialog ul { margin: 14px 0 0; padding-left: 20px; }
+.dialog li + li { margin-top: 6px; }
+.dialog .btn-row { margin-top: 28px; }
+
+/* ---------- Results (Refleksjonsnotat) ---------- */
+.result-head { display: flex; justify-content: space-between; gap: 16px 32px; flex-wrap: wrap; align-items: end; padding-bottom: 20px; border-bottom: 1.5px solid var(--ink); }
+.result-head .meta { color: var(--ink-2); margin-top: 6px; }
+.result-head .meta em { font-style: italic; }
+.result-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 40px; margin-top: 32px; align-items: start; }
+.result-grid > aside { display: grid; gap: 24px; position: sticky; top: 16px; }
+
+.score { background: var(--card); border: 1.5px solid var(--ink); padding: 24px; }
+.score h2 { font-family: var(--f-label); }
+.score h2 .big { display: block; font-size: 3.25rem; font-weight: 700; line-height: 1; letter-spacing: -.015em; }
+.score h2 .rest { display: block; font-size: 1.625rem; font-weight: 600; margin-top: 4px; }
+.verdict { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; padding: 6px 14px 6px 10px; border: 1.5px solid var(--ink); border-radius: 2px; background: var(--paper); }
+.verdict svg { width: 24px; height: 24px; }
+.verdict strong { font-family: var(--f-label); font-weight: 700; font-size: 1.25rem; }
+.verdict span { font-size: .9375rem; color: var(--ink-2); }
+.formula { margin-top: 18px; padding: 12px 14px; background: var(--paper-2); border-radius: 2px; }
+.formula .k { font-family: var(--f-label); font-weight: 600; font-size: 1rem; color: var(--ink-2); }
+.formula .v { font-family: var(--f-label); font-weight: 600; font-size: 1.375rem; }
+.disclaimer { margin-top: 14px; font-size: 1rem; }
+.scalebar { margin-top: 22px; }
+.scalebar .cap { font-family: var(--f-label); font-weight: 600; font-size: 1rem; display: flex; justify-content: space-between; }
+.scalebar .cap em { font-family: var(--f-body); font-weight: 400; font-size: .875rem; color: var(--ink-2); }
+.scalebar svg { display: block; width: 100%; height: auto; margin-top: 4px; overflow: visible; }
+
+.tegn { background: var(--paper); border: 1.5px solid var(--ink); box-shadow: 0 0 0 3px var(--paper), 0 0 0 4.5px var(--ink); padding: 18px 20px; }
+.tegn h3 { font-size: 1.375rem; padding-bottom: 8px; border-bottom: 1px solid var(--ink); }
+.tegn ul { list-style: none; margin: 0; padding: 0; }
+.tegn li { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--hair); font-size: .9375rem; }
+.tegn li:last-child { border-bottom: 0; }
+.tegn li svg { width: 32px; height: 32px; }
+.tegn li b { font-family: var(--f-label); font-weight: 600; font-size: 1.0625rem; display: block; }
+
+.route-wrap { position: relative; }
+.route-wrap > .contours { opacity: .32; }
+.route { list-style: none; margin: 0; padding: 0; position: relative; }
+.stop { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 16px; padding-bottom: 20px; }
+.stop::before {
+  content: ""; position: absolute; left: 22px; top: 24px; bottom: -24px; width: 4px;
+  background: repeating-linear-gradient(to bottom, var(--trail) 0 11px, transparent 11px 19px);
+}
+.stop.unmarked::before { background: repeating-linear-gradient(to bottom, var(--ink) 0 4px, transparent 4px 11px); left: 22.5px; width: 3px; }
+.stop.end::before { display: none; }
+.stop.seg { padding-bottom: 14px; }
+.stop.seg h3 { grid-column: 2; font-size: 1.125rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: var(--paper); justify-self: start; padding: 2px 8px; margin-left: -8px; }
+.stop.seg h3 span { color: var(--ink-2); letter-spacing: .02em; text-transform: none; font-weight: 500; }
+.pin { position: relative; z-index: 1; width: 48px; height: 48px; display: grid; place-items: center; background: var(--paper); border-radius: 50%; }
+.pin svg { width: 34px; height: 34px; }
+.stop.seg .pin { height: 28px; background: transparent; }
+.stop-body { position: relative; background: var(--card); border: 1px solid var(--hair); padding: 14px 18px 16px; }
+.stop.here .stop-body, .stop.end .stop-body { border: 1.5px solid var(--ink); }
+.kw { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.kw h4 { font-size: 1.375rem; font-weight: 600; }
+.kw .tag { font-family: var(--f-label); font-weight: 600; font-size: .9375rem; padding: 1px 8px; border-radius: 2px; border: 1px solid currentColor; }
+.tag-found { color: var(--trail-dark); }
+.tag-missing { color: var(--ink-2); }
+.tag-cross { color: var(--water); }
+.tag-real { color: var(--ink); }
+.src { font-style: italic; color: var(--ink-2); font-size: .9375rem; margin-top: 8px; }
+.quote { margin: 4px 0 0; padding: 0 0 0 14px; border-left: 1px solid var(--ink); max-width: 68ch; }
+.quote p::before { content: "«"; } .quote p::after { content: "»"; }
+mark { background: none; color: inherit; font-weight: 600; text-decoration: underline; text-decoration-color: var(--trail); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.template { font-weight: 500; margin-top: 8px; }
+.ai { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.ai-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ai-head h5 { margin: 0; font-family: var(--f-label); font-weight: 600; font-size: 1.125rem; }
+.ki { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-label); font-weight: 600; font-size: .9375rem; padding: 1px 8px; border: 1px solid var(--ink-2); border-radius: 2px; color: var(--ink-2); background: var(--paper); }
+.ki svg { width: 14px; height: 14px; }
+.ai p { margin-top: 8px; max-width: 66ch; }
+.suggest { margin-top: 12px; padding: 14px 16px; border: 1.5px dashed var(--water); background: #EEF5F8; border-radius: var(--r); }
+.suggest .lab { font-family: var(--f-label); font-weight: 600; font-size: 1rem; color: var(--water); }
+.suggest p.s { margin-top: 4px; font-size: 1.0625rem; }
+.suggest .btn-row { margin-top: 12px; }
+.hedge { font-style: italic; }
+.no-copy { margin-top: 12px; padding: 12px 14px; background: repeating-linear-gradient(135deg, var(--paper) 0 8px, var(--paper-2) 8px 10px); border: 1px solid var(--line); border-radius: var(--r); font-weight: 500; }
+.stop.end .stop-body h4 { font-size: 1.5rem; }
+.stop.end .meta { color: var(--ink-2); }
+
+.letter { margin-top: 48px; border-top: 1.5px solid var(--ink); padding-top: 28px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; }
+.letter-head { display: flex; gap: 12px; align-items: center; }
+.letter-head svg { width: 34px; height: 34px; }
+.letter-head h3 { font-size: 2rem; font-weight: 700; }
+.ai-label { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 12px 14px; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r); font-weight: 500; }
+.ai-label svg { width: 20px; height: 20px; flex: none; margin-top: 2px; }
+.letter-body { margin-top: 18px; background: var(--card); border: 1px solid var(--hair); padding: 28px 32px; max-width: 70ch; }
+.letter-body p + p { margin-top: 14px; }
+.letter-actions { position: sticky; top: 16px; display: grid; gap: 12px; }
+.letter-actions .btn { width: 100%; justify-content: flex-start; }
+.letter-actions p { font-size: .9375rem; color: var(--ink-2); }
+.tone-note { font-family: var(--f-label); font-weight: 600; color: var(--ink-2); margin-top: 6px; }
+
+/* phase 1 */
+.progress { margin-top: 20px; display: flex; gap: 14px; align-items: center; padding: 14px 18px; border: 1.5px solid var(--ink); background: var(--card); border-radius: var(--r); }
+.progress svg { width: 120px; height: 24px; flex: none; }
+.progress p { font-weight: 500; }
+.trail-anim { stroke-dasharray: 10 7; animation: walk 1.1s linear infinite; }
+@keyframes walk { to { stroke-dashoffset: -34; } }
+@media (prefers-reduced-motion: reduce) { .trail-anim { animation: none; } * { transition: none !important; } }
+.skel { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.skel .lbl { font-family: var(--f-label); font-weight: 600; color: var(--ink-2); font-size: 1rem; }
+.skel .ln { height: 12px; margin-top: 10px; border-radius: 2px; background: linear-gradient(90deg, var(--paper-2), #F3F0E4, var(--paper-2)); background-size: 200% 100%; animation: sheen 1.6s ease-out infinite; }
+.skel .ln:nth-child(3) { width: 82%; } .skel .ln:nth-child(4) { width: 64%; }
+@keyframes sheen { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .skel .ln { animation: none; } }
+
+.testbanner { display: flex; gap: 12px; align-items: center; padding: 12px 32px; background: var(--water-fill); border-bottom: 1.5px solid var(--water); color: #123E5C; font-weight: 500; }
+.testbanner svg { width: 22px; height: 22px; flex: none; }
+.testbanner .wl { font-style: italic; font-weight: 400; }
+
+@container (max-width: 980px) {
+  .result-grid { grid-template-columns: 1fr; }
+  .result-grid > aside { position: static; order: -1; }
+  .letter { grid-template-columns: 1fr; gap: 20px; }
+  .letter-actions { position: static; }
+}
+@container (max-width: 640px) {
+  .score { padding: 18px; }
+  .score h2 .big { font-size: 2.75rem; }
+  .score h2 .rest { font-size: 1.375rem; }
+  .stop { grid-template-columns: 40px minmax(0, 1fr); gap: 10px; }
+  .stop::before { left: 18px; }
+  .stop.unmarked::before { left: 18.5px; }
+  .pin { width: 40px; height: 40px; }
+  .pin svg { width: 30px; height: 30px; }
+  .stop-body { padding: 12px 14px; }
+  .letter-body { padding: 18px 16px; }
+  .testbanner { padding: 12px 16px; }
+  .btn-row.stack { flex-direction: column; align-items: stretch; }
+}
+
+/* ---------- Historikk ---------- */
+.hist { list-style: none; margin: 28px 0 0; padding: 0; border-top: 1.5px solid var(--ink); }
+.hist li { display: grid; grid-template-columns: minmax(0, 1.4fr) 140px minmax(0, 1.3fr) auto; gap: 24px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--hair); }
+.hist h3 { font-size: 1.375rem; }
+.hist h3 a { color: var(--ink); text-decoration: none; }
+.hist h3 a:hover { color: var(--trail-dark); text-decoration: underline; }
+.hist .emp { color: var(--ink-2); }
+.hist .date { font-family: var(--f-label); font-weight: 500; font-size: 1.0625rem; }
+.hist .sc b { font-family: var(--f-label); font-weight: 600; font-size: 1.125rem; display: block; }
+.vd { display: inline-flex; gap: 6px; align-items: center; font-size: .9375rem; margin-top: 2px; }
+.vd svg { width: 16px; height: 16px; }
+.hist .btn-row { gap: 8px; justify-content: flex-end; }
+.hist .btn { font-size: 1rem; padding: 0 12px; }
+.hist-head { display: grid; grid-template-columns: minmax(0, 1.4fr) 140px minmax(0, 1.3fr) auto; gap: 24px; margin-top: 28px; padding-bottom: 6px; font-family: var(--f-label); font-weight: 600; color: var(--ink-2); }
+.hist-head + .hist { margin-top: 0; }
+.empty { margin-top: 28px; display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; align-items: center; padding: 28px; border: 1.5px dashed var(--line); background: var(--card); }
+.empty .blank { position: relative; height: 170px; overflow: hidden; border: 1px solid var(--hair); background: var(--paper); }
+.empty .blank .contours { opacity: .7; }
+.empty .blank span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--paper); padding: 2px 8px; font-style: italic; color: var(--ink-2); font-size: .9375rem; white-space: nowrap; }
+.empty h3 { font-size: 1.625rem; }
+.empty p { margin-top: 8px; max-width: 56ch; }
+.empty .btn-row { margin-top: 18px; }
+@container (max-width: 900px) {
+  .hist-head { display: none; }
+  .hist li { grid-template-columns: 1fr; gap: 6px; }
+  .hist .btn-row { justify-content: flex-start; margin-top: 8px; }
+  .empty { grid-template-columns: 1fr; }
+}
+
+/* ---------- Konto ---------- */
+.konto { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; margin-top: 28px; align-items: start; }
+.konto dl { margin: 0; }
+.konto dt { font-family: var(--f-label); font-weight: 600; color: var(--ink-2); }
+.konto dd { margin: 2px 0 0; font-size: 1.1875rem; font-weight: 500; }
+.konto .panel .btn-row { margin-top: 24px; }
+.konto .store p + p { margin-top: 10px; }
+.konto .store h3 { font-size: 1.5rem; margin-bottom: 10px; }
+@container (max-width: 900px) { .konto { grid-template-columns: 1fr; } }
+
+@media (max-width: 760px) {
+  .board-head-inner { grid-template-columns: 1fr; padding: 24px 16px; gap: 20px; }
+  .sheet-title h1 { font-size: 2.25rem; }
+  .jump ol { columns: 1; }
+  .frame { padding: 0 12px; margin-top: 48px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ shared SVG symbols ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <path id="blobA" vector-effect="non-scaling-stroke" d="M0,-100 C55,-102 104,-60 100,-5 C96,52 52,96 -8,98 C-62,100 -102,58 -98,2 C-94,-55 -55,-98 0,-100Z"/>
+    <path id="blobB" vector-effect="non-scaling-stroke" d="M10,-90 C70,-95 110,-40 95,15 C82,65 30,100 -30,88 C-85,76 -110,25 -92,-30 C-76,-75 -40,-86 10,-90Z"/>
+  </defs>
+  <symbol id="contours" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
+    <g fill="none" stroke="currentColor" stroke-width="1">
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(900 250) rotate(0) scale(.38 .34)"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(905 255) rotate(4) scale(.75 .66)"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(912 262) rotate(8) scale(1.12 .98)"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(918 270) rotate(11) scale(1.5 1.3)"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(925 280) rotate(14) scale(1.95 1.66)" stroke-width="2"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(934 290) rotate(17) scale(2.45 2.06)"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(944 300) rotate(20) scale(3.0 2.5)"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(956 312) rotate(23) scale(3.6 3.0)"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(970 326) rotate(26) scale(4.3 3.55)" stroke-width="2"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(985 340) rotate(29) scale(5.1 4.2)"/>
+      <use href="#blobA" vector-effect="non-scaling-stroke" transform="translate(1000 356) rotate(31) scale(6.0 4.9)"/>
+      <use href="#blobB" vector-effect="non-scaling-stroke" transform="translate(210 560) rotate(0) scale(.4 .36)"/>
+      <use href="#blobB" vector-effect="non-scaling-stroke" transform="translate(205 556) rotate(-5) scale(.8 .7)"/>
+      <use href="#blobB" vector-effect="non-scaling-stroke" transform="translate(198 552) rotate(-9) scale(1.22 1.06)"/>
+      <use href="#blobB" vector-effect="non-scaling-stroke" transform="translate(190 548) rotate(-13) scale(1.68 1.45)" stroke-width="2"/>
+      <use href="#blobB" vector-effect="non-scaling-stroke" transform="translate(182 544) rotate(-16) scale(2.18 1.86)"/>
+      <use href="#blobB" vector-effect="non-scaling-stroke" transform="translate(172 540) rotate(-19) scale(2.75 2.3)"/>
+    </g>
+  </symbol>
+
+  <!-- map symbols -->
+  <symbol id="s-here" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="#FFFEF8" stroke="#1C1D1A" stroke-width="2.5"/><circle cx="16" cy="16" r="5" fill="#1C1D1A"/></symbol>
+  <symbol id="s-mark" viewBox="0 0 32 32"><path d="M4 22 L7 9 L17 4 L27 9 L29 22 L18 28 Z" fill="#E4E0D3" stroke="#66635A" stroke-width="1.5" stroke-linejoin="round"/><path d="M9.5 10.5h13v3.6h-4.6V24h-3.8v-9.9H9.5z" fill="#B8142D"/></symbol>
+  <symbol id="s-cross" viewBox="0 0 32 32"><path d="M0 11 q4 -3 8 0 t8 0 t8 0 t8 0 V21 q-4 3 -8 0 t-8 0 t-8 0 t-8 0Z" fill="#9CC3DA"/><path d="M4 10.5 H28 M4 21.5 H28" stroke="#1C1D1A" stroke-width="2.5" fill="none"/><path d="M4 10.5 L1 6.5 M28 10.5 L31 6.5 M4 21.5 L1 25.5 M28 21.5 L31 25.5" stroke="#1C1D1A" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="s-unmarked" viewBox="0 0 32 32"><g stroke="#B9B39E" stroke-width="1"><path d="M2 10 L10 2 M2 18 L18 2 M2 26 L26 2 M6 30 L30 6 M14 30 L30 14 M22 30 L30 22"/></g><path d="M4 28 C10 21 13 18 17 14 S25 7 28 4" fill="none" stroke="#1C1D1A" stroke-width="3" stroke-dasharray="0.5 5" stroke-linecap="round"/></symbol>
+  <symbol id="s-cabin" viewBox="0 0 32 32"><path d="M3 16 L16 4 L29 16 H26 V28 H6 V16 Z" fill="#1C1D1A"/><rect x="13" y="19" width="6" height="9" fill="#F4F2E9"/></symbol>
+  <symbol id="s-summit" viewBox="0 0 32 32"><path d="M3 27 L16 5 L29 27Z" fill="#1C1D1A"/><path d="M11.5 14 L16 9.5 L20.5 14" fill="none" stroke="#F4F2E9" stroke-width="2"/></symbol>
+  <symbol id="s-slope" viewBox="0 0 32 32"><path d="M4 26.5 L16 6 L28 26.5Z" fill="none" stroke="#1C1D1A" stroke-width="2.5" stroke-linejoin="round"/><path d="M4 26.5 L28 26.5 L22 16.3 L10 16.3Z" fill="#1C1D1A"/></symbol>
+  <symbol id="s-trail" viewBox="0 0 32 32"><path d="M2 16 H30" stroke="#B8142D" stroke-width="3.5" stroke-dasharray="7 4"/></symbol>
+  <symbol id="s-dots" viewBox="0 0 32 32"><path d="M3 16 H30" stroke="#1C1D1A" stroke-width="3" stroke-dasharray="0.5 5" stroke-linecap="round"/></symbol>
+  <symbol id="s-brand" viewBox="0 0 32 32"><path d="M3 23 L6 8 L17 3 L28 8 L30 23 L18 29 Z" fill="#FFFEF8" stroke="#1C1D1A" stroke-width="2" stroke-linejoin="round"/><path d="M9 10h14v3.8h-5v10.4h-4V13.8H9z" fill="#B8142D"/></symbol>
+
+  <!-- UI icons, 24 grid, 1.75 stroke -->
+  <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="12" rx="1.5"/><path d="M15.5 8.5V5a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 5v10A1.5 1.5 0 0 0 6 16.5h2.5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4v4.5H15"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 8.5l5-5 5 5M5 20h14"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21 19.5H3z"/><path d="M12 10v4.5M12 17.2v.2"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 15.5h6"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 7l5 5-5 5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="1.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+</svg>
+
+<!-- ============ board header ============ -->
+<header class="board-head">
+  <svg class="contours" aria-hidden="true"><use href="#contours"/></svg>
+  <div class="board-head-inner">
+    <div class="sheet-title">
+      <h1><svg aria-hidden="true"><use href="#s-brand"/></svg>Konsept 03 — Turkart</h1>
+      <p class="sheet-no">JobAssistant · kartblad 1:50 000 over søknaden din</p>
+      <p class="desc">Appen er tegnet som et norsk turkart: blekt kartpapir, tynne høydekurver, svarte kartnavn og rødmerket sti. Refleksjonsnotatet er en rute fra «Du er her» (CV-en din) til hytta (stillingen): funnede nøkkelord er merkede punkter med kilden sin, et hull som kan formuleres om er en overgang, og et reelt hull er umerket terreng uten noe å kopiere. Skjemaer og lister er vanlige og lettleste; kartet bærer identiteten.</p>
+      <p class="note">Uten kontoer finnes bare Hjem og Søknad i menyen; Profil, Historikk og Konto kommer med kontoer.</p>
+    </div>
+    <nav class="jump" aria-labelledby="jump-h">
+      <h2 id="jump-h">Kartbladoversikt</h2>
+      <ol>
+        <li><a href="#s-hjem"><span>1</span>Hjem, utlogget</a></li>
+        <li><a href="#s-reg"><span>2</span>Registrer deg</a></li>
+        <li><a href="#s-login"><span>3</span>Logg inn</a></li>
+        <li><a href="#s-kode"><span>4</span>Tilgangskode</a></li>
+        <li><a href="#s-profil"><span>5</span>Profil (+ feil)</a></li>
+        <li><a href="#s-form"><span>6</span>Søknad — utfylling (+ KI-varsel)</a></li>
+        <li><a href="#s-fase1"><span>7</span>Søknad — resultat, fase 1</a></li>
+        <li><a href="#s-notat"><span>8</span>Refleksjonsnotat (+ testmodus)</a></li>
+        <li><a href="#s-hist"><span>9</span>Historikk (+ tom)</a></li>
+        <li><a href="#s-konto"><span>10</span>Konto</a></li>
+        <li><a href="#s-mobil"><span>M</span>Mobil 360 px</a></li>
+      </ol>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ 1 HJEM ============ -->
+<section class="frame" id="s-hjem" aria-label="Hjem, utlogget">
+  <div class="frame-label"><span class="ref">Kartblad 1</span><span class="name">Hjem — utlogget</span><span class="aside">Overtale-flate: kartet får mest plass her</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="nav1"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+      <nav class="nav" id="nav1" aria-label="Hovedmeny">
+        <ul class="navlist">
+          <li><a href="#s-hjem" aria-current="page">Hjem</a></li>
+          <li><a href="#s-form">Søknad</a></li>
+        </ul>
+      </nav>
+      <div class="nav-auth"><a class="btn btn-text" href="#s-login">Logg inn</a><a class="btn" href="#s-reg">Registrer deg</a></div>
+    </header>
+
+    <div class="hero">
+      <svg class="contours" aria-hidden="true"><use href="#contours"/></svg>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h2>Se hvor <span style="white-space:nowrap">CV-en</span> din treffer annonsen</h2>
+          <p class="sub">Lim inn en stillingsannonse. JobAssistant viser hvilke av annonsens nøkkelord CV-en din dekker, hvor du kan si det du allerede har gjort med annonsens ord, og skriver et utkast til søknadsbrev.</p>
+          <div class="btn-row">
+            <a class="btn btn-primary btn-lg" href="#s-form">Lag skreddersydd søknad</a>
+            <a class="btn btn-text" href="#s-login">Har du konto? Logg inn</a>
+          </div>
+        </div>
+        <figure class="hero-map" style="margin:0">
+          <svg viewBox="0 0 520 340" role="img" aria-labelledby="heromap-t">
+            <title id="heromap-t">Kartskisse: en rødmerket sti fra «Du er her» via merkede punkter, over en bro og gjennom et umerket parti, fram til hytta.</title>
+            <rect width="520" height="340" fill="#F4F2E9"/>
+            <path d="M330 0 C360 80 470 120 520 110 V0Z" fill="#DDE8CC"/>
+            <path d="M0 230 C60 210 120 260 90 340 H0Z" fill="#DDE8CC"/>
+            <g fill="none" stroke="#C4874A" stroke-width="1">
+              <path d="M300 60 C350 30 430 50 440 100 C450 150 390 175 340 165 C290 155 260 95 300 60Z"/>
+              <path d="M280 50 C340 5 455 25 468 100 C478 170 400 200 335 190 C265 180 230 90 280 50Z"/>
+              <path d="M258 40 C330 -20 480 0 495 100 C508 190 410 228 330 215 C240 200 200 85 258 40Z" stroke-width="2"/>
+              <path d="M232 30 C320 -45 505 -25 520 100 M520 220 C470 245 400 250 325 240 C215 222 170 80 232 30"/>
+              <path d="M0 120 C60 100 120 130 160 170 C200 210 190 280 220 340"/>
+              <path d="M0 150 C50 135 100 160 135 195 C170 230 160 290 185 340"/>
+            </g>
+            <path d="M0 268 C70 250 140 262 200 255 C245 250 275 236 320 238 C380 240 430 262 520 250 V286 C430 300 380 276 320 274 C275 272 245 288 200 292 C140 298 70 286 0 302Z" fill="#9CC3DA"/>
+            <text x="404" y="276" font-family="Barlow" font-style="italic" font-size="13" fill="#1E5C86">Annonseelva</text>
+            <path d="M60 210 C110 200 140 170 175 150 C210 130 230 175 252 230 L262 300 C272 320 300 320 330 300" fill="none" stroke="#B8142D" stroke-width="3.5" stroke-dasharray="9 6"/>
+            <path d="M330 300 C360 280 372 250 380 220" fill="none" stroke="#1C1D1A" stroke-width="3" stroke-dasharray="0.5 7" stroke-linecap="round"/>
+            <path d="M380 220 C390 170 400 130 392 96" fill="none" stroke="#B8142D" stroke-width="3.5" stroke-dasharray="9 6"/>
+            <g transform="translate(244 252)"><path d="M0 0 H34 M0 20 H34" stroke="#1C1D1A" stroke-width="2.5"/></g>
+            <use href="#s-here" x="44" y="194" width="32" height="32"/>
+            <use href="#s-mark" x="122" y="164" width="26" height="26"/>
+            <use href="#s-mark" x="188" y="126" width="26" height="26"/>
+            <use href="#s-mark" x="232" y="190" width="26" height="26"/>
+            <use href="#s-cabin" x="376" y="66" width="32" height="32"/>
+            <g font-family="Barlow Condensed" font-weight="600" font-size="15" fill="#1C1D1A">
+              <text x="28" y="246">Du er her</text>
+              <text x="96" y="160">React</text>
+              <text x="210" y="120">Git</text>
+              <text x="262" y="196">Universell utforming</text>
+              <text x="412" y="88">Jobben</text>
+            </g>
+            <text x="340" y="320" font-family="Barlow" font-style="italic" font-size="13" fill="#1C1D1A">umerket</text>
+          </svg>
+          <figcaption>Slik ser Refleksjonsnotatet ut: ruten fra CV-en din til stillingen.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <section class="outputs" aria-labelledby="out-h">
+      <div>
+        <h3 id="out-h">Du får tre ting for hver annonse</h3>
+        <p>Alt gjelder den ene annonsen du limer inn. Du kopierer bare det du selv velger.</p>
+      </div>
+      <ul class="legend-list">
+        <li>
+          <div class="sym" aria-hidden="true"><svg viewBox="0 0 44 44"><rect x="2" y="18" width="40" height="8" fill="#FFFEF8" stroke="#1C1D1A" stroke-width="1.5"/><rect x="2" y="18" width="8" height="8" fill="#1C1D1A"/><rect x="18" y="18" width="8" height="8" fill="#1C1D1A"/><rect x="34" y="18" width="8" height="8" fill="#1C1D1A"/><path d="M31 8 L36 14 L26 14Z" fill="#B8142D"/></svg></div>
+          <div><h4>Match score</h4><p>Hvor mange av annonsens nøkkelord CV-en din dekker, regnet ut av vanlig kode – ikke av KI. Du ser regnestykket og linjen i CV-en der hvert ord ble funnet. Tallet er et anslag, ikke en ekte ATS-vurdering.</p></div>
+        </li>
+        <li>
+          <div class="sym" aria-hidden="true"><svg><use href="#s-cross"/></svg></div>
+          <div><h4>Gapanalyse med forslag til omformulering</h4><p>For hvert nøkkelord som mangler, får du vite om du trolig har erfaringen under et annet navn, eller om det er et reelt hull. Forslagene siterer CV-en din ord for ord. Et reelt hull får ingen tekst å kopiere.</p></div>
+        </li>
+        <li>
+          <div class="sym" aria-hidden="true"><svg><use href="#s-cabin"/></svg></div>
+          <div><h4>Utkast til søknadsbrev</h4><p>Et kort brev i tonen du velger, bygget bare på det CV-en din viser. Du leser gjennom, tilpasser og sender det selv.</p></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="stance" aria-labelledby="stance-h">
+      <h3 id="stance-h">Viser arbeidet sitt. Finner aldri på.</h3>
+      <ul>
+        <li><strong>Regnestykket er synlig</strong>Du ser formelen bak tallet og CV-linjen bak hvert funnet nøkkelord.</li>
+        <li><strong>Forslag siterer deg</strong>Hvert forslag bygger på en linje du selv har skrevet, gjengitt ord for ord.</li>
+        <li><strong>Reelle hull sies rett ut</strong>Det CV-en ikke viser, blir ikke fylt inn for deg.</li>
+        <li><strong>Du blir spurt først</strong>Ingen tekst sendes til KI-tjenesten før du har sagt ja.</li>
+      </ul>
+    </section>
+  </div>
+</section>
+
+<!-- ============ 2 REGISTRER ============ -->
+<section class="frame" id="s-reg" aria-label="Registrer deg">
+  <div class="frame-label"><span class="ref">Kartblad 2</span><span class="name">Registrer deg</span><span class="aside">Publisert versjon: tilgangskode kreves</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <div class="nav-auth"><a class="btn btn-text" href="#s-login">Logg inn</a></div>
+    </header>
+    <div class="auth">
+      <svg class="contours" aria-hidden="true"><use href="#contours"/></svg>
+      <div class="auth-card">
+        <h2 class="page-title">Registrer deg</h2>
+        <p class="lede" style="font-size:1rem">Med konto lagres CV-teksten og søknadene dine, slik at du kan åpne dem igjen.</p>
+        <form onsubmit="return false">
+          <div class="field"><label for="r-name">Navn</label><input class="input" id="r-name" autocomplete="name" value="Violet Hansen"></div>
+          <div class="field"><label for="r-mail">E-post</label><input class="input" id="r-mail" type="email" autocomplete="email" value="violet.hansen@example.no"></div>
+          <div class="field"><label for="r-pw">Passord</label><input class="input" id="r-pw" type="password" autocomplete="new-password" value="••••••••••••"></div>
+          <div class="field"><label for="r-code">Tilgangskode</label><p class="hint" id="r-code-h">Denne kopien er lukket. Koden har du fått av utvikleren, og den er minst 16 tegn.</p><input class="input" id="r-code" aria-describedby="r-code-h" autocomplete="off" spellcheck="false"></div>
+          <div class="btn-row"><button class="btn btn-primary" type="submit">Opprett konto</button></div>
+        </form>
+        <p class="switch">Har du allerede konto? <a href="#s-login">Logg inn</a></p>
+      </div>
+      <aside class="auth-side">
+        <h3>Hva som lagres</h3>
+        <p>Navn, e-post, CV-teksten og søknadene du lager. Personlig innhold lagres kryptert.</p>
+        <p>Vil du heller ikke ha konto, kan du bruke Søknad uten å logge inn. Da blir ingenting om deg lagret.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 LOGG INN ============ -->
+<section class="frame" id="s-login" aria-label="Logg inn">
+  <div class="frame-label"><span class="ref">Kartblad 3</span><span class="name">Logg inn</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <div class="nav-auth"><a class="btn" href="#s-reg">Registrer deg</a></div>
+    </header>
+    <div class="auth">
+      <svg class="contours" aria-hidden="true"><use href="#contours"/></svg>
+      <div class="auth-card">
+        <h2 class="page-title">Logg inn</h2>
+        <form onsubmit="return false">
+          <div class="field"><label for="l-mail">E-post</label><input class="input" id="l-mail" type="email" autocomplete="email" value="violet.hansen@example.no"></div>
+          <div class="field"><label for="l-pw">Passord</label><input class="input" id="l-pw" type="password" autocomplete="current-password"></div>
+          <div class="btn-row"><button class="btn btn-primary" type="submit">Logg inn</button></div>
+        </form>
+        <p class="switch">Ny her? <a href="#s-reg">Registrer deg</a></p>
+      </div>
+      <aside class="auth-side">
+        <h3>Når du er logget inn</h3>
+        <p>CV-teksten fra Profil fylles inn i Søknad, og søknadene dine ligger i Historikk.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 TILGANGSKODE ============ -->
+<section class="frame" id="s-kode" aria-label="Tilgangskode">
+  <div class="frame-label"><span class="ref">Kartblad 4</span><span class="name">Tilgangskode</span><span class="aside">Publisert versjon, før kontoer: spørres én gang per nettleserøkt</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+    </header>
+    <div class="auth">
+      <svg class="contours" aria-hidden="true"><use href="#contours"/></svg>
+      <div class="auth-card">
+        <h2 class="page-title">Skriv inn tilgangskoden</h2>
+        <p style="margin-top:12px">Denne kopien av JobAssistant er lukket. Den brukes bare av utvikleren og sensor, fordi den sender tekst til en ekte KI-tjeneste.</p>
+        <form onsubmit="return false">
+          <div class="field has-error">
+            <label for="k-code">Tilgangskode</label>
+            <p class="hint" id="k-code-h">Minst 16 tegn. Du får den sammen med innleveringen.</p>
+            <input class="input" id="k-code" aria-describedby="k-code-h k-code-e" aria-invalid="true" value="nordlys-2026" autocomplete="off" spellcheck="false">
+            <p class="error-msg" id="k-code-e"><svg aria-hidden="true"><use href="#i-alert"/></svg>Koden er for kort. Den skal være minst 16 tegn – sjekk at du har fått med hele.</p>
+          </div>
+          <div class="btn-row"><button class="btn btn-primary" type="submit">Fortsett</button></div>
+        </form>
+      </div>
+      <aside class="auth-side">
+        <h3>Kjører du appen lokalt?</h3>
+        <p>Da trenger du ingen kode. Uten KI-nøkkel går appen i testmodus med lagrede eksempelsvar.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 PROFIL ============ -->
+<section class="frame" id="s-profil" aria-label="Profil">
+  <div class="frame-label"><span class="ref">Kartblad 5</span><span class="name">Profil — CV hentet ut, klar til retting</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="nav5"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+      <nav class="nav" id="nav5" aria-label="Hovedmeny"><ul class="navlist">
+        <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form">Søknad</a></li><li><a href="#s-profil" aria-current="page">Profil</a></li><li><a href="#s-hist">Historikk</a></li><li><a href="#s-konto">Konto</a></li>
+      </ul></nav>
+    </header>
+    <div class="page">
+      <h2 class="page-title">CV-en din</h2>
+      <p class="lede">Last opp eller lim inn CV-en én gang. Teksten fylles inn hver gang du lager en ny søknad.</p>
+      <div class="two-col">
+        <div class="panel">
+          <h3>Last opp</h3>
+          <p class="hint" id="up-h">PDF eller TXT, maks 2 MB.</p>
+          <div class="dropzone">
+            <svg class="ico" aria-hidden="true"><use href="#i-doc"/></svg>
+            <span class="file-name">violet-hansen-cv.pdf <span class="hint">· 184 kB · hentet ut</span></span>
+            <label class="btn" for="cv-file" style="margin-left:auto"><svg aria-hidden="true"><use href="#i-up"/></svg>Velg en annen fil</label>
+            <input type="file" id="cv-file" class="sr-only" accept=".pdf,.txt" aria-describedby="up-h">
+          </div>
+          <div class="or">eller lim inn teksten direkte i feltet under</div>
+          <div class="field">
+            <label for="cv-text">Teksten vi hentet ut</label>
+            <div class="notice notice-water" id="cv-text-h"><svg aria-hidden="true"><use href="#i-info"/></svg><p>Les gjennom og rett opp. PDF-er med to spalter kan få linjene i feil rekkefølge, så sjekk at hver linje står der den skal.</p></div>
+            <textarea class="textarea" id="cv-text" rows="15" aria-describedby="cv-text-h cv-count">Violet Hansen
+violet.hansen@example.no
+
+Utdanning
+Bachelor i informatikk, 2024–2027 (siste år)
+
+Prosjekter
+Utviklet brukergrensesnitt i React og TypeScript i semesterprosjektet IBE160 (gruppe på fem)
+Jobbet etter smidig utvikling med tre ukers sprinter og daglige standups i semesterprosjektet
+Semesterprosjekt: samarbeidet med to studenter fra økonomi og en fra design om en app for studentboliger
+Brukte Git og GitHub til versjonskontroll i alle gruppeprosjekter
+
+Emner
+Testet prototypen mot WCAG 2.1 i emnet Universell utforming
+
+Deltidsjobb
+Butikkmedarbeider i dagligvarebutikk, 2022–i dag (12 timer i uka)</textarea>
+            <p class="counter" id="cv-count">812 tegn (200–20 000)</p>
+          </div>
+          <div class="btn-row" style="margin-top:20px"><button class="btn btn-primary" type="button">Lagre</button></div>
+        </div>
+        <aside class="side-note">
+          <h3>Hvorfor du må lese teksten</h3>
+          <p>Match score leter etter nøkkelord i akkurat denne teksten. Står en linje feil eller mangler, blir tallet feil.</p>
+          <p>Det du retter her, endrer ikke PDF-en din. Det endrer bare teksten JobAssistant bruker.</p>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="frame" aria-label="Profil, feiltilstand">
+  <div class="frame-label"><span class="ref">Kartblad 5b</span><span class="name">Profil — feil: skannet PDF</span></div>
+  <div class="screen">
+    <div class="page" style="padding-top:28px">
+      <div class="panel" style="max-width:760px">
+        <h3>Last opp</h3>
+        <p class="hint" id="up2-h">PDF eller TXT, maks 2 MB.</p>
+        <div class="field has-error" style="margin-top:0">
+          <div class="dropzone">
+            <svg class="ico" aria-hidden="true"><use href="#i-doc"/></svg>
+            <span class="file-name">cv-skannet.pdf <span class="hint">· 1,4 MB</span></span>
+            <label class="btn" for="cv-file2" style="margin-left:auto"><svg aria-hidden="true"><use href="#i-up"/></svg>Velg en annen fil</label>
+            <input type="file" id="cv-file2" class="sr-only" accept=".pdf,.txt" aria-describedby="up2-h up2-e" aria-invalid="true">
+          </div>
+          <div class="notice notice-error" id="up2-e" role="alert"><svg aria-hidden="true"><use href="#i-alert"/></svg><p><strong>Vi fant ingen tekst i denne PDF-en.</strong> Den kan være skannet. Lim inn teksten fra CV-en din i feltet under i stedet.</p></div>
+        </div>
+        <div class="field" style="margin-top:20px">
+          <label for="cv-text2">Lim inn CV-teksten</label>
+          <textarea class="textarea" id="cv-text2" rows="4" placeholder="Kopier teksten fra CV-dokumentet ditt og lim den inn her" aria-describedby="cv-count2"></textarea>
+          <p class="counter" id="cv-count2">0 tegn (200–20 000)</p>
+        </div>
+        <div class="btn-row" style="margin-top:16px"><button class="btn btn-primary" type="button" disabled>Lagre</button><span class="hint">Lagre blir tilgjengelig når teksten er minst 200 tegn.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 SØKNAD UTFYLLING ============ -->
+<section class="frame" id="s-form" aria-label="Søknad, utfylling">
+  <div class="frame-label"><span class="ref">Kartblad 6</span><span class="name">Søknad — utfylling</span><span class="aside">Innlogget: CV-teksten er fylt inn fra Profil</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="nav6"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+      <nav class="nav" id="nav6" aria-label="Hovedmeny"><ul class="navlist">
+        <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form" aria-current="page">Søknad</a></li><li><a href="#s-profil">Profil</a></li><li><a href="#s-hist">Historikk</a></li><li><a href="#s-konto">Konto</a></li>
+      </ul></nav>
+    </header>
+    <div class="page">
+      <h2 class="page-title">Ny søknad</h2>
+      <div class="two-col">
+        <form onsubmit="return false">
+          <div class="cv-confirm">
+            <div class="meta"><svg aria-hidden="true"><use href="#s-here"/></svg><div><strong>CV-tekst fra Profil</strong><span class="hint">812 tegn · sist lagret 8. nov. 2026</span></div></div>
+            <button class="btn" type="button" aria-expanded="false" aria-controls="cv-inline"><svg aria-hidden="true"><use href="#i-pen"/></svg>Vis og rediger</button>
+          </div>
+          <div class="example-strip">
+            <p>Vil du bare prøve? Eksempelet fyller inn en oppdiktet CV og annonse.</p>
+            <button class="btn" type="button">Bruk eksempelet</button>
+          </div>
+
+          <div class="form-block field">
+            <label for="ad">Stillingsannonsen</label>
+            <p class="hint" id="ad-h">Lim inn hele annonsen, også kravene. Nøkkelordene hentes fra denne teksten.</p>
+            <textarea class="textarea" id="ad" rows="8" aria-describedby="ad-h ad-count">Nordic Digital søker en junior frontendutvikler til teamet vårt.
+
+Du vil jobbe med React og TypeScript i et team som bruker smidig utvikling, og du bruker Git daglig. Vi er opptatt av universell utforming i alt vi lager. Du trives med tverrfaglig samarbeid med designere og rådgivere.
+
+Erfaring med Docker og Kubernetes er en fordel.</textarea>
+            <p class="counter" id="ad-count">402 tegn (200–15 000)</p>
+          </div>
+
+          <div class="form-block grid-2">
+            <div class="field"><label for="title">Stillingstittel</label><input class="input" id="title" value="Junior frontendutvikler"></div>
+            <div class="field"><label for="emp">Arbeidsgiver</label><input class="input" id="emp" value="Nordic Digital"></div>
+          </div>
+
+          <fieldset class="form-block">
+            <legend class="legend-label">Tone i brevet</legend>
+            <div class="tone">
+              <label><input type="radio" name="tone"><span class="t">Formell</span><span class="d">Saklig og høflig, klassisk søknadsform.</span></label>
+              <label><input type="radio" name="tone" checked><span class="t">Personlig</span><span class="d">Varmere, forteller litt om hvorfor du søker.</span></label>
+              <label><input type="radio" name="tone"><span class="t">Direkte</span><span class="d">Kort og konkret, starter med det som treffer best.</span></label>
+            </div>
+          </fieldset>
+
+          <div class="submit-row">
+            <button class="btn btn-primary btn-lg" type="submit">Analyser og skriv utkast</button>
+            <p>Match score kommer på et par sekunder. Gapanalysen og brevet tar under ett minutt.</p>
+          </div>
+        </form>
+        <aside class="side-note">
+          <h3>Før du trykker</h3>
+          <p>Første gang blir du spurt om du godtar at teksten sendes til en KI-tjeneste. Ingenting sendes før du har sagt ja.</p>
+          <p>Ser CV-teksten feil ut, retter du den under «Vis og rediger» eller i Profil.</p>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="frame" aria-label="KI-varsel, dialog">
+  <div class="frame-label"><span class="ref">Kartblad 6b</span><span class="name">Søknad — KI-varsel (vises én gang)</span></div>
+  <div class="screen">
+    <div class="dialog-stage">
+      <div class="ghost" aria-hidden="true"><div class="bar" style="width:30%;height:34px"></div><div class="bar" style="width:70%"></div><div class="bar" style="width:62%"></div><div class="bar" style="width:66%;height:140px"></div><div class="bar" style="width:40%"></div></div>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-h" aria-describedby="dlg-d">
+        <h2 id="dlg-h">Teksten din sendes til en KI-tjeneste</h2>
+        <div id="dlg-d">
+          <p>For å skrive gapanalysen, forslagene og søknadsbrevet sender vi CV-teksten og annonsen til en ekstern KI-leverandør.</p>
+          <ul>
+            <li>Ingenting er sendt ennå. Det skjer først når du trykker «Godta og fortsett».</li>
+            <li>Match score regnes ut av vanlig kode, ikke av KI.</li>
+            <li>Du blir bare spurt denne ene gangen.</li>
+          </ul>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" type="button">Godta og fortsett</button>
+          <button class="btn" type="button">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 FASE 1 ============ -->
+<section class="frame" id="s-fase1" aria-label="Søknad, resultat fase 1">
+  <div class="frame-label"><span class="ref">Kartblad 7</span><span class="name">Søknad — resultat, fase 1</span><span class="aside">Score og nøkkelord er klare; KI-delene skrives</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="nav7"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+      <nav class="nav" id="nav7" aria-label="Hovedmeny"><ul class="navlist">
+        <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form" aria-current="page">Søknad</a></li><li><a href="#s-profil">Profil</a></li><li><a href="#s-hist">Historikk</a></li><li><a href="#s-konto">Konto</a></li>
+      </ul></nav>
+    </header>
+    <div class="page">
+      <div class="result-head">
+        <div><h2 class="page-title">Refleksjonsnotat</h2><p class="meta">Junior frontendutvikler · Nordic Digital · <em>8. nov. 2026</em></p></div>
+      </div>
+      <div class="progress" role="status" aria-live="polite">
+        <svg viewBox="0 0 120 24" aria-hidden="true"><path class="trail-anim" d="M2 12 H118" stroke="#B8142D" stroke-width="3.5" fill="none"/></svg>
+        <p>Skriver gapanalyse, omformuleringer og søknadsbrev … dette tar under ett minutt.</p>
+      </div>
+      <div class="result-grid">
+        <div class="route-wrap">
+          <ol class="route">
+            <li class="stop here"><div class="pin"><svg aria-hidden="true"><use href="#s-here"/></svg></div><div class="stop-body"><div class="kw"><h4>Du er her: CV-en din</h4></div><p class="src" style="font-style:normal">Violet Hansen · bachelor i informatikk, siste år</p></div></li>
+            <li class="stop seg"><div class="pin"></div><h3>Merket sti <span>· 5 nøkkelord funnet</span></h3></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>React</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Utviklet brukergrensesnitt i <mark>React</mark> og TypeScript i semesterprosjektet IBE160 (gruppe på fem)</p></blockquote></div></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>TypeScript</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Utviklet brukergrensesnitt i React og <mark>TypeScript</mark> i semesterprosjektet IBE160 (gruppe på fem)</p></blockquote></div></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>Git</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Brukte <mark>Git</mark> og GitHub til versjonskontroll i alle gruppeprosjekter</p></blockquote></div></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>universell utforming</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Testet prototypen mot WCAG 2.1 i emnet <mark>Universell utforming</mark></p></blockquote></div></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>smidig utvikling</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Jobbet etter <mark>smidig utvikling</mark> med tre ukers sprinter og daglige standups i semesterprosjektet</p></blockquote></div></li>
+            <li class="stop seg"><div class="pin"></div><h3>Ikke merket ennå <span>· 2 nøkkelord mangler</span></h3></li>
+            <li class="stop unmarked"><div class="pin"><svg role="img" aria-label="Nøkkelord som mangler"><use href="#s-dots"/></svg></div><div class="stop-body"><div class="kw"><h4>Tverrfaglig samarbeid</h4><span class="tag tag-missing">Mangler</span></div><p class="template">Annonsen ber om «tverrfaglig samarbeid». CV-en din viser det ikke ennå.</p><p class="src">Fra annonsen:</p><blockquote class="quote"><p>Du trives med <mark>tverrfaglig samarbeid</mark> med designere og rådgivere.</p></blockquote>
+              <div class="skel" aria-hidden="true"><p class="lbl">Gapanalyse skrives …</p><div class="ln"></div><div class="ln"></div><div class="ln"></div></div></div></li>
+            <li class="stop unmarked"><div class="pin"><svg role="img" aria-label="Nøkkelord som mangler"><use href="#s-dots"/></svg></div><div class="stop-body"><div class="kw"><h4>Kubernetes</h4><span class="tag tag-missing">Mangler</span></div><p class="template">Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.</p><p class="src">Fra annonsen:</p><blockquote class="quote"><p>Erfaring med Docker og <mark>Kubernetes</mark> er en fordel.</p></blockquote>
+              <div class="skel" aria-hidden="true"><p class="lbl">Gapanalyse skrives …</p><div class="ln"></div><div class="ln"></div><div class="ln"></div></div></div></li>
+            <li class="stop end"><div class="pin"><svg role="img" aria-label="Hytta, stillingen"><use href="#s-cabin"/></svg></div><div class="stop-body"><h4>Søknadsbrevet</h4><div class="skel" aria-hidden="true" style="border-top:0;margin-top:4px;padding-top:4px"><p class="lbl">Utkastet skrives …</p><div class="ln"></div><div class="ln"></div><div class="ln"></div></div></div></li>
+          </ol>
+        </div>
+        <aside>
+          <section class="score" aria-labelledby="sc1">
+            <h2 id="sc1"><span class="big">71 % samsvar</span> <span class="rest">– 5 av 7 nøkkelord</span></h2>
+            <p class="verdict"><svg aria-hidden="true"><use href="#s-summit"/></svg><strong>Sterkt samsvar</strong><span>70 % eller mer</span></p>
+            <div class="formula"><p class="k">ATS-samsvar, regnet ut slik</p><p class="v">5 av 7 nøkkelord funnet = 71 %</p></div>
+            <p class="disclaimer">Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8 REFLEKSJONSNOTAT ============ -->
+<section class="frame" id="s-notat" aria-label="Søknad, Refleksjonsnotat ferdig">
+  <div class="frame-label"><span class="ref">Kartblad 8</span><span class="name">Søknad — Refleksjonsnotat (ferdig)</span><span class="aside">Ruten fra CV-en til stillingen</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="nav8"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+      <nav class="nav" id="nav8" aria-label="Hovedmeny"><ul class="navlist">
+        <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form" aria-current="page">Søknad</a></li><li><a href="#s-profil">Profil</a></li><li><a href="#s-hist">Historikk</a></li><li><a href="#s-konto">Konto</a></li>
+      </ul></nav>
+    </header>
+    <div class="page">
+      <div class="result-head">
+        <div><h2 class="page-title">Refleksjonsnotat</h2><p class="meta">Junior frontendutvikler · Nordic Digital · <em>8. nov. 2026</em> · Tone: Personlig</p></div>
+        <a class="btn" href="#s-form">Ny søknad</a>
+      </div>
+      <p class="sr-only" role="status" aria-live="polite">Gapanalysen, forslagene og søknadsbrevet er ferdige.</p>
+      <div class="result-grid">
+        <div class="route-wrap">
+          <svg class="contours" aria-hidden="true"><use href="#contours"/></svg>
+          <ol class="route">
+            <li class="stop here"><div class="pin"><svg role="img" aria-label="Du er her"><use href="#s-here"/></svg></div><div class="stop-body"><div class="kw"><h4>Du er her: CV-en din</h4></div><p class="src" style="font-style:normal">Violet Hansen · bachelor i informatikk, siste år</p></div></li>
+            <li class="stop seg"><div class="pin"></div><h3>Merket sti <span>· 5 nøkkelord funnet</span></h3></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>React</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Utviklet brukergrensesnitt i <mark>React</mark> og TypeScript i semesterprosjektet IBE160 (gruppe på fem)</p></blockquote></div></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>TypeScript</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Utviklet brukergrensesnitt i React og <mark>TypeScript</mark> i semesterprosjektet IBE160 (gruppe på fem)</p></blockquote></div></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>Git</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Brukte <mark>Git</mark> og GitHub til versjonskontroll i alle gruppeprosjekter</p></blockquote></div></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>universell utforming</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Testet prototypen mot WCAG 2.1 i emnet <mark>Universell utforming</mark></p></blockquote></div></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>smidig utvikling</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Jobbet etter <mark>smidig utvikling</mark> med tre ukers sprinter og daglige standups i semesterprosjektet</p></blockquote></div></li>
+
+            <li class="stop seg"><div class="pin"></div><h3>Ikke merket ennå <span>· 2 nøkkelord mangler</span></h3></li>
+            <li class="stop"><div class="pin"><svg role="img" aria-label="Overgang: kan formuleres om"><use href="#s-cross"/></svg></div><div class="stop-body">
+              <div class="kw"><h4>Tverrfaglig samarbeid</h4><span class="tag tag-cross">Overgang · kan formuleres om</span></div>
+              <p class="template">Annonsen ber om «tverrfaglig samarbeid». CV-en din viser det ikke ennå.</p>
+              <p class="src">Fra annonsen:</p><blockquote class="quote"><p>Du trives med <mark>tverrfaglig samarbeid</mark> med designere og rådgivere.</p></blockquote>
+              <div class="ai">
+                <div class="ai-head"><h5>Gapanalyse</h5><span class="ki"><svg aria-hidden="true"><use href="#i-pen"/></svg>Skrevet med KI</span></div>
+                <p>Du har trolig erfaringen, men med andre ord. Denne linjen i CV-en din beskriver samarbeid med studenter fra to andre fag:</p>
+                <blockquote class="quote"><p>Semesterprosjekt: samarbeidet med to studenter fra økonomi og en fra design om en app for studentboliger</p></blockquote>
+                <div class="suggest">
+                  <p class="lab">Forslag til omformulering</p>
+                  <p class="s" id="sug1">Tverrfaglig samarbeid i semesterprosjektet: samarbeidet med to studenter fra økonomi og en fra design om en app for studentboliger.</p>
+                  <p class="hedge" style="margin-top:8px">Linjen dekker trolig dette – vurder å ta det med. Formuleringen bruker bare det som allerede står i CV-en din.</p>
+                  <div class="btn-row"><button class="btn copy" type="button" aria-describedby="sug1"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Kopier</span></button></div>
+                </div>
+              </div>
+            </div></li>
+            <li class="stop unmarked"><div class="pin"><svg role="img" aria-label="Umerket terreng: reelt hull"><use href="#s-unmarked"/></svg></div><div class="stop-body">
+              <div class="kw"><h4>Kubernetes</h4><span class="tag tag-real">Umerket terreng · reelt hull</span></div>
+              <p class="template">Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.</p>
+              <p class="src">Fra annonsen:</p><blockquote class="quote"><p>Erfaring med Docker og <mark>Kubernetes</mark> er en fordel.</p></blockquote>
+              <div class="ai">
+                <div class="ai-head"><h5>Gapanalyse</h5><span class="ki"><svg aria-hidden="true"><use href="#i-pen"/></svg>Skrevet med KI</span></div>
+                <p>Ingenting i CV-en din viser erfaring med Kubernetes. Dette er et reelt hull, og vi skriver ingen tekst for det.</p>
+                <p>Har du brukt Kubernetes et sted som ikke står i CV-en, for eksempel i et emne eller et eget prosjekt? Da kan du legge det inn i CV-en med dine egne ord. Annonsen kaller det en fordel, ikke et krav.</p>
+                <p class="no-copy">Ingen tekst å kopiere her.</p>
+              </div>
+            </div></li>
+            <li class="stop end"><div class="pin"><svg role="img" aria-label="Hytta, stillingen"><use href="#s-cabin"/></svg></div><div class="stop-body"><h4>Junior frontendutvikler</h4><p class="meta">Nordic Digital · søknadsbrevet ligger under</p></div></li>
+          </ol>
+        </div>
+
+        <aside>
+          <section class="score" aria-labelledby="sc2">
+            <h2 id="sc2"><span class="big">71 % samsvar</span> <span class="rest">– 5 av 7 nøkkelord</span></h2>
+            <p class="verdict"><svg aria-hidden="true"><use href="#s-summit"/></svg><strong>Sterkt samsvar</strong><span>70 % eller mer</span></p>
+            <div class="formula"><p class="k">ATS-samsvar, regnet ut slik</p><p class="v">5 av 7 nøkkelord funnet = 71 %</p></div>
+            <p class="disclaimer">Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering.</p>
+            <div class="scalebar">
+              <p class="cap"><span>Målestokk, 0–100 %</span><em>grense for Sterkt samsvar: 70 %</em></p>
+              <svg viewBox="0 0 352 84" role="img" aria-label="Målestokk fra 0 til 100 prosent. Merket ved 71 prosent. Grensen for Sterkt samsvar er 70 prosent."><text x="249.5" y="14" font-family="Barlow Condensed" font-weight="700" font-size="16" fill="#8F0E22" text-anchor="middle">71 %</text><path d="M244.8 18 L254.2 18 L249.5 27Z" fill="#B8142D"/><g transform="translate(1 34)"><rect x="0" y="0" width="350" height="12" fill="#FFFEF8" stroke="#1C1D1A" stroke-width="1.5"/><rect x="0" y="0" width="35" height="12" fill="#1C1D1A"/><rect x="70" y="0" width="35" height="12" fill="#1C1D1A"/><rect x="140" y="0" width="35" height="12" fill="#1C1D1A"/><rect x="210" y="0" width="35" height="12" fill="#1C1D1A"/><rect x="280" y="0" width="35" height="12" fill="#1C1D1A"/><path d="M245 -5 V20" stroke="#1C1D1A" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M248.5 -6 V18" stroke="#B8142D" stroke-width="3"/><g font-family="Barlow Condensed" font-weight="600" font-size="15" fill="#1C1D1A" text-anchor="middle"><text x="0" y="34" text-anchor="start">0</text><text x="87.5" y="34">25</text><text x="175" y="34">50</text><text x="245" y="34">70</text><text x="350" y="34" text-anchor="end">100 %</text></g></g></svg>
+            </div>
+          </section>
+
+          <section class="tegn" aria-labelledby="tegn-h">
+            <h3 id="tegn-h">Tegnforklaring</h3>
+            <ul>
+              <li><svg aria-hidden="true"><use href="#s-here"/></svg><span><b>Du er her</b>CV-en din, der ruten starter</span></li>
+              <li><svg aria-hidden="true"><use href="#s-mark"/></svg><span><b>Merket punkt</b>Nøkkelord funnet i CV-en, med linjen det står i</span></li>
+              <li><svg aria-hidden="true"><use href="#s-cross"/></svg><span><b>Overgang</b>Kan formuleres om: du har trolig erfaringen med andre ord</span></li>
+              <li><svg aria-hidden="true"><use href="#s-unmarked"/></svg><span><b>Umerket terreng</b>Reelt hull. CV-en viser det ikke, og det er ingen tekst å kopiere</span></li>
+              <li><svg aria-hidden="true"><use href="#s-cabin"/></svg><span><b>Hytta</b>Stillingen du søker på</span></li>
+              <li><svg aria-hidden="true"><use href="#s-trail"/></svg><span><b>Rød stiplet linje</b>Merket sti, dekket av CV-en</span></li>
+              <li><svg aria-hidden="true"><use href="#s-dots"/></svg><span><b>Svart prikket linje</b>Umerket strekning</span></li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+
+      <section class="letter" aria-labelledby="let-h">
+        <div>
+          <div class="letter-head"><svg aria-hidden="true"><use href="#s-cabin"/></svg><h3 id="let-h">Søknadsbrevet</h3></div>
+          <p class="tone-note">Tone: Personlig</p>
+          <p class="ai-label"><svg aria-hidden="true"><use href="#i-pen"/></svg>Utkast skrevet med KI – les gjennom og tilpass før du sender.</p>
+          <div class="letter-body" id="letter1" tabindex="0" aria-label="Søknadsbrev, skrivebeskyttet">
+            <p>Hei,</p>
+            <p>Jeg søker på stillingen som junior frontendutvikler hos Nordic Digital. Jeg tar siste år av bachelor i informatikk, og frontend er det jeg har likt best å jobbe med gjennom studiet.</p>
+            <p>I semesterprosjektet i IBE160 utviklet jeg brukergrensesnitt i React og TypeScript i en gruppe på fem. Vi jobbet i tre ukers sprinter med daglige standups og brukte Git og GitHub til versjonskontroll. I emnet Universell utforming testet jeg en prototype mot WCAG 2.1, og den vanen tar jeg gjerne med meg videre.</p>
+            <p>I et annet semesterprosjekt samarbeidet jeg med studenter fra økonomi og design om en app for studentboliger. Jeg forteller gjerne mer om prosjektene i et intervju.</p>
+            <p>Vennlig hilsen<br>Violet Hansen</p>
+          </div>
+        </div>
+        <div class="letter-actions">
+          <button class="btn btn-primary copy" type="button"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Kopier</span></button>
+          <button class="btn" type="button"><svg aria-hidden="true"><use href="#i-down"/></svg>Last ned (.docx)</button>
+          <button class="btn" type="button"><svg aria-hidden="true"><use href="#i-redo"/></svg>Lag nytt utkast</button>
+          <p>Brevet redigerer du i ditt eget program. Et nytt utkast bruker én KI-forespørsel.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<section class="frame" aria-label="Testmodus-banner">
+  <div class="frame-label"><span class="ref">Kartblad 8b</span><span class="name">Testmodus — banner over appen</span><span class="aside">Ingen KI-nøkkel, eller testmodus slått på</span></div>
+  <div class="screen">
+    <p class="testbanner"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Testmodus – KI-svarene er lagrede eksempelsvar. <span class="wl">Match score regnes fortsatt ut av koden.</span></span></p>
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="nav8b"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+      <nav class="nav" id="nav8b" aria-label="Hovedmeny"><ul class="navlist"><li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form" aria-current="page">Søknad</a></li></ul></nav>
+    </header>
+    <div class="page" style="padding-top:24px;padding-bottom:28px">
+      <h2 class="page-title" style="font-size:1.75rem">Refleksjonsnotat</h2>
+      <p class="meta" style="color:var(--ink-2)">Junior frontendutvikler · Nordic Digital · <em>8. nov. 2026</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 HISTORIKK ============ -->
+<section class="frame" id="s-hist" aria-label="Historikk">
+  <div class="frame-label"><span class="ref">Kartblad 9</span><span class="name">Historikk — to lagrede søknader</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="nav9"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+      <nav class="nav" id="nav9" aria-label="Hovedmeny"><ul class="navlist">
+        <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form">Søknad</a></li><li><a href="#s-profil">Profil</a></li><li><a href="#s-hist" aria-current="page">Historikk</a></li><li><a href="#s-konto">Konto</a></li>
+      </ul></nav>
+    </header>
+    <div class="page">
+      <h2 class="page-title">Historikk</h2>
+      <p class="lede">Søknadene du har laget, nyeste først. De kan åpnes, kopieres og lastes ned, men ikke endres.</p>
+      <div class="hist-head" aria-hidden="true"><span>Stilling</span><span>Dato</span><span>Match score</span><span></span></div>
+      <ul class="hist">
+        <li>
+          <div><h3><a href="#s-notat">Junior frontendutvikler</a></h3><p class="emp">Nordic Digital</p></div>
+          <p class="date">8. nov. 2026</p>
+          <div class="sc"><b>71 % samsvar – 5 av 7 nøkkelord</b><span class="vd"><svg aria-hidden="true"><use href="#s-summit"/></svg>Sterkt samsvar</span></div>
+          <div class="btn-row"><a class="btn" href="#s-notat"><svg aria-hidden="true"><use href="#i-open"/></svg>Åpne<span class="sr-only"> Junior frontendutvikler</span></a><button class="btn copy" type="button"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Kopier brev</span></button><button class="btn" type="button"><svg aria-hidden="true"><use href="#i-down"/></svg>.docx</button></div>
+        </li>
+        <li>
+          <div><h3><a href="#s-notat">Junior produktanalytiker</a></h3><p class="emp">Fjord Analytics</p></div>
+          <p class="date">21. okt. 2026</p>
+          <div class="sc"><b>57 % samsvar – 4 av 7 nøkkelord</b><span class="vd"><svg aria-hidden="true"><use href="#s-slope"/></svg>Bør forbedres</span></div>
+          <div class="btn-row"><a class="btn" href="#s-notat"><svg aria-hidden="true"><use href="#i-open"/></svg>Åpne<span class="sr-only"> Junior produktanalytiker</span></a><button class="btn copy" type="button"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Kopier brev</span></button><button class="btn" type="button"><svg aria-hidden="true"><use href="#i-down"/></svg>.docx</button></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="frame" aria-label="Historikk, tom">
+  <div class="frame-label"><span class="ref">Kartblad 9b</span><span class="name">Historikk — tom</span></div>
+  <div class="screen">
+    <div class="page" style="padding-top:28px">
+      <h2 class="page-title">Historikk</h2>
+      <div class="empty">
+        <div class="blank" aria-hidden="true"><svg class="contours"><use href="#contours"/></svg><span>Ingen ruter tegnet ennå</span></div>
+        <div>
+          <h3>Du har ingen lagrede søknader ennå</h3>
+          <p>Når du lager en søknad mens du er logget inn, lagres Refleksjonsnotatet og brevet her. Da kan du åpne dem igjen, kopiere brevet eller laste det ned.</p>
+          <div class="btn-row"><a class="btn btn-primary" href="#s-form">Lag skreddersydd søknad</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10 KONTO ============ -->
+<section class="frame" id="s-konto" aria-label="Konto">
+  <div class="frame-label"><span class="ref">Kartblad 10</span><span class="name">Konto</span></div>
+  <div class="screen">
+    <header class="appbar">
+      <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+      <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="nav10"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+      <nav class="nav" id="nav10" aria-label="Hovedmeny"><ul class="navlist">
+        <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form">Søknad</a></li><li><a href="#s-profil">Profil</a></li><li><a href="#s-hist">Historikk</a></li><li><a href="#s-konto" aria-current="page">Konto</a></li>
+      </ul></nav>
+    </header>
+    <div class="page">
+      <h2 class="page-title">Konto</h2>
+      <div class="konto">
+        <div class="panel">
+          <dl><dt>E-post</dt><dd>violet.hansen@example.no</dd></dl>
+          <div class="btn-row"><button class="btn" type="button">Logg ut</button></div>
+        </div>
+        <div class="side-note store">
+          <h3><svg aria-hidden="true" style="width:22px;height:22px;vertical-align:-3px;margin-right:6px"><use href="#i-lock"/></svg>Slik lagres dataene dine</h3>
+          <p>CV-en din og dokumentene som lages, lagres kryptert. Passordet lagres aldri i klartekst.</p>
+          <p>Alt som er lagret om deg, slettes når emnet er ferdig. Den publiserte versjonen tas ned etter sensur.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MOBIL ============ -->
+<section class="frame" id="s-mobil" aria-label="Mobil 360 px">
+  <div class="frame-label"><span class="ref">Mobil 360 px</span><span class="name">To mobilrammer, nøyaktig 360 px brede</span></div>
+  <div class="row-frames">
+    <div class="phone">
+      <div class="frame-label"><span class="name">a) Meny lukket og åpen</span></div>
+      <div class="screen">
+        <header class="appbar">
+          <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+          <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="navm1"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+          <nav class="nav" id="navm1" aria-label="Hovedmeny"><ul class="navlist">
+            <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form" aria-current="page">Søknad</a></li><li><a href="#s-profil">Profil</a></li><li><a href="#s-hist">Historikk</a></li><li><a href="#s-konto">Konto</a></li>
+          </ul></nav>
+        </header>
+        <div class="page" style="padding-bottom:20px"><p class="hint" style="font-style:italic">Lukket: bare merkevaren og «Meny». Trykk for å åpne.</p></div>
+        <div style="border-top:2px dashed var(--line)"></div>
+        <header class="appbar">
+          <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+          <button class="btn menu-btn" type="button" aria-expanded="true" aria-controls="navm2"><svg aria-hidden="true"><use href="#i-close"/></svg>Lukk</button>
+          <nav class="nav open" id="navm2" aria-label="Hovedmeny"><ul class="navlist">
+            <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form" aria-current="page">Søknad</a></li><li><a href="#s-profil">Profil</a></li><li><a href="#s-hist">Historikk</a></li><li><a href="#s-konto">Konto</a></li>
+          </ul></nav>
+        </header>
+        <div class="page" style="padding-bottom:20px"><p class="hint" style="font-style:italic">Åpen: hele menyen i én kolonne, 52 px høye rader. Siden du står på er merket med rød sti og «Du er her».</p></div>
+      </div>
+    </div>
+
+    <div class="phone">
+      <div class="frame-label"><span class="name">b) Refleksjonsnotat</span></div>
+      <div class="screen">
+        <header class="appbar">
+          <a class="brand" href="#s-hjem"><svg aria-hidden="true"><use href="#s-brand"/></svg>JobAssistant</a>
+          <button class="btn menu-btn" type="button" aria-expanded="false" aria-controls="navm3"><svg aria-hidden="true"><use href="#i-menu"/></svg>Meny</button>
+          <nav class="nav" id="navm3" aria-label="Hovedmeny"><ul class="navlist">
+            <li><a href="#s-hjem">Hjem</a></li><li><a href="#s-form" aria-current="page">Søknad</a></li><li><a href="#s-profil">Profil</a></li><li><a href="#s-hist">Historikk</a></li><li><a href="#s-konto">Konto</a></li>
+          </ul></nav>
+        </header>
+        <div class="page">
+          <h2 class="page-title" style="font-size:1.75rem">Refleksjonsnotat</h2>
+          <p class="meta" style="color:var(--ink-2);margin-top:4px">Junior frontendutvikler · Nordic Digital · <em>8. nov. 2026</em></p>
+          <section class="score" aria-labelledby="scm" style="margin-top:18px">
+            <h2 id="scm"><span class="big">71 % samsvar</span> <span class="rest">– 5 av 7 nøkkelord</span></h2>
+            <p class="verdict"><svg aria-hidden="true"><use href="#s-summit"/></svg><strong>Sterkt samsvar</strong><span>70 % eller mer</span></p>
+            <div class="formula"><p class="k">ATS-samsvar, regnet ut slik</p><p class="v">5 av 7 nøkkelord funnet = 71 %</p></div>
+            <p class="disclaimer">Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering.</p>
+            <div class="scalebar">
+              <svg viewBox="0 0 352 84" role="img" aria-label="Målestokk fra 0 til 100 prosent. Merket ved 71 prosent. Grensen for Sterkt samsvar er 70 prosent."><text x="249.5" y="14" font-family="Barlow Condensed" font-weight="700" font-size="16" fill="#8F0E22" text-anchor="middle">71 %</text><path d="M244.8 18 L254.2 18 L249.5 27Z" fill="#B8142D"/><g transform="translate(1 34)"><rect x="0" y="0" width="350" height="12" fill="#FFFEF8" stroke="#1C1D1A" stroke-width="1.5"/><rect x="0" y="0" width="35" height="12" fill="#1C1D1A"/><rect x="70" y="0" width="35" height="12" fill="#1C1D1A"/><rect x="140" y="0" width="35" height="12" fill="#1C1D1A"/><rect x="210" y="0" width="35" height="12" fill="#1C1D1A"/><rect x="280" y="0" width="35" height="12" fill="#1C1D1A"/><path d="M245 -5 V20" stroke="#1C1D1A" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M248.5 -6 V18" stroke="#B8142D" stroke-width="3"/><g font-family="Barlow Condensed" font-weight="600" font-size="15" fill="#1C1D1A" text-anchor="middle"><text x="0" y="34" text-anchor="start">0</text><text x="175" y="34">50</text><text x="245" y="34">70</text><text x="350" y="34" text-anchor="end">100 %</text></g></g></svg>
+            </div>
+          </section>
+          <p class="hint" style="margin-top:12px"><a href="#tegn-h">Tegnforklaring</a> ligger nederst i notatet.</p>
+          <div class="route-wrap" style="margin-top:20px">
+            <ol class="route">
+              <li class="stop here"><div class="pin"><svg role="img" aria-label="Du er her"><use href="#s-here"/></svg></div><div class="stop-body"><div class="kw"><h4>Du er her: CV-en din</h4></div></div></li>
+              <li class="stop seg"><div class="pin"></div><h3>Merket sti <span>· 5 funnet</span></h3></li>
+              <li class="stop"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>React</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>Utviklet brukergrensesnitt i <mark>React</mark> og TypeScript i semesterprosjektet IBE160 (gruppe på fem)</p></blockquote></div></li>
+              <li class="stop end"><div class="pin"><svg role="img" aria-label="Merket punkt"><use href="#s-mark"/></svg></div><div class="stop-body"><div class="kw"><h4>TypeScript</h4><span class="tag tag-found">Funnet</span></div><p class="src">Funnet i CV-en din:</p><blockquote class="quote"><p>… i React og <mark>TypeScript</mark> i semesterprosjektet IBE160 …</p></blockquote><p class="hint" style="margin-top:10px;font-style:italic">… Git, universell utforming, smidig utvikling, så de to som mangler</p></div></li>
+            </ol>
+          </div>
+          <section class="letter" aria-labelledby="letm-h" style="margin-top:28px">
+            <div>
+              <div class="letter-head"><svg aria-hidden="true"><use href="#s-cabin"/></svg><h3 id="letm-h" style="font-size:1.625rem">Søknadsbrevet</h3></div>
+              <p class="ai-label"><svg aria-hidden="true"><use href="#i-pen"/></svg>Utkast skrevet med KI – les gjennom og tilpass før du sender.</p>
+              <div class="letter-body"><p>Hei,</p><p>Jeg søker på stillingen som junior frontendutvikler hos Nordic Digital. Jeg tar siste år av bachelor i informatikk …</p></div>
+            </div>
+            <div class="letter-actions">
+              <button class="btn btn-primary copy" type="button"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Kopier</span></button>
+              <button class="btn" type="button"><svg aria-hidden="true"><use href="#i-down"/></svg>Last ned (.docx)</button>
+              <button class="btn" type="button"><svg aria-hidden="true"><use href="#i-redo"/></svg>Lag nytt utkast</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="board-foot">Konsept 03 — skisse, ikke endelig design <span>Turkart · JobAssistant · 9. nov. 2026</span></footer>
+
+<p class="sr-only" id="copy-live" role="status" aria-live="polite"></p>
+<script>
+document.querySelectorAll('.menu-btn').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var nav = document.getElementById(b.getAttribute('aria-controls'));
+    var open = b.getAttribute('aria-expanded') !== 'true';
+    b.setAttribute('aria-expanded', String(open));
+    nav.classList.toggle('open', open);
+    b.innerHTML = '<svg aria-hidden="true"><use href="#' + (open ? 'i-close' : 'i-menu') + '"/></svg>' + (open ? 'Lukk' : 'Meny');
+  });
+});
+document.querySelectorAll('.copy').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var s = b.querySelector('span'); var old = s.textContent;
+    s.textContent = 'Kopiert'; document.getElementById('copy-live').textContent = 'Kopiert til utklippstavlen.';
+    setTimeout(function () { s.textContent = old; }, 2000);
+  });
+});
+</script>
+</body>
+</html>
