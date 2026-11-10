@@ -19,7 +19,7 @@ This PRD defines what JobAssistant v1 must do by the IBE160 portfolio deadline o
 It builds on these documents and does not repeat them:
 
 - **Product brief** ([brief.md](../../briefs/brief-JobAssistant-2026-09-11/brief.md)). This is the approved proposal. The brief numbers its "In v1" items and its success criteria without labels; this PRD calls them S1–S7 and SC1–SC9, in the brief's order. §11 lists every deviation from it.
-- **UX specification** ([EXPERIENCE.md](../../ux-designs/ux-JobAssistant-2026-09-11/EXPERIENCE.md), [DESIGN.md](../../ux-designs/ux-JobAssistant-2026-09-11/DESIGN.md) and the mockups). It owns screens, states, microcopy and visual design. UJ-1 below is the UX's "Flow 1", adapted to the decisions in this PRD.
+- **UX specification** ([EXPERIENCE.md](../../ux-designs/ux-JobAssistant-2026-11-09/EXPERIENCE.md), [DESIGN.md](../../ux-designs/ux-JobAssistant-2026-11-09/DESIGN.md) and the mockup, UX of 2026-11-09, «Signal, varm»). It owns screens, states, microcopy and visual design. It replaces the UX of 2026-09-11, whose «Flow 1» UJ-1 below was adapted from.
 - **Lecturer feedback on the brief** ([tilbakemelding-product-brief.md](../../briefs/brief-JobAssistant-2026-09-11/tilbakemelding-product-brief.md), 2026-10-06) and **the IBE160 examiner guide, Part 1**. The guide is summarised in [extract-sensorveiledning.md](extract-sensorveiledning.md).
 - **[addendum.md](addendum.md)**: research findings, notes for the architecture, rejected and deferred alternatives, the list of UX updates, and questions for the lecturer.
 
@@ -406,7 +406,7 @@ The Reflection Note shows how the score was reached.
 #### FR-18: Register, log in and log out
 - The Student registers with name, email and password; the password must be at least 8 characters. Each email can be registered only once. The name replaces the UX username field (D14).
 - The Student logs in with email and password, and logs out with one click (UX).
-- A session ends after 30 minutes without activity. The Student is then sent to «Logg inn» with the UX message «Økten din er avsluttet. Logg inn igjen for å fortsette.». A Job ad pasted on Søknad is kept and offered again after login.
+- A session ends after 30 minutes without activity. The Student is then sent to «Logg inn» with the UX message «Økten din er avsluttet. Logg inn igjen for å fortsette.». A Job ad pasted on Søknad is kept and offered again after login. Two minutes before the session ends, the Student is warned and can continue the session with one click (WCAG 2.2.1; UX 2026-11-09). Unsaved CV corrections in Profil are also kept.
 - Once S6 exists, Søknad and the other Student pages require login. On the Hosted version, registration also requires the Access code (FR-31).
 
 **Verify:** Auto.
@@ -756,7 +756,7 @@ The lecturer's feedback asks the PRD to describe this checklist.
 - **Not an editor.** The Letter can't be edited in the app, and no CV document is produced or edited. Only the CV text used for analysis can be corrected (FR-3). Students edit their documents in their own tools.
 - **Not a job-search platform.** No job boards, LinkedIn import, auto-apply or application tracking.
 - **Not a public service.** The Hosted version is closed to everyone except the developer and the Examiner (FR-31).
-- **No native mobile app and no dark mode.** The brief and the UX rule out both; the web app works in a phone browser instead.
+- **No native mobile app and no theme switching.** The brief rules out a native app; the web app works in a phone browser instead. The interface has one visual theme, the dark warm-brown one chosen in the UX of 2026-11-09, with no light/dark toggle.
 - **No business model.** It is free: a course project.
 
 ## 11. Changes from the brief and the UX specification

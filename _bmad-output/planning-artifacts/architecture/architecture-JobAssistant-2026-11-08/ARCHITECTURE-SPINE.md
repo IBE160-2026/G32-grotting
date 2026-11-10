@@ -12,8 +12,8 @@ binds: [FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10, FR-11, FR-1
 sources:
   - ../../prds/prd-JobAssistant-2026-10-31/prd.md
   - ../../prds/prd-JobAssistant-2026-10-31/addendum.md
-  - ../../ux-designs/ux-JobAssistant-2026-09-11/EXPERIENCE.md
-  - ../../ux-designs/ux-JobAssistant-2026-09-11/DESIGN.md
+  - ../../ux-designs/ux-JobAssistant-2026-11-09/EXPERIENCE.md
+  - ../../ux-designs/ux-JobAssistant-2026-11-09/DESIGN.md
   - ../../briefs/brief-JobAssistant-2026-09-11/tilbakemelding-product-brief.md
 companions:
   - ../../../../docs/architecture.md
@@ -272,20 +272,21 @@ sequenceDiagram
 
 ### AD-17: One module owns the client session [ADOPTED]
 
-- **Binds:** FR-3, FR-18 (Job ad kept after timeout), FR-20, FR-24, NFR-5
+- **Binds:** FR-3, FR-18 (Job ad and unsaved CV draft kept after timeout), FR-20, FR-24, NFR-2, NFR-5
 - **Prevents:** pages inventing their own `sessionStorage` keys, stale CV text overriding the Profile after S6, and lost retries after a refresh.
 - **Rule:** `src/lib/client-session.ts` is the only code that touches `sessionStorage`. It stores one key, `ja.session.v1`, validated by a zod schema:
 
   ```
-  { v, inputs: { cvText?, jobAd?, jobTitle?, employer?, tone },
+  { v, inputs: { cvText?, cvDraft?, jobAd?, jobTitle?, employer?, tone },
     applicationId?, fingerprint?, phase1?, gaps?, letter?, letterFlags?,
     aiNoticeAccepted?: { version } }
   ```
 
   Every read falls back to empty on any error. When `accountsEnabled` is true:
-  - `inputs.cvText` is never written;
+  - `inputs.cvText` is never written; `inputs.cvDraft` holds unsaved CV text being edited in Profil, and is cleared on «Lagre» and on «Logg ut» (UX 2026-11-09, WCAG 3.3.7);
   - AI-notice acceptance is stored on the server instead (AD-18);
-  - logout and session expiry clear everything except `jobAd`, `jobTitle`, `employer` and `tone`, which «Logg inn» offers again.
+  - logout clears everything except `jobAd`, `jobTitle`, `employer` and `tone`; session expiry also keeps `cvDraft`. «Logg inn» offers them again, and Profil restores the draft.
+  - Session expiry is preceded by a warning dialog two minutes before 30 minutes of inactivity, with «Fortsett økten» renewing the session; any key, pointer or input event counts as activity, and the client renews the session at most once every 5 minutes while active (UX 2026-11-09, WCAG 2.2.1).
 
   A schema change bumps `v`, and an unknown `v` is discarded.
 
@@ -327,7 +328,7 @@ flowchart LR
 | Validation | One zod schema per request body in `src/lib/schemas`, used by the form for hints and by the route as the authority. The input limits (2 MB; 200–20,000 and 200–15,000 characters; 200 for title and employer) are constants in Core. |
 | Uploaded files | Read into memory, text extracted with `unpdf` (or decoded as UTF-8), then dropped. Never written to disk, stored or served back. |
 | Pages and data | Pages are server components that render shells. Søknad, Profil and Historikk use client components that call the API through `api-client`. No Server Actions; Cache Components are off. |
-| Design tokens | DESIGN.md colours, type and spacing map to Tailwind v4 `@theme` variables in `src/app/globals.css`. The scaffold's dark mode and Geist font are removed (no dark mode, PRD §10). Results regions use `aria-live="polite"`, announced once for the score and once for the AI sections. |
+| Design tokens | DESIGN.md colours, type and spacing map to Tailwind v4 `@theme` variables in `src/app/globals.css`. The scaffold's light/dark switching and Geist font are removed: there is one theme, the dark one defined in DESIGN.md, with no toggle (PRD §10). Results regions use `aria-live="polite"`, announced once for the score and once for the AI sections. |
 | Frameworks | Only what the scaffold and the Stack list. No state library, RPC layer or component library. |
 | Database changes | Edit `schema.ts`, run `npm run db:generate`, commit the SQL, run `npm run db:migrate` locally, and apply it to Supabase with `MIGRATION_DATABASE_URL` before the deploy that needs it. Stories that touch the schema spell these steps out. |
 | Dependencies | Exact versions in `package.json` (no `^`); the lockfile is committed. Never `--force` or `--legacy-peer-deps`. `engines.node` is `>=24`; the README recommends 26 LTS. |
