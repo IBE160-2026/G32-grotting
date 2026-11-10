@@ -39,4 +39,4 @@
 - [x] 2026-11-09 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — etter valget: fortsett bmad-ux-Discovery (innsats, journeys, formfaktor) og rett detektorfunnene i valgt konsept (_hook-findings.md) (løst 2026-11-10: Discovery og coaching ferdig, spines er final; detektorfunnene gjaldt forkastede konsepter, og mock 11 er ren)
 - [ ] 2026-11-10 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — gå gjennom ordlyden i Key strings-radene merket «Old UX» og «New» i ux-JobAssistant-2026-11-09/EXPERIENCE.md
 - [ ] 2026-11-10 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — etter bake-off uke 47: fyll inn [leverandør] og [periode] i KI-varselet (EXPERIENCE.md Key strings og mockups/signal-varm.html)
-- [ ] 2026-11-10 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — avgjør om impeccable skal lese den nye DESIGN.md (ligger i ux-mappa, ikke i prosjektroten)
+- [x] 2026-11-10 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — avgjør om impeccable skal lese den nye DESIGN.md (ligger i ux-mappa, ikke i prosjektroten) (løst 2026-11-10: DESIGN.md flyttet til prosjektroten)
