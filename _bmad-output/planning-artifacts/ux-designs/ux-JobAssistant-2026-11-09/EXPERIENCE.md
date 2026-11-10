@@ -90,7 +90,7 @@ Microcopy rules. Brand voice lives in DESIGN.md, Brand & Style. The same rules b
 - Anything the Student must judge is hedged.
 - Code-strip labels are written in sentence case in the source and uppercased by CSS.
 
-**Key strings.** Source: *PRD* or *PRODUCT* = fixed there; *Mock* = from concept 11; *Old UX* = carried from UX 2026-09-11; *New* = drafted here. Old UX and New strings were accepted on 2026-11-09 and are still open for a wording review.
+**Key strings.** Source: *PRD* or *PRODUCT* = fixed there; *Mock* = from concept 11; *Old UX* = carried from [UX 2026-09-11](../../_archive/ux-JobAssistant-2026-09-11/EXPERIENCE.md) (archived); *New* = drafted here. Old UX and New strings were accepted on 2026-11-09 and are still open for a wording review.
 
 | Context | String | Source |
 |---|---|---|

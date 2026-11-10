@@ -6,7 +6,7 @@ Every concept agent reads this file in full. It is the same for all ten; only th
 
 Read `PRODUCT.md` at the project root in full. It is binding: users, positioning, terminology, voice (plain warm bokmål, «du», no exclamation marks, no emoji, no cheerleading), the score-is-an-estimate rule, AI-text labels, accessibility floor (WCAG 2.2 AA, 44 px targets, meaning never by colour alone, 360 px single column, nav collapses at ≤ 640 px, `lang="nb"`).
 
-The previous UX (`_bmad-output/planning-artifacts/ux-designs/ux-JobAssistant-2026-09-11/`, «Warm Editorial» + «Rich Mocha») is being REPLACED. Do not reuse its look (no warm editorial serif + mocha/brown palette). You may skim its EXPERIENCE.md for screens, states and microcopy only.
+The previous UX (`_bmad-output/planning-artifacts/_archive/ux-JobAssistant-2026-09-11/`, archived 2026-11-10, «Warm Editorial» + «Rich Mocha») is being REPLACED. Do not reuse its look (no warm editorial serif + mocha/brown palette). You may skim its EXPERIENCE.md for screens, states and microcopy only.
 
 ## Deliverable
 
