@@ -1,7 +1,7 @@
 ---
 title: JobAssistant PRD addendum
 created: 2026-10-31
-updated: 2026-11-08
+updated: 2026-11-13
 ---
 
 # JobAssistant PRD addendum
@@ -10,8 +10,9 @@ This file supports [prd.md](prd.md). It holds detail that matters for later step
 - [§1 Research digest](#1-research-digest-2026-10-31): the evidence behind several PRD decisions.
 - [§2 Notes for the architecture](#2-notes-for-the-architecture): suggestions for the architecture step.
 - [§3 Rejected and deferred alternatives](#3-rejected-and-deferred-alternatives): options considered, with a pointer to each decision.
-- [§4 UX updates needed to match the PRD](#4-ux-updates-needed-to-match-the-prd): the list for the week-45 UX update.
+- [§4 UX updates needed to match the PRD](#4-ux-updates-needed-to-match-the-prd): the list for the week-45 UX update (done 2026-11-08).
 - [§5 Questions for the lecturer](#5-questions-for-the-lecturer).
+- [§6 Course requirements and process evidence](#6-course-requirements-and-process-evidence): the grading criteria, the evidence kept for the Examiner, and the process rules (moved from PRD §8.4, §9.4 and NFR-10 on 2026-11-13).
 
 The PRD wins over this file on any conflict. Full research with sources is in [research-landscape.md](research-landscape.md). Extracts of the brief, the UX specification and the examiner guide are in [extract-brief.md](extract-brief.md), [extract-ux.md](extract-ux.md) and [extract-sensorveiledning.md](extract-sensorveiledning.md).
 
@@ -63,7 +64,7 @@ These notes are suggestions, not decisions. The architecture document must make 
 
 ### 2.1 Keyword engine (FR-5 to FR-7)
 - **Vocabulary is the main quality risk.** Extraction by code alone probably needs a curated vocabulary: the Norwegian labels in ESCO, which span all occupations, plus a list of technology terms. It must work for ads from any field, such as nursing, not only IT (Open questions 2 and 6). *Direction decided 2026-11-08 (architecture AD-2):* a curated core list, with selected ESCO Norwegian labels as backup, as versioned JSON in `data/vocabulary/`.
-- **AI fallback.** Approved on 2026-10-31 and specified in full in FR-5; decided at the end of week 46. Keep extraction behind one interface, so either path fits.
+- **AI fallback.** Approved on 2026-10-31 and specified in full in FR-5b; decided on 17 November 2026, at the end of S2. Keep extraction behind one interface, so either path fits.
 - A possible pipeline:
   1. Normalise: case, æøå, hyphens and spaces.
   2. Lemmatise or stem.
@@ -153,6 +154,8 @@ Each row points to the PRD item that holds the decision. "As D-n" means the PRD'
 
 ## 4. UX updates needed to match the PRD
 
+*Done 2026-11-08* (session log `.logs/helise-26/995-…-ux-oppdatering-etter-prd.md`); the UX of 2026-11-09 carries the result. The list is kept for traceability.
+
 These follow from PRD §11. They make the UX and the PRD point to the same v1 items. They are grouped by the file each change lands in, so the week-45 update takes one pass per file.
 
 ### 4.1 EXPERIENCE.md
@@ -223,3 +226,35 @@ From the analysis of the examiner guide, the most important first. Each question
 4. The app will also be hosted on Vercel. Is the README run on a clean machine still what criterion 6 (README and runnability) grades? (This file only; owner Helene.)
 5. Are curated session logs (`.logs/`) enough as "lagrede prompts og KI-økter", or are raw transcripts expected? (This file only; owner Helene.)
 6. Is mocking the AI acceptable in automated tests, with a manual checklist for the quality of AI-written text? (Open question 8)
+
+## 6. Course requirements and process evidence
+
+Moved here from PRD §8.4, §9.4 and NFR-10 on 2026-11-13 (lecturer feedback 4.5), so the PRD holds only product requirements and checkable rules. NFR-10 keeps the checkable traceability rules.
+
+### 6.1 Grading criteria (examiner guide, Part 1)
+
+Part 1 grades the app, the repository and its history together, and makes up 70 % of the grade:
+
+| Criterion | Weight |
+|---|---|
+| Process and AI steering | 30 % |
+| Functionality and scope | 20 % |
+| Quality assurance and testing | 15 % |
+| Design and user experience | 10 % |
+| Code quality and architecture | 10 % |
+| README and runnability | 10 % |
+| Repository tidiness | 5 % |
+
+- Process and AI steering, README and runnability, and repository tidiness (45 % together) concern process and verifiability, so the traces of the work count as much as the product.
+- The PRD supports the criteria with stable IDs and traceability (NFR-10), a deviation log (§11), a verification plan (§9), runnability requirements (NFR-9) and maintainability requirements (NFR-11).
+
+### 6.2 Evidence for the Examiner
+- Bugs found in AI-generated code, and how each was fixed, are recorded in the session logs or in `docs/qa/` (examiner guide, criterion 3).
+- An index in `docs/qa/` lists the examples of steering the AI (§6.3), and links each one to its session log and commits, together with the bugs above.
+- Screenshots or a short recording of one live run are committed to `docs/qa/` next to the live Fixture outputs (PRD §9.4).
+
+### 6.3 Process rules
+- Pull requests keep their review notes. Defects found after a merge become issues.
+- Session logs cite story or FR IDs.
+- Each session log records the task or prompt, what the AI proposed, what was clarified, rejected or corrected and why, and the resulting commits.
+- Every change to the PRD gets an entry in its memory log (`.memlog.md`), alongside the commit that NFR-10 requires.

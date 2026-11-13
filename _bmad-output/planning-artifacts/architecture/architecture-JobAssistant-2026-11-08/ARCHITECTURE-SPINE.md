@@ -468,9 +468,9 @@ jobassistant/
 
 | Decision | Why it can wait | Decided by, when |
 |---|---|---|
-| AI provider and model | Weeks 45–46 use no AI. A bake-off on the Example pair and the nursing Fixture (Claude Sonnet 5.5 against one OpenAI model, scored on L1–L8, G1–G3, R1 and the guard results) picks the winner. AD-4 isolates the choice. | Helene, start of week 47 |
+| AI provider and model | Weeks 45–46 use no AI. A bake-off on the Example pair and the nursing Fixture (Claude Sonnet 5.5 against one OpenAI model, scored on L1–L8, G1–G3, R1 and the guard results) picks the winner. AD-4 isolates the choice. | Helene, start of S3 (18 Nov; PRD §5.2) |
 | AI transfer basis (PRD §8.1) | Before the bake-off, check the contenders on the DPF list. If the winner isn't listed, amend §8.1 to accept Standard Contractual Clauses in the provider's DPA. | Helene, before the bake-off |
-| FR-5 fallback on or off | Decided against SM-2 on every Fixture plus a held-out one (PRD §5.2). AD-2, AD-6 and AD-18 already cover both outcomes. | Helene, end of week 46 |
+| FR-5 fallback on or off | Decided against SM-2 on every Fixture plus a held-out one (PRD §5.2). AD-2, AD-6 and AD-18 already cover both outcomes. | Helene, 17 Nov (PRD FR-5b) |
 | Vocabulary contents, and how far compound and paraphrase matching go (FR-6, Open question 6) | AD-2 fixes the format and pipeline; the contents follow the Answer keys. Helene's nursing terms («tverrfaglig samarbeid», «ortopedi», «sykehus», «postoperativ», «smertebehandling») seed the curated list. | Epic 2 |
 | Auth library (Better Auth or hand-rolled) | Only epic 6 uses it, and it is cut first. AD-9, AD-10 and AD-18 fix what any choice must meet. | Epic 6 |
 | Streaming the Letter | 120 s functions cover NFR-4's 60 s target and 90 s timeout. | Revisit if timed runs fail NFR-4 |
