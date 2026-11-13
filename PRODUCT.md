@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Next.js 16 with TypeScript on Node.js 26 LTS, hosted on Vercel (Hobby, Frankfurt functions). Biome for lint and format; Vitest and Playwright with axe for tests. Decided in `docs/architecture.md`, not by this design round. No UI code exists yet (as of 2026-11-09).
+Next.js 16 with TypeScript on Node.js 26 LTS, hosted on Vercel (Hobby, Frankfurt functions) with Supabase Postgres 17. The local run and the tests run in Docker Compose (app + Postgres 17 container), and Docker is the one prerequisite for the Examiner. Biome for lint and format; Vitest and Playwright with axe for tests. Decided in the architecture spine of 2026-11-13 (explained in `docs/architecture.md`), not by this design round. No UI code exists yet (as of 2026-11-13).
 
 ## Users
 
@@ -62,7 +62,7 @@ JobAssistant differs in its stance, not its technology: it shows its work and ne
 ## Evidence on Hand
 
 - PRD with stable IDs (FR-1–31, NFR-1–11, UJ-1–3, P1–P6): `_bmad-output/planning-artifacts/prds/prd-JobAssistant-2026-10-31/prd.md`.
-- Architecture: `docs/architecture.md` and `_bmad-output/planning-artifacts/architecture/architecture-JobAssistant-2026-11-08/ARCHITECTURE-SPINE.md`.
+- Architecture: `docs/architecture.md` (the explainer for the examiner) and `_bmad-output/planning-artifacts/architecture/architecture-JobAssistant-2026-11-13/ARCHITECTURE-SPINE.md` (binding). The 2026-11-08 versions are archived under `_bmad-output/planning-artifacts/_archive/`.
 - UX (binding, 2026-11-10): `DESIGN.md` (look), `EXPERIENCE.md` (behaviour) and the mock `mockups/signal-varm.html`, all in `_bmad-output/planning-artifacts/ux-designs/ux-JobAssistant-2026-11-09/`. The UX of 2026-09-11 is history only.
 - Fictional example content in the PRD: Violet, a junior frontend applicant; «Junior produktanalytiker» at Fjord Analytics; the nursing «sårvurdering» example; the «Kubernetes» real gap. Fixtures and the Example pair are not written yet (week 46).
 - Absent, and must not be fabricated: real users, testimonials, usage numbers, partner institutions, pricing. Real CVs are not used, only fictional ones.

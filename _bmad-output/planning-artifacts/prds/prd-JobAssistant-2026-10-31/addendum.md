@@ -63,7 +63,7 @@ The findings below are why the Match score is presented as an estimate of keywor
 These notes are suggestions, not decisions. The architecture document must make and justify the choices; the lecturer asked for justified choices of language model, storage and encryption.
 
 ### 2.1 Keyword engine (FR-5 to FR-7)
-- **Vocabulary is the main quality risk.** Extraction by code alone probably needs a curated vocabulary: the Norwegian labels in ESCO, which span all occupations, plus a list of technology terms. It must work for ads from any field, such as nursing, not only IT (Open questions 2 and 6). *Direction decided 2026-11-08 (architecture AD-2):* a curated core list, with selected ESCO Norwegian labels as backup, as versioned JSON in `data/vocabulary/`.
+- **Vocabulary is the main quality risk.** Extraction by code alone probably needs a curated vocabulary: the Norwegian labels in ESCO, which span all occupations, plus a list of technology terms. It must work for ads from any field, such as nursing, not only IT (Open questions 2 and 6). *Direction decided 2026-11-08 (now architecture spine of 2026-11-13, AD-5):* a curated core list, with selected ESCO Norwegian labels as backup, as versioned JSON in `data/vocabulary/`.
 - **AI fallback.** Approved on 2026-10-31 and specified in full in FR-5b; decided on 17 November 2026, at the end of S2. Keep extraction behind one interface, so either path fits.
 - A possible pipeline:
   1. Normalise: case, æøå, hyphens and spaces.
@@ -80,7 +80,7 @@ These notes are suggestions, not decisions. The architecture document must make 
   - NB-BERT and NorBERT 3
   - ESCO's Norwegian skill labels
   - NAV's Job Vacancy Feed, as a source of real ads for building Fixtures
-- **Check each tool against NFR-9.** NB-BERT, NorBERT 3, the spaCy models, Lucene (which needs Java) and the Oslo-Bergen Tagger all add heavy prerequisites. The local run allows one runtime and no large model download.
+- **Check each tool against NFR-9.** NB-BERT, NorBERT 3, the spaCy models, Lucene (which needs Java) and the Oslo-Bergen Tagger all add heavy prerequisites or large downloads. The local run runs in Docker, and a large model download is still not allowed (NFR-9).
 
 ### 2.2 PDF extraction (FR-1, FR-3)
 - Multi-column layouts and tables scramble the reading order. The review step (FR-3) is the safety net, so extraction doesn't need to be perfect.
@@ -128,7 +128,7 @@ All three guards reuse the Keyword engine, so they are deterministic and easy to
 - A budget of 200 NOK per month should cover development, Fixture runs and the demonstration. The Daily cap stops a runaway loop, and a monthly spending limit set with the provider is the backstop.
 
 ### 2.8 Hosting on Vercel (FR-30, FR-31)
-- **Database.** Serverless functions have no persistent file system, so the Hosted version needs a hosted database with an EU region and a free tier. The local run must still work without a database server (NFR-9), for example with a file database behind the same data layer. *Decided 2026-11-08 (architecture AD-8, Open question 3):* Supabase Postgres in Frankfurt, used as a plain database, and PGlite in `.data/` for the local run.
+- **Database.** Serverless functions have no persistent file system, so the Hosted version needs a hosted database with an EU region and a free tier. *Decided (architecture spine of 2026-11-13, AD-9; Open question 3):* Supabase Postgres 17 in Frankfurt, used as a plain database. The local run uses Postgres 17 in a Docker container, started by the same Compose command as the app (NFR-9, changed 2026-11-13; it replaces the earlier PGlite file database).
 - **Function time limits.** Check the Hobby plan's limit on function duration against NFR-4 (AI sections within 60 seconds; AI requests time out after 90 seconds). Streaming the response, or running the two AI requests in separate function calls, may be needed.
 - Everything else about hosting is set in FR-30, FR-31 and PRD §8.1–§8.2. Details the PRD leaves out:
   - run the functions in an EU region, close to the database;
@@ -151,6 +151,7 @@ Each row points to the PRD item that holds the decision. "As D-n" means the PRD'
 | Weighting required over preferred Keywords | Deferred (PRD §5.3) | Harder to explain in one line; v1 keeps every Keyword equal |
 | Account deletion and "delete my data" | Deferred (PRD §5.3) | Only the developer and the Examiner use v1, and the developer deletes all data when the course ends (FR-23) |
 | Local run only, with no hosting | Replaced (D23) | As D23 |
+| Local run without Docker: one language runtime and a file database (NFR-9 as of 2026-10-31) | Replaced 2026-11-13 (NFR-9) | The lecturer runs projects with Docker. Docker is then the only thing to install, and the local database is the same Postgres version as the Hosted one |
 
 ## 4. UX updates needed to match the PRD
 

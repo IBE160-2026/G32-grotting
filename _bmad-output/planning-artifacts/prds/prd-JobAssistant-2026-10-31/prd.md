@@ -102,7 +102,7 @@ The student gets an application letter that captures their skills and strengths 
 - **Persona and context:** Kari grades IBE160 portfolios. She has the repository, the README, and 15–20 minutes per group to get each app running.
 - **Entry state:** a clean machine, a fresh clone, no API keys.
 - **Path:**
-  1. She follows the README commands. Setup creates the local secrets, and the app starts in Test mode.
+  1. She follows the README: one Docker Compose command builds and starts the app and its database. Setup creates the local secrets, and the app starts in Test mode.
   2. If accounts exist, she logs in as the local test user named in the README (FR-29). Otherwise she goes straight to Søknad.
   3. On Søknad she clicks «Bruk eksempelet», which fills in the Example pair, and submits it. Uploading the example CV file from the repository works too.
   4. She runs the test suite with one command.
@@ -622,12 +622,14 @@ The Reflection Note shows how the score was reached.
 
 ### NFR-6: Determinism
 - Identical inputs give identical Keyword lists, matches and scores, across runs and across machines.
-- Dependency versions are pinned.
+- Dependency versions and Docker image versions are pinned.
 
 **Verify:** Auto (Fixtures run twice).
 
 ### NFR-7: Security
-- Secrets (the AI key, the encryption key and the Access code) live only in environment variables: locally in `.env`, which setup creates (NFR-9), and on the Hosted version in Vercel's environment variables. `.env.example` documents each one without a real value.
+- Secrets (the AI key, the encryption key and the Access code) live only in environment variables, never in the repository:
+  - locally, setup generates the local secrets itself (NFR-9), and an optional, git-ignored `.env` adds a live AI key;
+  - on the Hosted version, they live in Vercel's environment variables. `.env.example` documents each one without a real value.
 - The Hosted version is served over HTTPS only (FR-30).
 - The repository and its history contain no secrets; this is checked before delivery.
 - Every data access is authorised on the server (FR-19), and all input is validated on the server.
@@ -646,10 +648,14 @@ The Reflection Note shows how the score was reached.
 
 ### NFR-9: Runnability
 - On a clean machine, someone following only the README gets the app running locally in Test mode within 15 minutes, prerequisites included.
-- Prerequisites are limited to one language runtime and its package manager, in versions the README names. No Docker, no database server and no large model download.
-- Setup creates the local secrets itself, or with one documented command.
-- The commands work on Windows, macOS and Linux, and can be copied straight from the README. The dry run checks Windows and one of the other two.
-- One command runs all automated tests, and they all pass on the delivery commit.
+- **The one prerequisite is Docker**, in a version the README names:
+  - Docker Desktop on Windows and macOS;
+  - Docker Engine with the Compose plugin on Linux.
+  - The lecturer runs projects with Docker (product owner, 2026-11-13).
+- **No other installs.** No language runtime, database server or large model download is needed on the host. The app and its Postgres database run in containers.
+- **One command starts the app and its database** (Docker Compose). On first start, setup creates the local secrets, prepares the database and seeds the test user (FR-29), with no further commands.
+- **Commands are portable.** They are the same on Windows, macOS and Linux, and can be copied straight from the README. The dry run checks Windows and one of the other two.
+- **One command runs all automated tests inside Docker**, and they all pass on the delivery commit.
 - The local run needs no paid account, cloud service or API key.
 - The README also contains:
   - what the app does and who it is for, with a screenshot;
@@ -891,14 +897,14 @@ User success remains directional and is not measured during the course (brief). 
 
 1. **Deadline.** *Resolved 2026-11-08:* 15 December 2026; the last commit on `main` at the deadline counts (§5.2).
 2. **Keyword extraction.** Does code-only extraction pass the test in FR-5b? This is decided on 17 November 2026, at the end of S2. If it passes, FR-5b is deleted; if not, FR-5b applies and its table is written into the affected requirements. *Owner:* architecture, with Helene.
-3. **AI provider, model and hosted database.** *Partly resolved 2026-11-08 by the architecture (spine AD-8):*
-   - **Hosted database: decided.** A free-tier Postgres database in an EU region (Frankfurt). The local run uses a file database, so it still needs no database server (NFR-9).
+3. **AI provider, model and hosted database.** *Partly resolved by the architecture (spine of 2026-11-13, AD-9):*
+   - **Hosted database: decided.** A free-tier Postgres database in an EU region (Frankfurt). The local run uses the same Postgres version in a Docker container (NFR-9).
    - **AI provider and model: still open.** A bake-off at the start of S3 (18 November) decides between two contenders. They are scored on checklist items L1–L8, G1–G3 and R1 (§9.2) and on the Integrity guard results. The winner must also meet §8.1 and the 200 NOK monthly budget (NFR-8).
    - Before the bake-off, both contenders are checked against the EU–US Data Privacy Framework list. If the winner isn't listed, §8.1 is amended to also accept Standard Contractual Clauses in the provider's data processing agreement.
    - *Owner:* Helene, on 18 November.
 4. **Real CVs in testing.** *Resolved 2026-11-08:* only fictional CVs are used in testing (§8.1).
 5. **AI access for the Examiner.** The plan is Test mode for the README run and live AI on the Hosted version, with the README also describing how to run with a key of one's own. Is that acceptable? *Owner:* Helene, to ask the lecturer.
-6. **Keyword vocabulary.** Where do the Keywords and aliases come from: for example, the Norwegian skill labels in ESCO (the EU's classification of skills and occupations), a custom list, or both? The vocabulary must cover job ads from any field, not only technology (FR-5). *Direction resolved 2026-11-08 by the architecture (spine AD-2):* a curated core list, with selected Norwegian ESCO labels as backup, stored as versioned data. Helene's nursing terms seed the list. Its final shape is settled together with the FR-5b decision on 17 November, and its contents are tuned against the Answer keys in Epic 2. *Owner:* Helene.
+6. **Keyword vocabulary.** Where do the Keywords and aliases come from: for example, the Norwegian skill labels in ESCO (the EU's classification of skills and occupations), a custom list, or both? The vocabulary must cover job ads from any field, not only technology (FR-5). *Direction resolved 2026-11-08 by the architecture (now spine of 2026-11-13, AD-5):* a curated core list, with selected Norwegian ESCO labels as backup, stored as versioned data. Helene's nursing terms seed the list. Its final shape is settled together with the FR-5b decision on 17 November, and its contents are tuned against the Answer keys in Epic 2. *Owner:* Helene.
 7. **UX updates.** *Resolved 2026-11-08:* EXPERIENCE.md, DESIGN.md and the mockups were updated to match §11 (addendum §4), so the UX and the PRD point to the same v1 items, as the lecturer asked. The UX of 2026-11-09 («Signal, varm») replaced them and is built on this PRD.
 8. **Mocked AI in tests.** Is mocking the AI in automated tests acceptable, with the manual checklist (§9.2) covering the quality of AI-written text? *Owner:* Helene, to ask the lecturer.
 
