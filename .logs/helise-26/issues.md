@@ -40,3 +40,6 @@
 - [ ] 2026-11-10 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — gå gjennom ordlyden i Key strings-radene merket «Old UX» og «New» i ux-JobAssistant-2026-11-09/EXPERIENCE.md
 - [ ] 2026-11-10 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — etter bake-off uke 47: fyll inn [leverandør] og [periode] i KI-varselet (EXPERIENCE.md Key strings og mockups/signal-varm.html)
 - [ ] 2026-11-10 [ux-designkonsepter](991-2026-11-09-17-06-36-ux-designkonsepter.md) — avgjør om impeccable skal lese den nye DESIGN.md (ligger i ux-mappa, ikke i prosjektroten) (gjenåpnet 2026-11-10: flyttet til roten og så tilbake til ux-mappa etter Helenes ønske; impeccable leser bare DESIGN.md i prosjektroten)
+- [ ] 2026-11-13 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — etter FR-5b-beslutningen 15. nov.: slett FR-5b eller skriv tabellen inn i kravene, og rett «FR-5 fallback» i ARCHITECTURE-SPINE.md og EXPERIENCE.md
+- [ ] 2026-11-13 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — se over Tone-reglene i PRD FR-10 (særlig Personlig-regelen og eksempelfrasene)
+- [ ] 2026-11-13 [prd-jobassistant](996-2026-11-01-11-52-04-prd-jobassistant.md) — vurder arbeidsmengden i SM-3 (3 live-kjøringer per Fixture) mot tidsplanen i §5.2
