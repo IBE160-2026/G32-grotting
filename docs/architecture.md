@@ -75,7 +75,7 @@ The stack began as a reference stack the developer already knew (a Next.js + Fas
 
 ## 4. Language model
 
-**Decision:** a small bake-off on 18 November 2026, at the start of build step 3, picks the provider and model (PRD Open question 3). Claude Sonnet 5.5 (Anthropic) competes against one comparable OpenAI model. Both write a Letter and a Gap analysis for the Example pair and the nursing Fixture. The outputs are scored on the manual checklist in PRD §9.2 (L1–L8, G1–G3, R1) and on the Integrity guard results. The scores are recorded in `docs/qa/`, and the winner will be named here.
+**Decision:** a small bake-off on 18 November 2026, at the start of build step 3, picks the provider and model (PRD Open question 3). Claude Sonnet 5.5 (Anthropic) competes against one comparable OpenAI model. Both write a Letter and a Gap analysis for the Example pair and the nursing Fixture. The Gap analysis isn't built until step 4, so the bake-off uses a rough Gap prompt written just for it. The outputs are scored on the manual checklist in PRD §9.2 (L1–L8, G1–G3, R1) and on the Integrity guard results. The scores are recorded in `docs/qa/`, and the winner will be named here.
 
 **Why a bake-off:** what matters most is natural bokmål and strict rule-following, because the app must never claim a qualification the CV doesn't support (P1). Real outputs from our own prompts test both qualities better than published benchmarks do.
 
