@@ -25,3 +25,6 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-3-start-the-app-and-run-the-tests-with-one-docker-command-each.md`
   summary: No test shows that setup migrates before it runs local steps.
   evidence: Review findings VG and EC. `drizzle/` is empty, so `applyMigrations` is a no-op. The first story that generates a migration (with the PGlite migration test already deferred from Story 1.2) adds an order assertion for `runSetup`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-4-check-every-pull-request-in-ci.md`
+  summary: `db:check` has never run on a real migration history: its `drizzle-kit check` branch, the from-zero PGlite migration and both failure exits are untested.
+  evidence: Review findings VG and BH. `drizzle/` is empty, so only the "no history" branch runs. The first story that generates a migration adds a fixture test (consistent history exit 0, broken SQL exit 1, inconsistent snapshot exit 1) together with the PGlite migration test deferred from Story 1.2. A broken `_journal.json` was run by hand and exited 1.
