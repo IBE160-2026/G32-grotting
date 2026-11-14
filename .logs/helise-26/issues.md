@@ -66,6 +66,6 @@
 - [ ] 2026-11-14 [story-1-2-config-and-health](986-2026-11-14-20-27-35-story-1-2-config-and-health.md) — `handle()` mangler rutekontekst (`params`): utvid i første dynamiske rute (Epic 3)
 - [ ] 2026-11-14 [story-1-2-config-and-health](986-2026-11-14-20-27-35-story-1-2-config-and-health.md) — Postgres-sporet i `db.ts` er aldri kjørt mot en ekte database; sjekk `prepare`-innstilling mot Supabase i story 1.7
 - [ ] 2026-11-14 [story-1-2-config-and-health](986-2026-11-14-20-27-35-story-1-2-config-and-health.md) — story 1.2 er ikke pushet og har ingen PR ennå (branch `story/1.2-config-and-health`)
-- [ ] 2026-11-14 [story-1-3-docker-run-and-test](985-2026-11-14-20-48-30-story-1-3-docker-run-and-test.md) — Helene må gå gjennom README én gang på Windows (siste akseptkriterium i story 1.3)
+- [x] 2026-11-14 [story-1-3-docker-run-and-test](985-2026-11-14-20-48-30-story-1-3-docker-run-and-test.md) — Helene må gå gjennom README én gang på Windows (siste akseptkriterium i story 1.3) (løst 2026-11-14: Helene kjørte `up --build`, `run test` og `down -v` på Windows, alle virket)
 - [ ] 2026-11-14 [story-1-3-docker-run-and-test](985-2026-11-14-20-48-30-story-1-3-docker-run-and-test.md) — story 6.1/6.11: hold setup-låsen i en transaksjon eller kontroller `pg_advisory_unlock` når første lokale steg legges til
 - [ ] 2026-11-14 [story-1-3-docker-run-and-test](985-2026-11-14-20-48-30-story-1-3-docker-run-and-test.md) — første story med migrering: test at setup migrerer før lokale steg
