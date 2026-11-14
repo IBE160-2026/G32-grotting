@@ -60,3 +60,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Local data
+.data/
