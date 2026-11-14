@@ -22,3 +22,6 @@ Bygge story 1.4 fra epics.md (Â«Check every pull request in CIÂ») med `bmad-buil
 - Grenbeskyttelse av `main` er ikke satt: noen med admin-rett pÃ¥ `IBE160-2026/G32-grotting` mÃ¥ sette regelen i `docs/qa/branch-protection.md` (krev PR, krev sjekken `ci`, ingen direkte push) og krysse av i dokumentet. `ci` dukker fÃ¸rst opp i listen etter fÃ¸rste CI-kjÃ¸ring.
 - CI er ikke kjÃ¸rt pÃ¥ GitHub ennÃ¥; `type=gha`-cachen, `bake-action`-oppsettet og sjekknavnet `ci` er bare lest, ikke prÃ¸vd. FÃ¸rste pull request (story 1.4) viser om de virker.
 - `db:check` er aldri kjÃ¸rt mot en ekte migreringshistorikk (grenen med `drizzle-kit check`, feilutganger): legg til fixture-test i fÃ¸rste story med migrering (se `deferred-work.md`).
+
+### Oppfølging 2026-11-14 kl. 21:50
+- Branchen er pushet og PR #4 er åpnet. Sjekken `ci` ble grønn på første kjøring (2m59s): sporingssjekk, bygg med `type=gha`-cache, bildenavn, `run test`, `db:check`, `up --wait`, smoke og `down -v` lyktes. Punktet om at CI ikke var kjørt på GitHub er lukket i `issues.md`; at cachen faktisk gjenbrukes vises først på neste kjøring.
