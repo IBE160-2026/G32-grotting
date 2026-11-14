@@ -16,12 +16,20 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "test": "biome check && next typegen && tsc --noEmit && vitest run && playwright test"
+    "test": "biome check && next typegen && tsc --noEmit && vitest run && playwright test",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check",
+    "db:migrate": "tsx --conditions=react-server scripts/migrate.ts"
   },
   "dependencies": {
+    "@electric-sql/pglite": "0.4.6",
+    "drizzle-orm": "0.45.4",
     "next": "16.4.6",
+    "postgres": "3.4.9",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
@@ -30,7 +38,9 @@
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.11",
     "tailwindcss": "4.3.5",
+    "tsx": "4.23.15",
     "typescript": "5.9.3",
     "vitest": "5.1.0"
   }
