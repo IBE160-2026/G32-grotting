@@ -121,8 +121,14 @@ const fixtures: Fixture[] = [
   },
 ];
 
+type Diagnostic = { category: string; location: { path: string } };
+type Report = {
+  summary: { changed: number; unchanged: number; errors: number };
+  diagnostics: Diagnostic[];
+};
+
 let dir = "";
-let output = "";
+let report: Report;
 
 beforeAll(() => {
   dir = mkdtempSync(join(tmpdir(), "ja-lint-"));
@@ -134,12 +140,14 @@ beforeAll(() => {
     mkdirSync(dirname(join(dir, f.path)), { recursive: true });
     writeFileSync(join(dir, f.path), f.code);
   }
+  let stdout = "";
   try {
-    execFileSync(
+    stdout = execFileSync(
       process.execPath,
       [
         join(process.cwd(), "node_modules/@biomejs/biome/bin/biome"),
         "lint",
+        "--reporter=json",
         "--colors=off",
         "--max-diagnostics=500",
         ".",
@@ -147,9 +155,10 @@ beforeAll(() => {
       { cwd: dir, encoding: "utf8", stdio: "pipe" },
     );
   } catch (error) {
-    const failed = error as { stdout?: string; stderr?: string };
-    output = `${failed.stdout ?? ""}${failed.stderr ?? ""}`;
+    stdout = (error as { stdout?: string }).stdout ?? "";
   }
+  // Biome's JSON reporter is experimental; the version is pinned in package.json.
+  report = JSON.parse(stdout.slice(stdout.indexOf("{")));
 });
 
 afterAll(() => {
@@ -157,14 +166,19 @@ afterAll(() => {
 });
 
 function diagnosticRules(path: string): string[] {
-  const needle = path.replaceAll("/", "\\");
-  return output
-    .split("\n")
-    .filter((line) => line.startsWith(path) || line.startsWith(needle))
-    .map((line) => line.split(/\s+/)[1] ?? "");
+  return report.diagnostics
+    .filter((d) => d.location.path.replaceAll("\\", "/") === path)
+    .map((d) => d.category);
 }
 
 describe("NFR-11 lint boundaries (AD-1, AD-2)", () => {
+  it("scans every fixture and reports diagnostics", () => {
+    expect(
+      report.summary.changed + report.summary.unchanged,
+    ).toBeGreaterThanOrEqual(fixtures.length);
+    expect(report.diagnostics.length).toBeGreaterThan(0);
+  });
+
   for (const f of fixtures) {
     it(f.violates ? `fails ${f.path}` : `passes ${f.path}`, () => {
       const rules = diagnosticRules(f.path);

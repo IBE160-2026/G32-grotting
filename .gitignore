@@ -1,9 +1,9 @@
 # Next.js / Node
 node_modules/
 .next/
-out/
-dist/
-build/
+/out/
+/dist/
+/build/
 .vercel/
 .turbo/
 *.tsbuildinfo
@@ -15,8 +15,8 @@ yarn-error.log*
 
 # Python environments, bytecode, packaging and caches
 .venv/
-venv/
-env/
+/venv/
+/env/
 __pycache__/
 *.py[cod]
 *.egg-info/

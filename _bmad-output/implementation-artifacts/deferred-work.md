@@ -7,3 +7,6 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-1-scaffold-the-app-with-a-pinned-stack-and-boundary-rules.md`
   summary: `npm test` needs Playwright's Chromium, which nothing in the repo installs yet.
   evidence: Chromium was installed by hand with `npx playwright install chromium`. The Docker `test` stage (Story 1.3) installs it, and the README (NFR-9) must name it for the developer loop.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-1-scaffold-the-app-with-a-pinned-stack-and-boundary-rules.md`
+  summary: `src/shared/core` has no purity rule, so it can import Node built-ins, `server-only`, `next/*` or `drizzle-orm` while `keywords/core` and `integrity/core` stay "pure" through it.
+  evidence: Found in the Story 1.1 walkthrough code review. Add a core-purity override for `src/shared/core/**` (same ban list as the core slices) with a lint-boundary fixture, together with the allow-list work in Story 2.4.
