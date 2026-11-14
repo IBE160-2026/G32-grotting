@@ -1,0 +1,162 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.7/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "src/**",
+      "e2e/**",
+      "test/**",
+      "scripts/**",
+      "data/**",
+      "*.ts",
+      "*.mjs",
+      "*.json"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "suspicious": {
+        "noConsole": "error"
+      },
+      "style": {
+        "noRestrictedImports": "off"
+      }
+    },
+    "domains": {
+      "next": "recommended",
+      "react": "recommended"
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/shared/server/log.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/modules/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/modules/*/core",
+                      "@/modules/*/core/**",
+                      "@/modules/*/server",
+                      "@/modules/*/server/**",
+                      "@/modules/*/ui/**",
+                      "!@/modules/keywords/core",
+                      "!@/modules/integrity/core",
+                      "!@/modules/*/ui/index",
+                      "!@/modules/keywords/core/index",
+                      "!@/modules/integrity/core/index"
+                    ],
+                    "message": "Import another slice only through its index.ts, contracts.ts, ui/index.ts, or core/index.ts (keywords and integrity)."
+                  },
+                  {
+                    "group": ["../../../**"],
+                    "message": "A slice file must not reach outside its slice with a relative import; use the @/ alias."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/modules/keywords/core/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/**", "!@/shared/core/**"],
+                    "message": "keywords/core may import only shared/core."
+                  },
+                  {
+                    "group": ["../server", "../server/**", "../ui", "../ui/**"],
+                    "message": "keywords/core may import only shared/core."
+                  },
+                  {
+                    "group": ["node:*"],
+                    "message": "core is pure: no Node built-ins."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/modules/integrity/core/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/**",
+                      "!@/shared/core/**",
+                      "!@/modules/keywords/core",
+                      "!@/modules/keywords/core/index"
+                    ],
+                    "message": "integrity/core may import only keywords/core and shared/core."
+                  },
+                  {
+                    "group": ["../server", "../server/**", "../ui", "../ui/**"],
+                    "message": "integrity/core may import only keywords/core and shared/core."
+                  },
+                  {
+                    "group": ["node:*"],
+                    "message": "core is pure: no Node built-ins."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
