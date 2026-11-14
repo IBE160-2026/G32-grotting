@@ -7,7 +7,7 @@ paradigm: 'modular monolith of vertical slices, each with a functional core and 
 scope: 'JobAssistant v1, S1–S7 (FR-1–FR-31, FR-5b, NFR-1–NFR-11): the local Test-mode run and the Vercel Hosted version'
 status: final
 created: '2026-11-13'
-updated: '2026-11-13'
+updated: '2026-11-14'
 binds: [FR-1, FR-2, FR-3, FR-4, FR-5, FR-5b, FR-6, FR-7, FR-8, FR-9, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15, FR-16, FR-17, FR-18, FR-19, FR-20, FR-21, FR-22, FR-23, FR-24, FR-25, FR-26, FR-27, FR-28, FR-29, FR-30, FR-31, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5, NFR-6, NFR-7, NFR-8, NFR-9, NFR-10, NFR-11]
 sources:
   - ../../prds/prd-JobAssistant-2026-10-31/prd.md
@@ -591,13 +591,13 @@ JobAssistant/
     app/                    # pages and api/** (see Route inventory)
     proxy.ts                # Access-code gate (AD-12)
     modules/
-      cv/                   # FR-1–FR-3, FR-26: extraction, limits, contact stripping
+      cv/                   # FR-1–FR-3: extraction, limits
       keywords/             # FR-4–FR-6, FR-5b: engine, KeywordSource, keyword_lists
       match/                # FR-7, FR-8: score, Verdict, explanation keys
       letter/               # FR-9, FR-10, FR-12: prompt, sign-off, .docx, file name
       gaps/                 # FR-13–FR-17: prompt, Gap analysis, applies guards
       integrity/            # FR-10, FR-11, FR-15, FR-17: checks, cvEntries, word lists
-      ai/                   # FR-24–FR-27: adapters, runAi, ai_usage
+      ai/                   # FR-24–FR-27: adapters, runAi, ai_usage, contact stripping
       application/          # FR-21: orchestration, fingerprint, write model, History
       identity/             # FR-18, FR-19, FR-29, FR-31: students, sessions, access
       profile/              # FR-20: name, CV text, notice version
@@ -678,7 +678,7 @@ erDiagram
 | FR-18, FR-19 accounts, isolation | `identity`, `profile`, `proxy.ts` | AD-10, AD-12 |
 | FR-20, FR-21 Profile, History | `profile`, `application` | AD-8, AD-10, AD-11, AD-16 |
 | FR-22, FR-23 encryption, minimisation | `shared/server/crypto`, `log`, `handle` | AD-11, AD-13 |
-| FR-24–FR-26 AI notice, Daily cap, contact stripping | `ai`, `profile`, `cv` | AD-4, AD-13, AD-16 |
+| FR-24–FR-26 AI notice, Daily cap, contact stripping | `ai`, `profile` | AD-4, AD-13, AD-16 |
 | FR-27, FR-28 Test mode, Fixtures | `ai` (`cached`), `data/fixtures` | AD-3, AD-15 |
 | FR-29 seeded test user | `scripts/setup.ts` in the `app` container, `identity`, `profile` | AD-10, AD-12, AD-17 |
 | FR-30, FR-31 Hosted version, Access code | Vercel, Supabase, `proxy.ts`, workflows | AD-3, AD-9, AD-12; deployment seed |

@@ -2,7 +2,7 @@
 title: JobAssistant PRD
 status: final
 created: 2026-10-31
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
 # PRD: JobAssistant
@@ -460,7 +460,7 @@ The Reflection Note shows how the score was reached.
   - the Match score and the keyword lists
   - the Gaps and Rewording suggestions
   - the latest Letter (FR-12)
-- Historikk lists Applications newest first, 20 per page. Each row shows "job title – employer", the date and the score badge with its Verdict text, so the two Verdicts never differ by colour alone. Hjem shows the 3 most recent.
+- Historikk lists Applications newest first, 20 per page. Each row shows "job title – employer", the date and the score badge with its Verdict text, so the two Verdicts never differ by colour alone. Hjem has no list of recent Applications (UX 2026-11-09).
 - Reopening an Application shows its Reflection Note and Letter read-only, with the copy buttons and the Letter download (FR-12, FR-16). History has no search, delete or rename.
 - The empty state uses the UX copy «Ingen søknader ennå. Start med din første stillingsannonse.».
 - Konto shows the Student's email, the logout button and a short note on how data is stored and when it is deleted (FR-23). It has no password change and no self-service deletion (D14).
@@ -921,7 +921,7 @@ Helene settled every assumption on 2026-11-08: numbers 1, 7 and 12 changed as sh
 | 5 | Letter length of 250–400 words, and the AI-draft label wording | FR-9 | Confirmed |
 | 6 | Wording of the Letter warning | FR-11 | Confirmed |
 | 7 | Minimum password length of 8; 1-hour inactivity timeout | FR-18 | Changed: 30-minute inactivity timeout; password length of 8 confirmed |
-| 8 | History shows 20 per page; Hjem shows the 3 most recent | FR-21 | Confirmed |
+| 8 | History shows 20 per page; Hjem shows the 3 most recent | FR-21 | Changed: 20 per page confirmed; Hjem shows no recent list, as in the UX (2026-11-14) |
 | 9 | The uploaded file is discarded and only the CV text is stored | FR-23, D12 | Confirmed |
 | 10 | All stored data is deleted when the course ends, and the Hosted version is taken down after grading | FR-23 | Confirmed |
 | 11 | Reflection Note on screen only | D4 | Confirmed |
