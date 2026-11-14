@@ -341,14 +341,14 @@ sequenceDiagram
   - **Plain-text columns:** ids, email (lower-cased), timestamps, `match_score`, `seq`, revs, `fingerprint`, counters, `ai_notice_version`, and `keyword_lists`. The last has no Student data; FR-22's "keyword lists" means the `analysis` column.
   - **Key wiring:** `crypto.ts` never imports config. `db.ts` calls `initCrypto(config.encryptionKey)` when it first opens, and `encryptedText` throws if it is used before that.
   - **Local key check:** setup stores `sha256(ENCRYPTION_KEY)` in the one-row `local_meta` table. On every later start, a different hash stops setup with "the key doesn't match this database: run `docker compose down -v` and delete `.data/`".
-  - **Passwords:** `node:crypto` scrypt with a random 16-byte salt per Student, stored as `scrypt$N$r$p$salt$hash`. `[ASSUMPTION]`
+  - **Passwords:** `node:crypto` scrypt with a random 16-byte salt per Student, stored as `scrypt$N$r$p$salt$hash`.
 
 ### AD-12 — Sessions, accounts and the Access code
 
 - **Binds:** FR-18, FR-29, FR-31, NFR-2, NFR-7
 - **Prevents:** two session mechanisms, an expiry warning timed from the wrong clock, the gate blocking its own health check, and a Hosted version reachable without the code.
 - **Rule:**
-  - **Sessions** `[ASSUMPTION]`: built by hand, with no auth library.
+  - **Sessions:** built by hand, with no auth library.
     - The session is an opaque 32-byte random token in the cookie `ja_sid` (httpOnly, SameSite=Lax, Secure when hosted). The database stores only its SHA-256 hash.
     - Inactivity ends a session after 30 minutes. Server requests extend it at most once every 5 minutes. `POST /api/session/renew` always extends it.
     - Every authenticated response carries the header `X-Session-Expires-At`. The client schedules the expiry warning from that value, 2 minutes before it.
@@ -425,7 +425,7 @@ flowchart LR
     3. FR-17 runs. A suggestion that fails it becomes `null`, and the citation and explanation stay.
     4. When `features.rewording` is off, every `suggestion` is set to `null` and FR-17 is skipped.
   - Downgrades and discards are logged as counts only.
-  - **Tone rules:** `checkTone` runs only in the automated tests (the Cached Letter for each Tone) and in `scripts/qa-compare.ts`. It is never shown to the Student and never triggers a retry. `[ASSUMPTION]`
+  - **Tone rules:** `checkTone` runs only in the automated tests (the Cached Letter for each Tone) and in `scripts/qa-compare.ts`. It is never shown to the Student and never triggers a retry.
 
 ### AD-15 — Fixtures, Cached responses and prompt versions
 
