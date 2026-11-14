@@ -20,7 +20,7 @@
     "test:e2e": "playwright test",
     "test": "biome check && next typegen && tsc --noEmit && vitest run && playwright test",
     "db:generate": "drizzle-kit generate",
-    "db:check": "drizzle-kit check",
+    "db:check": "tsx --conditions=react-server scripts/db-check.ts",
     "db:migrate": "tsx --conditions=react-server scripts/migrate.ts"
   },
   "dependencies": {

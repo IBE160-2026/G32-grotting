@@ -1,0 +1,71 @@
+# Checks every pull request the way the Examiner runs the app (NFR-9, AD-17).
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # A newer push to main must not cancel the run of the commit before it.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # The job id is the status check name that `main` requires (docs/qa/branch-protection.md).
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: No secrets or local data are tracked
+        run: |
+          tracked="$(git ls-files .data .env)"
+          if [ -n "$tracked" ]; then
+            echo "These files must not be tracked:"
+            echo "$tracked"
+            exit 1
+          fi
+
+      - uses: docker/setup-buildx-action@v4.4.1
+
+      - name: Build app and test once, with the BuildKit cache
+        uses: docker/bake-action@v7.5.0
+        with:
+          files: compose.yaml
+          targets: app,test
+          load: true
+          set: |
+            app.tags=jobassistant-app
+            test.tags=jobassistant-test
+            app.cache-from=type=gha,scope=app
+            app.cache-to=type=gha,scope=app,mode=max
+            test.cache-from=type=gha,scope=test
+            test.cache-to=type=gha,scope=test,mode=max
+
+      - name: Check the images carry the names Compose expects
+        run: docker image inspect jobassistant-app jobassistant-test
+
+      - name: Run all automated tests
+        run: docker compose run --rm test
+
+      - name: Check the migration history
+        run: docker compose run --rm test npm run db:check
+
+      - name: Start the app and wait for healthy
+        run: docker compose up -d --wait --no-build app
+
+      - name: Smoke run
+        run: docker compose exec app node scripts/smoke.mjs
+
+      - name: Show logs after a failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Stop and remove everything
+        if: always()
+        run: docker compose down -v
