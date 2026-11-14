@@ -1,0 +1,15 @@
+node_modules
+.next
+.data
+.env*
+.git
+test-results
+playwright-report
+.logs
+_bmad
+_bmad-output
+*.tsbuildinfo
+next-env.d.ts
+.vscode
+.idea
+.claude

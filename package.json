@@ -7,9 +7,11 @@
     "node": "26.x"
   },
   "scripts": {
+    "predev": "tsx --conditions=react-server scripts/setup.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "serve": "tsx --conditions=react-server scripts/setup.ts && next start -H 0.0.0.0 -p 3000",
     "lint": "biome check",
     "format": "biome format --write",
     "typegen": "next typegen",
