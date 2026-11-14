@@ -54,3 +54,6 @@
 - [ ] 2026-11-14 [epics-og-stories](989-2026-11-14-19-07-09-epics-og-stories.md) — tidsplan: Epic 1–3 (34 stories) skal være stabile til kjernesjekkpunktet 24. nov; planen starter ca. en uke bak
 - [x] 2026-11-14 [epics-og-stories](989-2026-11-14-19-07-09-epics-og-stories.md) — neste BMad-steg: kjør bmad-sprint-planning i nytt kontekstvindu (løst 2026-11-14: [sprint-planning](988-2026-11-14-19-14-12-sprint-planning.md))
 - [ ] 2026-11-14 [sprint-planning](988-2026-11-14-19-14-12-sprint-planning.md) — etter FR-5b-beslutningen 17. nov.: gjelder FR-5b ikke, fjern Story 3.11 fra epics.md og kjør bmad-sprint-planning på nytt
+- [ ] 2026-11-14 [story-1-1-scaffold](987-2026-11-14-19-44-25-story-1-1-scaffold.md) — relative kryss-slice-importer med få `../` fanges ikke av Biome; vurder import-graf-sjekk i CI (story 1.4) hvis en slice bryter `@/`-konvensjonen
+- [ ] 2026-11-14 [story-1-1-scaffold](987-2026-11-14-19-44-25-story-1-1-scaffold.md) — gjør bannlisten over pakker i `keywords/core` og `integrity/core` om til en tillatelsesliste i story 2.4
+- [ ] 2026-11-14 [story-1-1-scaffold](987-2026-11-14-19-44-25-story-1-1-scaffold.md) — Playwrights Chromium installeres ikke av repoet; Docker `test`-steget (story 1.3) og README (NFR-9) må dekke det
