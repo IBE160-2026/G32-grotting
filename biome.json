@@ -98,6 +98,57 @@
       }
     },
     {
+      "includes": ["src/app/**", "src/proxy.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/modules/*/core",
+                      "@/modules/*/core/**",
+                      "@/modules/*/server",
+                      "@/modules/*/server/**",
+                      "@/modules/*/ui/**",
+                      "!@/modules/keywords/core",
+                      "!@/modules/integrity/core",
+                      "!@/modules/*/ui/index",
+                      "!@/modules/keywords/core/index",
+                      "!@/modules/integrity/core/index"
+                    ],
+                    "message": "Import another slice only through its index.ts, contracts.ts, ui/index.ts, or core/index.ts (keywords and integrity)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/shared/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/modules/**"],
+                    "message": "The shared kernel must not import slices."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["src/modules/keywords/core/**"],
       "linter": {
         "rules": {
@@ -111,12 +162,49 @@
                     "message": "keywords/core may import only shared/core."
                   },
                   {
-                    "group": ["../server", "../server/**", "../ui", "../ui/**"],
-                    "message": "keywords/core may import only shared/core."
+                    "group": [
+                      "../**/server",
+                      "../**/server/**",
+                      "../**/ui",
+                      "../**/ui/**",
+                      "../**/shared/**",
+                      "../**/modules/**",
+                      "../**/app/**"
+                    ],
+                    "message": "keywords/core must not reach server, ui, shared or other slices by a relative import."
                   },
                   {
-                    "group": ["node:*"],
-                    "message": "core is pure: no Node built-ins."
+                    "group": [
+                      "node:*",
+                      "react",
+                      "react-dom",
+                      "next",
+                      "next/**",
+                      "server-only",
+                      "drizzle-orm",
+                      "drizzle-orm/**",
+                      "postgres",
+                      "fs",
+                      "fs/**",
+                      "path",
+                      "crypto",
+                      "os",
+                      "child_process",
+                      "http",
+                      "https",
+                      "net",
+                      "stream",
+                      "stream/**",
+                      "util",
+                      "url",
+                      "zlib",
+                      "buffer",
+                      "worker_threads",
+                      "timers",
+                      "timers/**",
+                      "process"
+                    ],
+                    "message": "core is pure: no Node built-ins, framework or database packages."
                   }
                 ]
               }
@@ -144,12 +232,49 @@
                     "message": "integrity/core may import only keywords/core and shared/core."
                   },
                   {
-                    "group": ["../server", "../server/**", "../ui", "../ui/**"],
-                    "message": "integrity/core may import only keywords/core and shared/core."
+                    "group": [
+                      "../**/server",
+                      "../**/server/**",
+                      "../**/ui",
+                      "../**/ui/**",
+                      "../**/shared/**",
+                      "../**/modules/**",
+                      "../**/app/**"
+                    ],
+                    "message": "integrity/core must not reach server, ui, shared or other slices by a relative import."
                   },
                   {
-                    "group": ["node:*"],
-                    "message": "core is pure: no Node built-ins."
+                    "group": [
+                      "node:*",
+                      "react",
+                      "react-dom",
+                      "next",
+                      "next/**",
+                      "server-only",
+                      "drizzle-orm",
+                      "drizzle-orm/**",
+                      "postgres",
+                      "fs",
+                      "fs/**",
+                      "path",
+                      "crypto",
+                      "os",
+                      "child_process",
+                      "http",
+                      "https",
+                      "net",
+                      "stream",
+                      "stream/**",
+                      "util",
+                      "url",
+                      "zlib",
+                      "buffer",
+                      "worker_threads",
+                      "timers",
+                      "timers/**",
+                      "process"
+                    ],
+                    "message": "core is pure: no Node built-ins, framework or database packages."
                   }
                 ]
               }

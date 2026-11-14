@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "scripts/**/*.test.ts", "test/**/*.test.ts"],
     env: {
       APP_ENV: "local",
       DATABASE_URL: "pglite://memory",
