@@ -19,3 +19,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-2-read-configuration-in-one-place-and-answer-a-health-check.md`
   summary: `handle()` does not pass the route context (`params`) to the handler.
   evidence: The first dynamic route (`/api/analyses/[id]/letter`, Epic 3) needs it; extend the signature then.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-3-start-the-app-and-run-the-tests-with-one-docker-command-each.md`
+  summary: The setup advisory lock is a session lock on a one-connection pool with `idle_timeout: 20`, so a local step that idles over 20 s loses it unnoticed.
+  evidence: Review finding EC. No local step exists yet. When Story 6.1 or 6.11 adds one, hold the lock in a transaction (`pg_advisory_xact_lock`) or check that `pg_advisory_unlock` returns true.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-3-start-the-app-and-run-the-tests-with-one-docker-command-each.md`
+  summary: No test shows that setup migrates before it runs local steps.
+  evidence: Review findings VG and EC. `drizzle/` is empty, so `applyMigrations` is a no-op. The first story that generates a migration (with the PGlite migration test already deferred from Story 1.2) adds an order assertion for `runSetup`.

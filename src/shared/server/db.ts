@@ -2,6 +2,7 @@ import "server-only";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { PGlite } from "@electric-sql/pglite";
+import { sql } from "drizzle-orm";
 import type { PgliteDatabase } from "drizzle-orm/pglite";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { Sql } from "postgres";
@@ -49,6 +50,24 @@ export async function applyMigrations(db: Db): Promise<void> {
   } else {
     const { migrate } = await import("drizzle-orm/postgres-js/migrator");
     await migrate(db as PostgresJsDatabase, { migrationsFolder });
+  }
+}
+
+// Runs `fn` while holding a Postgres advisory lock, so two starting containers
+// never migrate at once (AD-17). The pool has one connection (AD-9), so the
+// lock and its release run on the same session. PGlite has one process: no lock.
+export async function withAdvisoryLock<T>(
+  db: Db,
+  key: number,
+  fn: () => Promise<T>,
+): Promise<T> {
+  if (getConfig().db.kind === "pglite") return fn();
+  await db.execute(sql`select pg_advisory_lock(${key})`);
+  try {
+    return await fn();
+  } finally {
+    // A dropped connection already released the lock; do not hide fn's error.
+    await db.execute(sql`select pg_advisory_unlock(${key})`).catch(() => {});
   }
 }
 
