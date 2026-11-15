@@ -1,1 +1,293 @@
 @import "tailwindcss";
+
+/* One dark theme. Every token below is lifted from DESIGN.md (front matter). */
+
+@custom-variant max-640 (@media (max-width: 640px));
+
+@theme {
+  /* The default palette and radii are removed so only DESIGN.md tokens exist. */
+  --color-*: initial;
+  --radius-*: initial;
+
+  /* Grounds, darkest to lightest */
+  --color-board: #140e0a;
+  --color-ground: #1c140f;
+  --color-field: #150f0b;
+  --color-hover: #221810;
+  --color-lift: #2a1e16;
+  --color-lift-2: #33251b;
+  --color-alert-ground: #2a1912;
+  /* Ink and lines */
+  --color-ink: #f2e8d5;
+  --color-ink-2: #c4ae91;
+  --color-placeholder: #a8937a;
+  --color-edge: #a38c70;
+  --color-edge-hover: #cdb796;
+  --color-rule: #4a372a;
+  --color-mute: #76604c;
+  --color-plot-flat: #5c4636;
+  /* Code family: never shown without a text label */
+  --color-moss: #a3bd6a;
+  --color-rust: #e0784f;
+  --color-amber: #ecab3f;
+  --color-sand: #d8c29b;
+  /* States */
+  --color-button-primary-hover: #fff6e6;
+  --color-disabled-ink: #8f7a63;
+  --color-disabled-edge: #4d3b2d;
+  --color-scrim: #0e0906;
+
+  /* Square corners everywhere */
+  --radius: 0px;
+  --radius-none: 0px;
+
+  /* Spacing steps 1-6 equal Tailwind's 0.25rem multiplier; 7-12 do not. */
+  --spacing-7: 2rem;
+  --spacing-8: 2.5rem;
+  --spacing-9: 3rem;
+  --spacing-10: 3.5rem;
+  --spacing-11: 4rem;
+  --spacing-12: 4.5rem;
+  --spacing-page-x: 3rem;
+  --spacing-page-x-mobile: 1rem;
+  --spacing-page-top: 2.75rem;
+  --spacing-page-top-mobile: 1.75rem;
+  --spacing-page-bottom: 4.5rem;
+  --spacing-page-bottom-mobile: 3rem;
+  --spacing-section: 4rem;
+  --spacing-section-mobile: 2.75rem;
+  --spacing-column-gap: 3.5rem;
+  --spacing-column-gap-mobile: 2rem;
+  --spacing-touch-target: 2.75rem;
+  --spacing-control-height: 3rem;
+  --spacing-appbar-height: 4rem;
+  --spacing-appbar-height-mobile: 3.75rem;
+  --container-measure: 62ch;
+  --container-letter: 72ch;
+  --container-content: 78.5rem;
+
+  /* Type roles: size in rem, with line height, tracking and weight. */
+  --text-display: 3.5rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.035em;
+  --text-display--font-weight: 600;
+  --text-display-mobile: 2.25rem;
+  --text-display-mobile--line-height: 1.05;
+  --text-display-mobile--letter-spacing: -0.03em;
+  --text-display-mobile--font-weight: 600;
+  --text-catalogue: 3.75rem;
+  --text-catalogue--line-height: 1;
+  --text-catalogue--letter-spacing: -0.02em;
+  --text-catalogue--font-weight: 500;
+  --text-catalogue-auth: 3rem;
+  --text-catalogue-auth--line-height: 1;
+  --text-catalogue-auth--letter-spacing: -0.02em;
+  --text-catalogue-auth--font-weight: 500;
+  --text-catalogue-mobile: 2.25rem;
+  --text-catalogue-mobile--line-height: 1;
+  --text-catalogue-mobile--letter-spacing: -0.02em;
+  --text-catalogue-mobile--font-weight: 500;
+  --text-catalogue-employer-mobile: 1.75rem;
+  --text-catalogue-employer-mobile--line-height: 1.1;
+  --text-catalogue-employer-mobile--letter-spacing: -0.025em;
+  --text-catalogue-employer-mobile--font-weight: 500;
+  --text-title: 2.5rem;
+  --text-title--line-height: 1.08;
+  --text-title--letter-spacing: -0.025em;
+  --text-title--font-weight: 600;
+  --text-title-mobile: 1.875rem;
+  --text-title-mobile--line-height: 1.1;
+  --text-title-mobile--letter-spacing: -0.025em;
+  --text-title-mobile--font-weight: 600;
+  --text-score: 2.75rem;
+  --text-score--line-height: 1.05;
+  --text-score--letter-spacing: -0.03em;
+  --text-score--font-weight: 500;
+  --text-score-mobile: 1.875rem;
+  --text-score-mobile--line-height: 1.1;
+  --text-score-mobile--letter-spacing: -0.03em;
+  --text-score-mobile--font-weight: 500;
+  --text-statement: 2rem;
+  --text-statement--line-height: 1.1;
+  --text-statement--letter-spacing: -0.025em;
+  --text-statement--font-weight: 600;
+  --text-dialog-title: 1.5rem;
+  --text-dialog-title--line-height: 1.2;
+  --text-dialog-title--letter-spacing: -0.015em;
+  --text-dialog-title--font-weight: 650;
+  --text-heading: 1.375rem;
+  --text-heading--line-height: 1.2;
+  --text-heading--letter-spacing: -0.012em;
+  --text-heading--font-weight: 650;
+  --text-subheading: 1.25rem;
+  --text-subheading--line-height: 1.3;
+  --text-subheading--font-weight: 600;
+  --text-keyword: 1.125rem;
+  --text-keyword--line-height: 1.35;
+  --text-keyword--font-weight: 600;
+  --text-lede: 1.0625rem;
+  --text-lede--line-height: 1.55;
+  --text-lede--font-weight: 400;
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-body--font-weight: 400;
+  --text-letter: 1rem;
+  --text-letter--line-height: 1.7;
+  --text-letter--font-weight: 400;
+  --text-quote: 0.9375rem;
+  --text-quote--line-height: 1.6;
+  --text-quote--font-weight: 400;
+  --text-label: 0.9375rem;
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 600;
+  --text-button: 0.9375rem;
+  --text-button--line-height: 1.1;
+  --text-button--font-weight: 600;
+  --text-button-sm: 0.875rem;
+  --text-button-sm--line-height: 1.1;
+  --text-button-sm--font-weight: 600;
+  --text-nav: 0.9375rem;
+  --text-nav--line-height: 1.2;
+  --text-nav--font-weight: 500;
+  --text-nav-mobile: 1.0625rem;
+  --text-nav-mobile--line-height: 1.2;
+  --text-nav-mobile--font-weight: 500;
+  --text-hint: 0.8125rem;
+  --text-hint--line-height: 1.45;
+  --text-hint--font-weight: 400;
+  --text-caps: 0.75rem;
+  --text-caps--line-height: 1.3;
+  --text-caps--letter-spacing: 0.16em;
+  --text-caps--font-weight: 600;
+  --text-code: 0.75rem;
+  --text-code--line-height: 1.15;
+  --text-code--letter-spacing: 0.13em;
+  --text-code--font-weight: 700;
+  --text-wordmark: 0.75rem;
+  --text-wordmark--line-height: 1;
+  --text-wordmark--letter-spacing: 0.26em;
+  --text-wordmark--font-weight: 700;
+  --text-mono-formula: 1.0625rem;
+  --text-mono-formula--line-height: 1.5;
+  --text-mono-formula--font-weight: 400;
+  --text-mono-cv: 0.8125rem;
+  --text-mono-cv--line-height: 1.75;
+  --text-mono-cv--font-weight: 400;
+  --text-mono-meta: 0.75rem;
+  --text-mono-meta--line-height: 1.4;
+  --text-mono-meta--font-weight: 400;
+  --text-register-number: 1.625rem;
+  --text-register-number--line-height: 1;
+  --text-register-number--letter-spacing: -0.03em;
+  --text-register-number--font-weight: 500;
+  --text-register-number-mobile: 1.125rem;
+  --text-register-number-mobile--line-height: 1.2;
+  --text-register-number-mobile--font-weight: 500;
+  --text-ghost-number: 5rem;
+  --text-ghost-number--line-height: 1;
+  --text-ghost-number--letter-spacing: -0.04em;
+  --text-ghost-number--font-weight: 400;
+  --text-plot-label: 0.78125rem;
+  --text-plot-label--font-weight: 600;
+  --text-plot-state: 0.625rem;
+  --text-plot-state--letter-spacing: 0.14em;
+  --text-plot-state--font-weight: 700;
+  --text-plot-index: 0.625rem;
+  --text-plot-index--font-weight: 400;
+}
+
+/* The font variables are set on <html> by next/font, so they resolve at use. */
+@theme inline {
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  --font-caps: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Archivo roles: sentence case in the source, engraved caps on screen. */
+@utility caps {
+  @apply font-caps text-caps uppercase;
+  font-stretch: 125%;
+}
+
+@utility code {
+  @apply font-caps text-code uppercase;
+  font-stretch: 125%;
+}
+
+@utility wordmark {
+  @apply font-caps text-wordmark uppercase;
+  font-stretch: 125%;
+}
+
+@utility catalogue-number {
+  @apply font-mono;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    background: var(--color-board);
+    color: var(--color-ink);
+    scrollbar-color: var(--color-mute) var(--color-board);
+    -webkit-text-size-adjust: 100%;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  body {
+    margin: 0 auto;
+    max-width: var(--container-content);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-ground);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  /* Mono strings break anywhere so a long file name never scrolls the page. */
+  code,
+  kbd,
+  samp,
+  pre {
+    overflow-wrap: anywhere;
+  }
+
+  ::selection {
+    background: var(--color-amber);
+    color: var(--color-ground);
+  }
+
+  /* The one focus ring: outside the element, over a ground-coloured gap. */
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 2px;
+  }
+}
+
+/* Unlayered, so it beats every utility without !important (UX-DR46). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none;
+    transition: none;
+  }
+}
