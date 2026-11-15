@@ -40,7 +40,8 @@ type ErrorBody = {
   error: { code: MessageKey; field?: string; retryable: boolean };
 };
 
-function failure(
+// The failure envelope, also used by the Access-code proxy (AD-12).
+export function errorResponse(
   code: MessageKey,
   retryable: boolean,
   field?: string,
@@ -62,15 +63,15 @@ export function handle<T>(
       if (error instanceof ZodError) {
         const path = error.issues[0]?.path ?? [];
         const field = path.length > 0 ? path.map(String).join(".") : undefined;
-        return failure("INVALID_INPUT", false, field);
+        return errorResponse("INVALID_INPUT", false, field);
       }
       if (error instanceof ApiError) {
         log({ kind: "error", code: error.code, errorName: error.name, route });
-        return failure(error.code, error.retryable, error.field);
+        return errorResponse(error.code, error.retryable, error.field);
       }
       const errorName = error instanceof Error ? error.name : "NonError";
       log({ kind: "error", code: "UNEXPECTED", errorName, route });
-      return failure("UNEXPECTED", false);
+      return errorResponse("UNEXPECTED", false);
     }
   };
 }

@@ -54,6 +54,8 @@ export function AppBar() {
   // navigation closes it without an effect.
   const [openPath, setOpenPath] = useState<string | null>(null);
   const open = openPath === pathname;
+  // The Access-code screen shows the wordmark only (UX-DR35).
+  const wordmarkOnly = pathname === "/tilgang";
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuId = useId();
 
@@ -78,47 +80,51 @@ export function AppBar() {
         <PulseGlyph />
         {messages.siteName}
       </Link>
-      <div className="hidden max-640:block">
-        <Button
-          ref={toggleRef}
-          small
-          variant="secondary"
-          aria-expanded={open}
-          aria-controls={menuId}
-          onClick={() => setOpenPath(open ? null : pathname)}
+      {wordmarkOnly ? null : (
+        <div className="hidden max-640:block">
+          <Button
+            ref={toggleRef}
+            small
+            variant="secondary"
+            aria-expanded={open}
+            aria-controls={menuId}
+            onClick={() => setOpenPath(open ? null : pathname)}
+          >
+            <MenuIcon open={open} />
+            {open ? messages.nav.menuClose : messages.nav.menuOpen}
+          </Button>
+        </div>
+      )}
+      {wordmarkOnly ? null : (
+        <nav
+          id={menuId}
+          aria-label={messages.nav.label}
+          className={`max-640:-mx-page-x-mobile max-640:basis-[calc(100%+2*var(--spacing-page-x-mobile))] ${open ? "" : "max-640:hidden"}`}
         >
-          <MenuIcon open={open} />
-          {open ? messages.nav.menuClose : messages.nav.menuOpen}
-        </Button>
-      </div>
-      <nav
-        id={menuId}
-        aria-label={messages.nav.label}
-        className={`max-640:-mx-page-x-mobile max-640:basis-[calc(100%+2*var(--spacing-page-x-mobile))] ${open ? "" : "max-640:hidden"}`}
-      >
-        <ul className="m-0 flex list-none gap-1 p-0 max-640:flex-col max-640:gap-0">
-          {navItems(pathname).map((item) => (
-            <li
-              key={item.href}
-              className="max-640:border-t max-640:border-rule"
-            >
-              <Link
-                href={item.href}
-                kind="nav"
-                aria-current={item.current ? "page" : undefined}
-                onClick={() => setOpenPath(null)}
-                className={`px-3.5 text-nav max-640:min-h-14 max-640:w-full max-640:px-page-x-mobile max-640:text-nav-mobile ${
-                  item.current
-                    ? "text-ink shadow-[inset_0_-2px_0_var(--color-amber)] max-640:bg-lift max-640:shadow-[inset_3px_0_0_var(--color-amber)]"
-                    : "text-ink-2 hover:text-ink"
-                }`}
+          <ul className="m-0 flex list-none gap-1 p-0 max-640:flex-col max-640:gap-0">
+            {navItems(pathname).map((item) => (
+              <li
+                key={item.href}
+                className="max-640:border-t max-640:border-rule"
               >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+                <Link
+                  href={item.href}
+                  kind="nav"
+                  aria-current={item.current ? "page" : undefined}
+                  onClick={() => setOpenPath(null)}
+                  className={`px-3.5 text-nav max-640:min-h-14 max-640:w-full max-640:px-page-x-mobile max-640:text-nav-mobile ${
+                    item.current
+                      ? "text-ink shadow-[inset_0_-2px_0_var(--color-amber)] max-640:bg-lift max-640:shadow-[inset_3px_0_0_var(--color-amber)]"
+                      : "text-ink-2 hover:text-ink"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </div>
   );
 }

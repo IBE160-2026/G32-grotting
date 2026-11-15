@@ -124,6 +124,11 @@ describe("NFR-7 startup fails on bad Hosted config (AD-3)", () => {
     ).not.toThrow();
   });
 
+  it("FR-31 exposes the Access code on Hosted and leaves it unset locally", () => {
+    expect(parseConfig(hostedEnv).accessCode).toBe(ACCESS_CODE);
+    expect(parseConfig({}).accessCode).toBeUndefined();
+  });
+
   it("fails when DATABASE_URL is missing on Hosted", () => {
     const { DATABASE_URL: _removed, ...withoutUrl } = hostedEnv;
     expect(() => parseConfig(withoutUrl)).toThrow(/DATABASE_URL/);

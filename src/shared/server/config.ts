@@ -19,6 +19,8 @@ export type Config = {
   readonly hosted: boolean;
   readonly testMode: boolean;
   readonly isTestRun: boolean;
+  // The Hosted Access code (AD-12). Never sent to the client or logged.
+  readonly accessCode: string | undefined;
   readonly ai: { readonly adapter: AiAdapter };
   readonly db: { readonly kind: DbKind; readonly url: string };
   readonly features: Features;
@@ -116,6 +118,7 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     hosted,
     testMode,
     isTestRun,
+    accessCode: e.ACCESS_CODE,
     ai: { adapter: testMode ? "cached" : "live" },
     db: { kind, url },
     features: {
