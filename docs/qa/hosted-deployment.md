@@ -6,10 +6,10 @@ Story 1.7 (FR-30, FR-31, NFR-7, NFR-8, AD-3, AD-9). The repository holds `vercel
 
 Drafted 2026-11-15 from the public terms. **Not yet confirmed in the dashboards.**
 
-| Provider | Plan | What the public terms say | Covered? | Confirmed by Helene |
-|---|---|---|---|---|
-| Vercel | Hobby | The DPA (<https://vercel.com/legal/dpa>, last updated 2026-03-17, effective 2026-03-31) states that it applies to processing «for Customers who are on Enterprise and Pro plans». Hobby is not named. Transfers use the EU Standard Contractual Clauses (decision 2021/914); the Data Privacy Framework is not mentioned. | **No, as written.** Hobby is outside the stated scope. | [ ] |
-| Supabase | Free | The DPA (<https://supabase.com/legal/dpa>, version 1, 2026-08-01) forms part of the Terms of Service and makes no difference between plans. Transfers use the Standard Contractual Clauses, with UK and Swiss addenda; accepting the agreement counts as signing them. | **Yes, as written.** | [ ] |
+| Provider | Plan  | What the public terms say                                                                                                                                                                                                                                                                                                                                | Covered?                                                     | Confirmed by Helene |
+| -------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------- |
+| Vercel   | Hobby | The DPA ([https://vercel.com/legal/dpa](https://vercel.com/legal/dpa), last updated 2026-03-17, effective 2026-03-31) states that it applies to processing «for Customers who are on Enterprise and Pro plans». Hobby is not named. Transfers use the EU Standard Contractual Clauses (decision 2021/914); the Data Privacy Framework is not mentioned. | **No, as written.** Hobby is outside the stated scope. | [ ]                 |
+| Supabase | Free  | The DPA ([https://supabase.com/legal/dpa](https://supabase.com/legal/dpa), version 1, 2026-08-01) forms part of the Terms of Service and makes no difference between plans. Transfers use the Standard Contractual Clauses, with UK and Swiss addenda; accepting the agreement counts as signing them.                                                    | **Yes, as written.**                                   | [ ]                 |
 
 **What this means.** PRD §5.1 says that if either DPA does not cover the free plan, the README run becomes the delivery and PRD §11 is updated. The Vercel line is that case, as the public text reads. Before relying on it, do one of:
 
@@ -34,11 +34,11 @@ Do these in order. The first Production build starts when the story's pull reque
 1. Import the GitHub repository as a Hobby project. Framework preset: Next.js. `vercel.json` sets the region, build command and branch rule; do not override them in the dashboard. The import page has an Environment Variables section: fill in step 2 there, before pressing Deploy. If you press Deploy first, the first build fails with «Invalid configuration» naming the missing setting; add the variable and redeploy `main`.
 2. Environment Variables, **Production only** (untick Preview and Development; Settings → Environment Variables once the project exists):
 
-| Name | Value |
-|---|---|
-| `APP_ENV` | `hosted` |
-| `ACCESS_CODE` | a random string of 16 or more characters, for example `openssl rand -base64 24`; keep it in a password manager |
-| `DATABASE_URL` | the session pooler URI from Supabase |
+| Name             | Value                                                                                                            |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `APP_ENV`      | `hosted`                                                                                                       |
+| `ACCESS_CODE`  | a random string of 16 or more characters, for example `openssl rand -base64 24`; keep it in a password manager |
+| `DATABASE_URL` | the session pooler URI from Supabase                                                                             |
 
 3. Do **not** set `AI_PROVIDER`, `AI_MODEL`, `AI_API_KEY` or any `FEATURE_*`. Without them the Hosted version runs in Test mode and the AI sections are unavailable.
 4. Settings → Git: check that only `main` deploys to Production.
@@ -55,15 +55,15 @@ Do these in order. The first Production build starts when the story's pull reque
 
 FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-through on a laptop and a phone is recorded in Story 3.12.
 
-| Check | Procedure | Result | Date |
-|---|---|---|---|
-| Opened without the code | Open the URL in a private window | redirects to `/tilgang` | |
-| Wrong code | Enter a wrong code of 16+ characters | «Feil tilgangskode.» | |
-| Right code | Enter the Access code | shows Hjem; `/soknad` opens | |
-| Health | `curl https://<host>/api/health` | 200, `"hosted":true` | |
-| HTTPS only | `curl -I http://<host>/` | permanent redirect (308) to `https://` | |
-| Only `main` deploys | Push a branch; then merge to `main` | the branch gets no deployment, `main` gets a Production deployment | |
-| EU region | Vercel project → Settings → Functions; Supabase project → Settings | Frankfurt (`fra1`, `eu-central-1`) | |
+| Check                   | Procedure                                                             | Result                                                               | Date |
+| ----------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- | ---- |
+| Opened without the code | Open the URL in a private window                                      | redirects to `/tilgang`                                            |      |
+| Wrong code              | Enter a wrong code of 16+ characters                                  | «Feil tilgangskode.»                                               |      |
+| Right code              | Enter the Access code                                                 | shows Hjem; `/soknad` opens                                        |      |
+| Health                  | `curl https://<host>/api/health`                                    | 200, `"hosted":true`                                               |      |
+| HTTPS only              | `curl -I http://<host>/`                                            | permanent redirect (308) to `https://`                             |      |
+| Only `main` deploys   | Push a branch; then merge to `main`                                 | the branch gets no deployment, `main` gets a Production deployment |      |
+| EU region               | Vercel project → Settings → Functions; Supabase project → Settings | Frankfurt (`fra1`, `eu-central-1`)                               |      |
 
 `regions` in `vercel.json` sets where the functions run. The Access-code gate and every API route run there. Static files come from Vercel's CDN and hold no Student data.
 | No AI | Vercel Production variables | no `AI_*` variable | |
