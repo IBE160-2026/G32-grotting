@@ -52,3 +52,10 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-6-close-the-hosted-version-with-an-access-code.md`
   summary: `callApi` does not send the Student to `/tilgang` when a later call returns `ACCESS_REQUIRED` (the cookie is gone mid-session).
   evidence: Review finding EC. No other caller exists yet; the first story that calls an API after the gate (Story 1.10 or 1.11) decides where this lives.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-7-deploy-the-skeleton-to-the-hosted-version.md`
+  summary: `scripts/migrate.ts` takes no advisory lock, so two Production builds running at once could migrate in parallel.
+  evidence: Edge Case Hunter; the build runs `db:migrate` over the session pooler and the AD-17 container path uses `withAdvisoryLock`. No migration exists yet, so revisit when Epic 6 adds the first one.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-7-deploy-the-skeleton-to-the-hosted-version.md`
+  summary: Unverified (would be medium): `sslmode=require` on the Supabase session pooler with postgres-js, and the Vercel build running `db:migrate` with the Production variables.
+  evidence: Needs the real Supabase and Vercel projects; settled by the first deploy and the FR-30 manual row in `docs/qa/hosted-deployment.md`.

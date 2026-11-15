@@ -1,0 +1,35 @@
+# Calls the Hosted version's health check twice a day, so the Free Supabase
+# project is not paused after 7 days without activity (AD-9, FR-30).
+# GitHub disables scheduled workflows after 60 days without repository activity:
+# check that this one is still enabled when grading starts (docs/qa/hosted-deployment.md).
+# It uses no third-party action, so it needs no checkout and no permissions.
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+    - cron: "17 18 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call /api/health on the Hosted version
+        env:
+          HOSTED_URL: ${{ vars.HOSTED_URL }}
+        run: |
+          case "$HOSTED_URL" in
+            https://*) ;;
+            *) echo "The repository variable HOSTED_URL must be set and start with https://"; exit 1 ;;
+          esac
+          curl --fail --silent --show-error --max-time 30 --retry 2 --retry-delay 10 \
+            --output "$RUNNER_TEMP/health.json" --write-out 'HTTP %{http_code}\n' \
+            "${HOSTED_URL%/}/api/health"
+          cat "$RUNNER_TEMP/health.json"
+          echo
+          jq -e '.ok == true and .data.hosted == true' "$RUNNER_TEMP/health.json" > /dev/null \
+            || { echo "The health check did not answer ok:true with hosted:true."; exit 1; }
