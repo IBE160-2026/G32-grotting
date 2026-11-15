@@ -24,6 +24,10 @@ Only `127.0.0.1:3000` (app) and `127.0.0.1:54320` (database) are published on yo
 
 Needs Node 26. Run `docker compose up db`, then `npm install` and `npm run dev`. `npm run dev` runs setup first (migrations) against `127.0.0.1:54320`. `npm test` on the host also needs Chromium once: `npx playwright install chromium`.
 
+### Hosted version
+
+A copy of the app runs on Vercel (Frankfurt) with a Supabase database, closed with an Access code. The Access code comes with the submission and is never committed. Set-up, the data processing agreement record and the manual checks are in [`docs/qa/hosted-deployment.md`](docs/qa/hosted-deployment.md).
+
 ### Live AI (optional)
 
 Copy `.env.example` to `.env` and set `AI_PROVIDER`, `AI_MODEL` and `AI_API_KEY`. Never commit `.env`.

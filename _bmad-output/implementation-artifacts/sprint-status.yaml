@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-15-2026 16:05
+last_updated: 11-15-2026 17:40
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -42,7 +42,7 @@ development_status:
   1-4-check-every-pull-request-in-ci: done
   1-5-show-every-page-in-the-jobassistant-look-with-an-accessible: done
   1-6-close-the-hosted-version-with-an-access-code: done
-  1-7-deploy-the-skeleton-to-the-hosted-version: backlog
+  1-7-deploy-the-skeleton-to-the-hosted-version: review
   1-8-read-what-jobassistant-does-on-hjem: backlog
   1-9-enter-the-job-ad-job-title-and-employer-on-søknad: backlog
   1-10-paste-and-confirm-the-cv-text-on-søknad: backlog
