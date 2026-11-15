@@ -14,9 +14,9 @@ Drafted 2026-11-15 from the public terms. **Not yet confirmed in the dashboards.
 **What this means.** PRD §5.1 says that if either DPA does not cover the free plan, the README run becomes the delivery and PRD §11 is updated. The Vercel line is that case, as the public text reads. Before relying on it, do one of:
 
 - Ask Vercel support whether the DPA also covers Hobby, and record the answer here with the date.
-- Or accept the finding: the README run is the delivery, the Hosted version stays a skeleton, and PRD §11 is updated (not part of Story 1.7).
+- Or accept the finding: the README run is the delivery, the Hosted version stays a skeleton, and PRD §11 is updated. **This is the option taken.**
 
-Record the decision here: ______ on ______
+**Decision (Helene, 2026-11-15):** accept the finding. The public Vercel DPA names Enterprise and Pro, not Hobby, and Vercel support was not asked. Per PRD §5.1 (cut 0) the README run (NFR-9) is the delivery. The Hosted version stays a skeleton: the Access code gate and the app shell, with no AI and no Student data. The change is logged as D23 in PRD §11. Stories that assume a live-AI Hosted version (3.12, 6.12, 7.x) are to be matched in a later pass.
 
 ## 2. Set-up (once)
 
