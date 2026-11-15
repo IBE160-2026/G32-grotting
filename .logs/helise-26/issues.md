@@ -86,3 +86,5 @@
 - [ ] 2026-11-15 [story-1-6-access-code-gate](981-2026-11-15-14-54-29-story-1-6-access-code-gate.md) — mellomrom foran/bak i tilgangskoden gir «feil kode»; trim ett sted i story 1.7
 - [ ] 2026-11-15 [story-1-6-access-code-gate](981-2026-11-15-14-54-29-story-1-6-access-code-gate.md) — ingen test av `/tilgang` når Hosted har kontoer på; legges til i story 6.12
 - [ ] 2026-11-15 [story-1-6-access-code-gate](981-2026-11-15-14-54-29-story-1-6-access-code-gate.md) — `callApi` sender ikke Studenten til `/tilgang` ved `ACCESS_REQUIRED` midt i en økt; avgjøres i story 1.10/1.11
+- [ ] 2026-11-15 [story-1-7-deploy-hosted-skeleton](980-2026-11-15-15-17-50-story-1-7-deploy-hosted-skeleton.md) — avgjør om Vercels DPA dekker Hobby (teksten nevner bare Enterprise og Pro); ellers blir README-kjøringen leveransen og PRD §11 oppdateres
+- [ ] 2026-11-15 [story-1-7-deploy-hosted-skeleton](980-2026-11-15-15-17-50-story-1-7-deploy-hosted-skeleton.md) — sett opp Supabase og Vercel etter `docs/qa/hosted-deployment.md`, sett `HOSTED_URL`, kjør keep-alive, fyll FR-30-raden og legg Hosted-URL i README
