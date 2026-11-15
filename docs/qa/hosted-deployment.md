@@ -24,7 +24,7 @@ Do these in order. The first Production build starts when the story's pull reque
 
 ### Supabase
 
-1. New project on the Free plan, region **Central EU (Frankfurt)** (`eu-central-1`), Postgres 17. Save the database password in a password manager.
+1. New project on the Free plan, region **Central EU (Frankfurt)** (`eu-central-1`; the real project is in `eu-west-1`, see section 3), Postgres 17. Save the database password in a password manager.
 2. Project Settings → Data API: turn the Data API **off**.
 3. Turn on automatic RLS for new tables if the project offers it. Every migration that creates a table must also enable RLS on it, with no policies (AD-9). No table exists yet.
 4. Connect → **Session pooler** (port 5432). Copy the URI, put the password in, and add `?sslmode=require`. This is `DATABASE_URL`. Never use the transaction pooler (port 6543).
@@ -63,11 +63,13 @@ FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-throug
 | Health | `curl https://<host>/api/health` | pass: 200, `{"ok":true,"data":{"hosted":true}}` | 2026-11-15 |
 | HTTPS only | `curl -I http://<host>/` | pass: 308 Permanent Redirect to `https://` | 2026-11-15 |
 | Only `main` deploys | Push a branch; then merge to `main` | open: the branch gets no deployment, `main` gets a Production deployment (Vercel → Deployments) | |
-| EU region | Response header `x-vercel-id`; Vercel project → Settings → Functions; Supabase project → Settings | partly: the header shows the function ran in `fra1`; the dashboards are open | 2026-11-15 |
+| EU region | Response header `x-vercel-id`; Vercel project → Settings → Functions; Supabase project → Settings | pass: the function ran in `fra1` (Frankfurt) and the Supabase project is in `eu-west-1` (Ireland); both are in the EU. Deviation: the architecture spine names Frankfurt for Supabase, see the note below. The Vercel dashboard check is open | 2026-11-15 |
 | No AI | Vercel Production variables | open: no `AI_*` variable | |
 | Keep-alive | Actions → keep-alive → Run workflow | pass: manual run succeeded in 9 s | 2026-11-15 |
 
 `regions` in `vercel.json` sets where the functions run. The Access-code gate and every API route run there. Static files come from Vercel's CDN and hold no Student data.
+
+**Deviation (2026-11-15, Helene):** the Supabase project runs in `eu-west-1` (Ireland), not `eu-central-1` (Frankfurt) as the architecture spine (AD-9) and the set-up steps name. FR-30 only requires an EU region, so it is kept: the functions are in Frankfurt, the database is in Ireland, and a query adds a few milliseconds. Supabase cannot move a project between regions; a move means a new project and a new `DATABASE_URL`. The session pooler host therefore contains `eu-west-1`.
 
 ## 4. Things to remember
 
