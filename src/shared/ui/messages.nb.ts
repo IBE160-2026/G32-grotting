@@ -10,6 +10,19 @@ export const messages = {
     menuOpen: "Meny",
     menuClose: "Lukk",
   },
+  errorStrip: "Feil",
+  networkFailure:
+    "Fikk ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
+  passwordToggle: { show: "Vis", hide: "Skjul" },
+  access: {
+    heading: "Tilgangskode",
+    body: "Denne nettversjonen av JobAssistant er stengt. Den er bare åpen for utvikleren og sensor. Skriv inn koden for å fortsette.",
+    label: "Tilgangskode",
+    hint: "Minst 16 tegn. Du blir spurt én gang per nettleserøkt.",
+    submit: "Åpne",
+    wrong: "Feil tilgangskode.",
+    tooShort: "Koden har minst 16 tegn.",
+  },
   notFound: {
     heading: "Fant ikke siden",
     body: "Den finnes ikke, eller du har ikke tilgang til den.",

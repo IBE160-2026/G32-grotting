@@ -6,10 +6,23 @@ function stubRegions() {
     [LIVE_REGION_IDS.phase]: { textContent: "" },
     [LIVE_REGION_IDS.action]: { textContent: "" },
   };
+  const frames = new Map<number, () => void>();
+  let next = 1;
   vi.stubGlobal("document", {
     getElementById: (id: string) => regions[id as keyof typeof regions],
   });
-  return regions;
+  vi.stubGlobal("requestAnimationFrame", (callback: () => void) => {
+    frames.set(next, callback);
+    return next++;
+  });
+  vi.stubGlobal("cancelAnimationFrame", (id: number) => frames.delete(id));
+  const nextFrame = () => {
+    for (const [id, callback] of [...frames]) {
+      frames.delete(id);
+      callback();
+    }
+  };
+  return { regions, nextFrame };
 }
 
 afterEach(() => {
@@ -18,15 +31,29 @@ afterEach(() => {
 
 describe("UX-DR19 announce", () => {
   it("replaces the text of the chosen region and never appends", () => {
-    const regions = stubRegions();
+    const { regions, nextFrame } = stubRegions();
     announce("action", "Kopiert til utklippstavlen.");
     announce("action", "Lagret.");
+    nextFrame();
     expect(regions[LIVE_REGION_IDS.action].textContent).toBe("Lagret.");
   });
 
+  it("empties the region first and fills it in the next frame", () => {
+    const { regions, nextFrame } = stubRegions();
+    announce("action", "Feil tilgangskode.");
+    nextFrame();
+    announce("action", "Feil tilgangskode.");
+    expect(regions[LIVE_REGION_IDS.action].textContent).toBe("");
+    nextFrame();
+    expect(regions[LIVE_REGION_IDS.action].textContent).toBe(
+      "Feil tilgangskode.",
+    );
+  });
+
   it("leaves the other region alone", () => {
-    const regions = stubRegions();
+    const { regions, nextFrame } = stubRegions();
     announce("phase", "Samsvaret er klart.");
+    nextFrame();
     expect(regions[LIVE_REGION_IDS.phase].textContent).toBe(
       "Samsvaret er klart.",
     );

@@ -37,3 +37,18 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-5-show-every-page-in-the-jobassistant-look-with-an-accessible.md`
   summary: Focus does not move to the top of the document and no polite line is spoken after a client-side navigation.
   evidence: Review finding BH. UX-DR20 asks for it; Next moves focus on navigation, and the acceptance criteria of Story 1.5 do not cover it. Check it in the keyboard walk of Story 7.2.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-6-close-the-hosted-version-with-an-access-code.md`
+  summary: Wrong Access codes are not throttled or locked out; the spine memlog mentions a per-IP limit.
+  evidence: Review finding BH. The Story 1.6 acceptance criteria and spec rule out throttling, and the code is 16+ random characters. Decide in Epic 6 or 7 whether a limit is needed, and add the «For mange forsøk» string to the UX with it.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-6-close-the-hosted-version-with-an-access-code.md`
+  summary: `/tilgang` returns 404 when Hosted has accounts on, but no test renders the page with that config.
+  evidence: Review finding VG. The route's guard is tested in `route.test.ts`; add a Vitest test of the page with a mocked `getConfig` when Epic 6 turns accounts on (Story 6.12).
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-6-close-the-hosted-version-with-an-access-code.md`
+  summary: A pasted or configured Access code with leading or trailing whitespace fails as a wrong code.
+  evidence: Review findings BH and EC. Trim in one place (`parseConfig` for `ACCESS_CODE`, the request schema for the submitted code) when Story 1.7 sets the Vercel variable, and test it.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-6-close-the-hosted-version-with-an-access-code.md`
+  summary: The «Vis»/«Skjul» toggle changes its label and also sets `aria-pressed`, which some screen readers read twice.
+  evidence: Review finding BH. UX-DR10 fixes both. Listen with a screen reader in Story 7.2; if it reads badly, keep a fixed label with `aria-pressed`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-6-close-the-hosted-version-with-an-access-code.md`
+  summary: `callApi` does not send the Student to `/tilgang` when a later call returns `ACCESS_REQUIRED` (the cookie is gone mid-session).
+  evidence: Review finding EC. No other caller exists yet; the first story that calls an API after the gate (Story 1.10 or 1.11) decides where this lives.
