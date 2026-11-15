@@ -26,7 +26,7 @@ Needs Node 26. Run `docker compose up db`, then `npm install` and `npm run dev`.
 
 ### Hosted version
 
-A copy of the app runs on Vercel (Frankfurt) with a Supabase database, closed with an Access code. The Access code comes with the submission and is never committed. Set-up, the data processing agreement record and the manual checks are in [`docs/qa/hosted-deployment.md`](docs/qa/hosted-deployment.md).
+A copy of the app runs on Vercel (Frankfurt) with a Supabase database, closed with an Access code, at <https://g32-grotting.vercel.app/>. The Access code comes with the submission and is never committed. Set-up, the data processing agreement record and the manual checks are in [`docs/qa/hosted-deployment.md`](docs/qa/hosted-deployment.md).
 
 ### Live AI (optional)
 
