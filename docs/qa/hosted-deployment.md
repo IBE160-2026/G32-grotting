@@ -53,21 +53,21 @@ Do these in order. The first Production build starts when the story's pull reque
 
 ## 3. FR-30 manual row (skeleton)
 
-FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-through on a laptop and a phone is recorded in Story 3.12.
+FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-through on a laptop and a phone is recorded in Story 3.12. Rows marked «open» need the Access code or a dashboard, and are for Helene to fill in.
 
-| Check                   | Procedure                                                             | Result                                                               | Date |
-| ----------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- | ---- |
-| Opened without the code | Open the URL in a private window                                      | redirects to `/tilgang`                                            |      |
-| Wrong code              | Enter a wrong code of 16+ characters                                  | «Feil tilgangskode.»                                               |      |
-| Right code              | Enter the Access code                                                 | shows Hjem; `/soknad` opens                                        |      |
-| Health                  | `curl https://<host>/api/health`                                    | 200, `"hosted":true`                                               |      |
-| HTTPS only              | `curl -I http://<host>/`                                            | permanent redirect (308) to `https://`                             |      |
-| Only `main` deploys   | Push a branch; then merge to `main`                                 | the branch gets no deployment, `main` gets a Production deployment |      |
-| EU region               | Vercel project → Settings → Functions; Supabase project → Settings | Frankfurt (`fra1`, `eu-central-1`)                               |      |
+| Check | Procedure | Result | Date |
+|---|---|---|---|
+| Opened without the code | `curl -I https://<host>/soknad` | pass: 307 to `/tilgang`; an API route answers 401 `ACCESS_REQUIRED` | 2026-11-15 |
+| Wrong code | `POST /api/access` with a wrong 16-character code | pass: 400 `INVALID_INPUT`, field `code` (the text «Feil tilgangskode.» is covered by the e2e test) | 2026-11-15 |
+| Right code | Enter the Access code on `/tilgang` | open: shows Hjem; `/soknad` opens | |
+| Health | `curl https://<host>/api/health` | pass: 200, `{"ok":true,"data":{"hosted":true}}` | 2026-11-15 |
+| HTTPS only | `curl -I http://<host>/` | pass: 308 Permanent Redirect to `https://` | 2026-11-15 |
+| Only `main` deploys | Push a branch; then merge to `main` | open: the branch gets no deployment, `main` gets a Production deployment (Vercel → Deployments) | |
+| EU region | Response header `x-vercel-id`; Vercel project → Settings → Functions; Supabase project → Settings | partly: the header shows the function ran in `fra1`; the dashboards are open | 2026-11-15 |
+| No AI | Vercel Production variables | open: no `AI_*` variable | |
+| Keep-alive | Actions → keep-alive → Run workflow | pass: manual run succeeded in 9 s | 2026-11-15 |
 
 `regions` in `vercel.json` sets where the functions run. The Access-code gate and every API route run there. Static files come from Vercel's CDN and hold no Student data.
-| No AI | Vercel Production variables | no `AI_*` variable | |
-| Keep-alive | Actions → keep-alive → Run workflow | passes | |
 
 ## 4. Things to remember
 
