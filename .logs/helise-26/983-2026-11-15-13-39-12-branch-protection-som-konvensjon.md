@@ -18,3 +18,7 @@ Helene spurte om grenbeskyttelsen av `main` (`docs/qa/branch-protection.md`) kan
 ### Åpne punkter
 - NFR-10 (`main` bare grønn kode) holdes bare som konvensjon; GitHub håndhever det ikke. Sett regelen hvis noen med admin-rett dukker opp.
 - Loggfila til story 1.4 har to linjer i feil tegnkoding (26–27); konverter fra Windows-1252 til UTF-8.
+
+### Oppfølging 2026-11-15 kl. 13:46
+- PR #5 (doc-endringen og loggen) er merget til `main`; `ci` var grønn (2m51s).
+- Loggfila til story 1.4 er konvertert fra Windows-1252 til UTF-8 (linje 26–27, «Oppfølging»-seksjonen) på branchen `docs/fix-log-encoding`. Det siste åpne punktet over er lukket i `issues.md`.
