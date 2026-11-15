@@ -24,7 +24,7 @@ Do these in order. The first Production build starts when the story's pull reque
 
 ### Supabase
 
-1. New project on the Free plan, region **Central EU (Frankfurt)** (`eu-central-1`), Postgres 17. Save the database password in a password manager.
+1. New project on the Free plan, region **Central EU (Frankfurt)** (`eu-central-1`; the real project is in `eu-west-1`, see section 3), Postgres 17. Save the database password in a password manager.
 2. Project Settings → Data API: turn the Data API **off**.
 3. Turn on automatic RLS for new tables if the project offers it. Every migration that creates a table must also enable RLS on it, with no policies (AD-9). No table exists yet.
 4. Connect → **Session pooler** (port 5432). Copy the URI, put the password in, and add `?sslmode=require`. This is `DATABASE_URL`. Never use the transaction pooler (port 6543).
@@ -53,21 +53,23 @@ Do these in order. The first Production build starts when the story's pull reque
 
 ## 3. FR-30 manual row (skeleton)
 
-FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-through on a laptop and a phone is recorded in Story 3.12.
+FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-through on a laptop and a phone is recorded in Story 3.12. All rows were checked on 2026-11-15: the curl rows by Claude, the rest (Access code, deployments, variables, dashboards) by Helene.
 
-| Check                   | Procedure                                                             | Result                                                               | Date |
-| ----------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- | ---- |
-| Opened without the code | Open the URL in a private window                                      | redirects to `/tilgang`                                            |      |
-| Wrong code              | Enter a wrong code of 16+ characters                                  | «Feil tilgangskode.»                                               |      |
-| Right code              | Enter the Access code                                                 | shows Hjem; `/soknad` opens                                        |      |
-| Health                  | `curl https://<host>/api/health`                                    | 200, `"hosted":true`                                               |      |
-| HTTPS only              | `curl -I http://<host>/`                                            | permanent redirect (308) to `https://`                             |      |
-| Only `main` deploys   | Push a branch; then merge to `main`                                 | the branch gets no deployment, `main` gets a Production deployment |      |
-| EU region               | Vercel project → Settings → Functions; Supabase project → Settings | Frankfurt (`fra1`, `eu-central-1`)                               |      |
+| Check                   | Procedure                                                                                              | Result                                                                                                                                                                                                                                            | Date       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Opened without the code | `curl -I https://<host>/soknad`                                                                      | pass: 307 to `/tilgang`; an API route answers 401 `ACCESS_REQUIRED`                                                                                                                                                                           | 2026-11-15 |
+| Wrong code              | `POST /api/access` with a wrong 16-character code                                                    | pass: 400 `INVALID_INPUT`, field `code` (the text «Feil tilgangskode.» is covered by the e2e test)                                                                                                                                          | 2026-11-15 |
+| Right code              | Enter the Access code on `/tilgang`                                                                  | pass: shows Hjem; `/soknad` opens                                                                                                                                                                                                               | 2026-11-15 |
+| Health                  | `curl https://<host>/api/health`                                                                     | pass: 200, `{"ok":true,"data":{"hosted":true}}`                                                                                                                                                                                                 | 2026-11-15 |
+| HTTPS only              | `curl -I http://<host>/`                                                                             | pass: 308 Permanent Redirect to `https://`                                                                                                                                                                                                      | 2026-11-15 |
+| Only `main` deploys   | Push a branch; then merge to `main`                                                                  | pass: the branch gets no deployment, `main` gets a Production deployment (Vercel → Deployments)                                                                                                                                                | 2026-11-15 |
+| EU region               | Response header `x-vercel-id`; Vercel project → Settings → Functions; Supabase project → Settings | pass: the function ran in `fra1` (Frankfurt) and the Supabase project is in `eu-west-1` (Ireland); both are in the EU. Deviation: the architecture spine names Frankfurt for Supabase, see the note below. Vercel dashboard checked by Helene | 2026-11-15 |
+| No AI                   | Vercel Production variables                                                                            | pass: no `AI_*` variable                                                                                                                                                                                                                        | 2026-11-15 |
+| Keep-alive              | Actions → keep-alive → Run workflow                                                                  | pass: manual run succeeded in 9 s                                                                                                                                                                                                                 | 2026-11-15 |
 
 `regions` in `vercel.json` sets where the functions run. The Access-code gate and every API route run there. Static files come from Vercel's CDN and hold no Student data.
-| No AI | Vercel Production variables | no `AI_*` variable | |
-| Keep-alive | Actions → keep-alive → Run workflow | passes | |
+
+**Deviation (2026-11-15, Helene):** the Supabase project runs in `eu-west-1` (Ireland), not `eu-central-1` (Frankfurt) as the architecture spine (AD-9) and the set-up steps name. FR-30 only requires an EU region, so it is kept: the functions are in Frankfurt, the database is in Ireland, and a query adds a few milliseconds. Supabase cannot move a project between regions; a move means a new project and a new `DATABASE_URL`. The session pooler host therefore contains `eu-west-1`.
 
 ## 4. Things to remember
 
