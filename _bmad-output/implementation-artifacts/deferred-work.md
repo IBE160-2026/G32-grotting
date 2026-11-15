@@ -28,3 +28,12 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-4-check-every-pull-request-in-ci.md`
   summary: `db:check` has never run on a real migration history: its `drizzle-kit check` branch, the from-zero PGlite migration and both failure exits are untested.
   evidence: Review findings VG and BH. `drizzle/` is empty, so only the "no history" branch runs. The first story that generates a migration adds a fixture test (consistent history exit 0, broken SQL exit 1, inconsistent snapshot exit 1) together with the PGlite migration test deferred from Story 1.2. A broken `_journal.json` was run by hand and exited 1.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-5-show-every-page-in-the-jobassistant-look-with-an-accessible.md`
+  summary: `announce()` does not speak the same text twice in a row, because the region's text does not change.
+  evidence: Review findings EC and BH. No caller exists yet. The first story that announces (copy, «Lagret.») clears the region and sets the text in the next frame, with a test.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-5-show-every-page-in-the-jobassistant-look-with-an-accessible.md`
+  summary: The app has no `error.tsx` or `global-error.tsx`, so a render or config error shows Next's unstyled default page without the shell.
+  evidence: Review finding BH. Only 404 is branded (FR-19). Add branded error pages when a story owns a failure surface (Story 3.9 or 7.2).
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-5-show-every-page-in-the-jobassistant-look-with-an-accessible.md`
+  summary: Focus does not move to the top of the document and no polite line is spoken after a client-side navigation.
+  evidence: Review finding BH. UX-DR20 asks for it; Next moves focus on navigation, and the acceptance criteria of Story 1.5 do not cover it. Check it in the keyboard walk of Story 7.2.
