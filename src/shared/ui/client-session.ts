@@ -3,13 +3,17 @@ import { z } from "zod";
 // The one browser key (AD-16). Nothing else reads or writes sessionStorage.
 export const SESSION_KEY = "ja.session.v1";
 
-// Loose, so a field a later story adds (cvText, tone, …) survives a write
+// Loose, so a field a later story adds (tone, …) survives a write
 // made by code that does not know it yet.
 const sessionSchema = z.looseObject({
   v: z.literal(1),
   applicationId: z.string().optional(),
   inputs: z
     .looseObject({
+      // `cvDraft` is the CV text as typed; `cvText` exists only while it is
+      // the confirmed text (FR-3).
+      cvText: z.string().optional(),
+      cvDraft: z.string().optional(),
       jobAd: z.string().optional(),
       jobTitle: z.string().optional(),
       employer: z.string().optional(),
@@ -23,7 +27,7 @@ export type SessionInputs = ClientSession["inputs"];
 export type SessionStorage = Pick<Storage, "getItem" | "setItem">;
 
 export type SessionPatch = {
-  // `null` removes the id.
+  // `null` removes the id. An input set to `undefined` is removed.
   readonly applicationId?: string | null;
   readonly inputs?: SessionInputs;
 };

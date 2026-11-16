@@ -7,6 +7,14 @@ const NARROW = { width: 320, height: 800 };
 
 const AD = "Vi søker en utvikler med erfaring fra React. ".repeat(6);
 const AD_ERROR = "Stillingsannonsen må være mellom 200 og 15 000 tegn.";
+const CV =
+  "Jeg har to års erfaring som frontendutvikler med React og TypeScript. ".repeat(
+    4,
+  );
+const CV_ERROR = "CV-teksten må være mellom 200 og 20 000 tegn.";
+const NOT_CONFIRMED = "Bekreft CV-teksten før du går videre.";
+const CONFIRM = "Bekreft CV-teksten";
+const SUBMIT = "Analyser og skriv utkast";
 
 async function seriousFindings(page: Page) {
   const { violations } = await new AxeBuilder({ page })
@@ -24,6 +32,19 @@ async function openForm(page: Page) {
   await page.waitForLoadState("networkidle");
 }
 
+function cvField(page: Page) {
+  return page.getByLabel("CV-tekst", { exact: true });
+}
+
+// Paste a CV and confirm it; the slot collapses to the confirmed line.
+async function confirmCv(page: Page, text: string = CV) {
+  await cvField(page).fill(text);
+  await page.getByRole("button", { name: CONFIRM }).click();
+  await expect(
+    page.locator("form").getByText(/^CV-tekst bekreftet · /),
+  ).toBeVisible();
+}
+
 async function session(page: Page) {
   return page.evaluate(() => {
     const raw = sessionStorage.getItem("ja.session.v1");
@@ -31,8 +52,18 @@ async function session(page: Page) {
   });
 }
 
+function trackApiCalls(page: Page): string[] {
+  const calls: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname.startsWith("/api/")) {
+      calls.push(request.url());
+    }
+  });
+  return calls;
+}
+
 test.describe("UX-DR36 Søknad form", () => {
-  test("shows the heading, the three fields and the submit button", async ({
+  test("shows the heading, the CV slot, the job fields and the submit button", async ({
     page,
   }) => {
     await openForm(page);
@@ -40,6 +71,11 @@ test.describe("UX-DR36 Søknad form", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Ny søknad",
     );
+    await expect(cvField(page)).toBeVisible();
+    await expect(
+      page.locator("form").getByText("0 av 20 000 tegn"),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: CONFIRM })).toBeVisible();
     await expect(page.getByLabel("Stillingstittel")).toBeVisible();
     await expect(page.getByLabel("Arbeidsgiver")).toBeVisible();
     await expect(page.getByLabel("Stillingsannonse")).toBeVisible();
@@ -49,35 +85,33 @@ test.describe("UX-DR36 Søknad form", () => {
     await expect(
       page.locator("form").getByText("0 av 15 000 tegn"),
     ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Analyser og skriv utkast" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: SUBMIT })).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Søknad", exact: true }).last(),
     ).toHaveAttribute("aria-current", "page");
   });
 
-  test("offers no file upload and no URL import for the ad", async ({
-    page,
-  }) => {
+  test("offers no file upload and no URL import yet", async ({ page }) => {
     await openForm(page);
     await expect(page.locator('input[type="file"]')).toHaveCount(0);
     await expect(page.locator('input[type="url"]')).toHaveCount(0);
   });
 
-  test("follows the focus order title, employer, ad, submit", async ({
+  test("follows the focus order CV, confirm, title, employer, ad, submit", async ({
     page,
   }) => {
     await openForm(page);
-    await page.getByLabel("Stillingstittel").focus();
+    await cvField(page).focus();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: CONFIRM })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByLabel("Stillingstittel")).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByLabel("Arbeidsgiver")).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByLabel("Stillingsannonse")).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(
-      page.getByRole("button", { name: "Analyser og skriv utkast" }),
-    ).toBeFocused();
+    await expect(page.getByRole("button", { name: SUBMIT })).toBeFocused();
   });
 
   test("counts the ad as typed and speaks the count on blur", async ({
@@ -101,14 +135,14 @@ test.describe("FR-4, NFR-5 wrong-input tour on the job fields", () => {
     page,
   }) => {
     await openForm(page);
+    await cvField(page).fill("kort cv");
     const ad = page.getByLabel("Stillingsannonse");
     await ad.fill("for kort");
     // Enter, not a click: leaving the ad raises its error, which moves the
     // button down between mouse-down and mouse-up.
-    await page
-      .getByRole("button", { name: "Analyser og skriv utkast" })
-      .focus();
+    await page.getByRole("button", { name: SUBMIT }).focus();
     await page.keyboard.press("Enter");
+    await expect(page.locator("form").getByText(CV_ERROR)).toBeVisible();
     await expect(
       page.locator("form").getByText("Fyll inn stillingstittelen."),
     ).toBeVisible();
@@ -116,26 +150,21 @@ test.describe("FR-4, NFR-5 wrong-input tour on the job fields", () => {
       page.locator("form").getByText("Fyll inn arbeidsgiveren."),
     ).toBeVisible();
     await expect(page.locator("form").getByText(AD_ERROR)).toBeVisible();
-    await expect(page.getByLabel("Stillingstittel")).toBeFocused();
-    await expect(page.getByLabel("Stillingstittel")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
+    await expect(cvField(page)).toBeFocused();
+    await expect(cvField(page)).toHaveAttribute("aria-invalid", "true");
+    await expect(cvField(page)).toHaveValue("kort cv");
     await expect(ad).toHaveValue("for kort");
-    await expect(page.locator("#live-action")).toHaveText(
-      "Fyll inn stillingstittelen.",
-    );
+    await expect(page.locator("#live-action")).toHaveText(CV_ERROR);
   });
 
   test("input 1: tells which field is invalid when the first ones are fine", async ({
     page,
   }) => {
     await openForm(page);
+    await confirmCv(page);
     await page.getByLabel("Stillingstittel").fill("Utvikler");
     await page.getByLabel("Arbeidsgiver").fill("Nordic Digital");
-    await page
-      .getByRole("button", { name: "Analyser og skriv utkast" })
-      .click();
+    await page.getByRole("button", { name: SUBMIT }).click();
     await expect(page.getByLabel("Stillingsannonse")).toBeFocused();
     await expect(
       page.getByLabel("Stillingsannonse"),
@@ -193,6 +222,172 @@ test.describe("FR-4, NFR-5 wrong-input tour on the job fields", () => {
   });
 });
 
+test.describe("FR-2, FR-3 the CV slot", () => {
+  test("sits above the job fields with the CV text in DM Mono", async ({
+    page,
+  }) => {
+    await openForm(page);
+    const cvBox = await cvField(page).boundingBox();
+    const titleBox = await page.getByLabel("Stillingstittel").boundingBox();
+    expect(cvBox?.y ?? 0).toBeLessThan(titleBox?.y ?? 0);
+    expect(
+      await cvField(page).evaluate((el) => getComputedStyle(el).fontFamily),
+    ).toMatch(/DM Mono/i);
+  });
+
+  test("input 2: text below 200 or above 20 000 characters gives its error and is kept", async ({
+    page,
+  }) => {
+    await openForm(page);
+    const cv = cvField(page);
+    await cv.fill("a".repeat(199));
+    await expect(page.locator("form").getByText(CV_ERROR)).toHaveCount(0);
+    await cv.blur();
+    await expect(page.locator("form").getByText(CV_ERROR)).toBeVisible();
+    await expect(cv).toHaveValue("a".repeat(199));
+    await cv.fill("a".repeat(20_001));
+    await expect(
+      page.locator("form").getByText("20 001 av 20 000 tegn"),
+    ).toBeVisible();
+    await cv.blur();
+    await expect(page.locator("form").getByText(CV_ERROR)).toBeVisible();
+    await expect(cv).toHaveValue("a".repeat(20_001));
+    await cv.fill("a".repeat(200));
+    await cv.blur();
+    await expect(page.locator("form").getByText(CV_ERROR)).toHaveCount(0);
+  });
+
+  test("does not confirm text that is too short and keeps focus in the field", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await cvField(page).fill("for kort");
+    await page.getByRole("button", { name: CONFIRM }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("form").getByText(CV_ERROR)).toBeVisible();
+    await expect(cvField(page)).toBeFocused();
+    expect((await session(page)).inputs.cvText).toBeUndefined();
+  });
+
+  test("collapses to the confirmed line with the count and moves focus to the way back", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await confirmCv(page, "a".repeat(3412));
+    await expect(
+      page.locator("form").getByText("CV-tekst bekreftet · 3 412 tegn"),
+    ).toBeVisible();
+    await expect(cvField(page)).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Endre CV-teksten" }),
+    ).toBeFocused();
+    await expect(page.locator("#live-action")).toHaveText(
+      "CV-tekst bekreftet · 3 412 tegn",
+    );
+    expect((await session(page)).inputs.cvText).toBe("a".repeat(3412));
+  });
+
+  test("reopens with the text and focus in the field; an edit clears the confirmation", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await confirmCv(page);
+    await page.getByRole("button", { name: "Endre CV-teksten" }).click();
+    const cv = cvField(page);
+    await expect(cv).toBeFocused();
+    await expect(cv).toHaveValue(CV);
+    expect((await session(page)).inputs.cvText).toBe(CV);
+    await cv.press("Control+End");
+    await page.keyboard.type("!");
+    expect((await session(page)).inputs.cvText).toBeUndefined();
+    expect((await session(page)).inputs.cvDraft).toBe(`${CV}!`);
+    await expect(page.getByRole("button", { name: CONFIRM })).toBeVisible();
+  });
+
+  test("confirms on the first click after fixing a CV error, which the blur would otherwise move away from", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await cvField(page).fill("for kort");
+    await cvField(page).blur();
+    await expect(page.locator("form").getByText(CV_ERROR)).toBeVisible();
+    await cvField(page).fill(CV);
+    await page.getByRole("button", { name: CONFIRM }).click();
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · /),
+    ).toBeVisible();
+    expect((await session(page)).inputs.cvText).toBe(CV);
+  });
+
+  test("FR-3: a submit without confirmation is blocked, with the message and focus at the CV field", async ({
+    page,
+  }) => {
+    const apiCalls = trackApiCalls(page);
+    await openForm(page);
+    await cvField(page).fill(CV);
+    await page.getByLabel("Stillingstittel").fill("Utvikler");
+    await page.getByLabel("Arbeidsgiver").fill("Nordic Digital");
+    await page.getByLabel("Stillingsannonse").fill(AD);
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.locator("form").getByText(NOT_CONFIRMED)).toBeVisible();
+    await expect(cvField(page)).toBeFocused();
+    await expect(page.locator("#live-action")).toHaveText(NOT_CONFIRMED);
+    expect((await session(page)).applicationId).toBeUndefined();
+    expect(apiCalls).toEqual([]);
+  });
+
+  test("FR-3: leaving the field keeps the missing-confirmation message", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await cvField(page).fill(CV);
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.locator("form").getByText(NOT_CONFIRMED)).toBeVisible();
+    await cvField(page).blur();
+    await expect(page.locator("form").getByText(NOT_CONFIRMED)).toBeVisible();
+  });
+
+  test("FR-3: after an edit and a new confirmation the held text is the edited text", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await confirmCv(page);
+    await page.getByRole("button", { name: "Endre CV-teksten" }).click();
+    const edited = `${CV} Jeg har også brukt Playwright.`;
+    await cvField(page).fill(edited);
+    await page.getByRole("button", { name: CONFIRM }).click();
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · /),
+    ).toBeVisible();
+    expect((await session(page)).inputs.cvText).toBe(edited);
+    expect((await session(page)).inputs.cvDraft).toBe(edited);
+  });
+
+  test("AD-16: the confirmed text comes back after a refresh and nothing is sent", async ({
+    page,
+  }) => {
+    const apiCalls = trackApiCalls(page);
+    await openForm(page);
+    await confirmCv(page, "a".repeat(3412));
+    await page.reload();
+    await expect(
+      page.locator("form").getByText("CV-tekst bekreftet · 3 412 tegn"),
+    ).toBeVisible();
+    expect((await session(page)).inputs.cvText).toBe("a".repeat(3412));
+    expect(apiCalls).toEqual([]);
+  });
+
+  test("keeps an unconfirmed draft over a refresh, still unconfirmed", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await cvField(page).fill(CV);
+    await page.reload();
+    await expect(cvField(page)).toHaveValue(CV);
+    await expect(page.getByRole("button", { name: CONFIRM })).toBeVisible();
+  });
+});
+
 test.describe("AD-16, AD-8 client session and applicationId", () => {
   test("keeps the fields over a refresh", async ({ page }) => {
     await openForm(page);
@@ -218,24 +413,19 @@ test.describe("AD-16, AD-8 client session and applicationId", () => {
     await page.reload();
     await page.waitForLoadState("networkidle");
     await expect(page.getByLabel("Stillingstittel")).toHaveValue("");
+    await expect(cvField(page)).toHaveValue("");
   });
 
   test("makes one applicationId on a valid submit, sends no request, and drops it on an edit", async ({
     page,
   }) => {
-    const apiCalls: string[] = [];
-    page.on("request", (request) => {
-      if (new URL(request.url()).pathname.startsWith("/api/")) {
-        apiCalls.push(request.url());
-      }
-    });
+    const apiCalls = trackApiCalls(page);
     await openForm(page);
+    await confirmCv(page);
     await page.getByLabel("Stillingstittel").fill("Utvikler");
     await page.getByLabel("Arbeidsgiver").fill("Nordic Digital");
     await page.getByLabel("Stillingsannonse").fill(AD);
-    const submit = page.getByRole("button", {
-      name: "Analyser og skriv utkast",
-    });
+    const submit = page.getByRole("button", { name: SUBMIT });
     await submit.dblclick();
 
     const first = (await session(page)).applicationId;
@@ -244,19 +434,19 @@ test.describe("AD-16, AD-8 client session and applicationId", () => {
     expect((await session(page)).applicationId).toBe(first);
     await page.reload();
     await page.waitForLoadState("networkidle");
-    await page
-      .getByRole("button", { name: "Analyser og skriv utkast" })
-      .click();
+    await page.getByRole("button", { name: SUBMIT }).click();
     expect((await session(page)).applicationId).toBe(first);
 
     await page.getByLabel("Arbeidsgiver").fill("Annen AS");
     expect((await session(page)).applicationId).toBeUndefined();
-    await page
-      .getByRole("button", { name: "Analyser og skriv utkast" })
-      .click();
+    await page.getByRole("button", { name: SUBMIT }).click();
     const second = (await session(page)).applicationId;
     expect(second).toMatch(/^[0-9a-f-]{36}$/);
     expect(second).not.toBe(first);
+
+    await page.getByRole("button", { name: "Endre CV-teksten" }).click();
+    await cvField(page).fill(`${CV} Mer.`);
+    expect((await session(page)).applicationId).toBeUndefined();
     expect(apiCalls).toEqual([]);
   });
 });
@@ -266,18 +456,18 @@ test.describe("NFR-2 accessibility of Søknad", () => {
     ["1280 px", WIDE],
     ["360 px", PHONE],
   ] as const) {
-    test(`has no serious axe findings at ${name}, empty and with errors`, async ({
+    test(`has no serious axe findings at ${name}, empty, with errors and with the CV confirmed`, async ({
       page,
     }) => {
       await page.setViewportSize(size);
       await openForm(page);
       expect(await seriousFindings(page)).toEqual([]);
-      await page
-        .getByRole("button", { name: "Analyser og skriv utkast" })
-        .click();
+      await page.getByRole("button", { name: SUBMIT }).click();
       await expect(
         page.locator("form").getByText("Fyll inn arbeidsgiveren."),
       ).toBeVisible();
+      expect(await seriousFindings(page)).toEqual([]);
+      await confirmCv(page);
       expect(await seriousFindings(page)).toEqual([]);
     });
   }
@@ -287,9 +477,8 @@ test.describe("NFR-2 accessibility of Søknad", () => {
   }) => {
     await page.setViewportSize(NARROW);
     await openForm(page);
-    await page
-      .getByRole("button", { name: "Analyser og skriv utkast" })
-      .click();
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await confirmCv(page);
     const overflow = await page.evaluate(
       () =>
         document.documentElement.scrollWidth -

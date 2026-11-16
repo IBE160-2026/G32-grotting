@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 // Søknad before accounts: the heading is the text alone, with no entry number
-// (UX-DR18). The CV slot above the job fields arrives with Story 1.10.
+// (UX-DR18).
 export default function SoknadPage() {
   return (
     <div className="max-w-measure">

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { type CvErrorCode, cvTextSchema } from "@/modules/cv/contracts";
 
 // FR-4: the Job ad is 200 to 15 000 characters; job title and employer are
 // required and at most 200 characters each.
@@ -18,6 +19,10 @@ export const JOB_INPUT_ERROR_CODES = [
 
 export type JobInputErrorCode = (typeof JOB_INPUT_ERROR_CODES)[number];
 
+// Every code a field of `AnalysisInputs` can report. `CV_NOT_CONFIRMED` is
+// added by the form, not by the schema.
+export type InputErrorCode = JobInputErrorCode | CvErrorCode;
+
 // Windows line endings become LF where text enters the form (FR-4).
 export function normaliseNewlines(text: string): string {
   return text.replace(/\r\n?/g, "\n");
@@ -33,8 +38,9 @@ function requiredField(required: JobInputErrorCode) {
   });
 }
 
-// The job fields of `AnalysisInputs` (AD-6). Story 1.10 adds `cvText`.
+// `AnalysisInputs` (AD-6): raw inputs only.
 export const analysisInputsSchema = z.object({
+  cvText: cvTextSchema,
   jobAd: z.string().superRefine((value, ctx) => {
     if (value.trim().length < JOB_AD_MIN || value.length > JOB_AD_MAX) {
       ctx.addIssue({ code: "custom", message: "JOB_AD_LENGTH" });
@@ -45,19 +51,19 @@ export const analysisInputsSchema = z.object({
 });
 
 export type AnalysisInputs = z.infer<typeof analysisInputsSchema>;
-export type JobInputField = keyof AnalysisInputs;
+export type InputField = keyof AnalysisInputs;
 
 // The first error code per field, for the form; the server uses the schema.
-export function jobInputErrors(
+export function inputErrors(
   inputs: AnalysisInputs,
-): Partial<Record<JobInputField, JobInputErrorCode>> {
+): Partial<Record<InputField, InputErrorCode>> {
   const result = analysisInputsSchema.safeParse(inputs);
-  const errors: Partial<Record<JobInputField, JobInputErrorCode>> = {};
+  const errors: Partial<Record<InputField, InputErrorCode>> = {};
   if (result.success) return errors;
   for (const issue of result.error.issues) {
-    const field = issue.path[0] as JobInputField;
+    const field = issue.path[0] as InputField;
     if (errors[field] === undefined) {
-      errors[field] = issue.message as JobInputErrorCode;
+      errors[field] = issue.message as InputErrorCode;
     }
   }
   return errors;
