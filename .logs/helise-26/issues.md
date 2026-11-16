@@ -117,4 +117,5 @@
 - [ ] 2026-11-16 [story-1-11-upload-cv-file](975-2026-11-16-19-48-54-story-1-11-upload-cv-file.md) — filopplasting uten `Content-Length` (chunked) kappes ikke før kroppen er lest i `/api/cv/extract`; vurder en lesegrense
 - [ ] 2026-11-16 [story-1-11-upload-cv-file](975-2026-11-16-19-48-54-story-1-11-upload-cv-file.md) — `ACCESS_REQUIRED` fra `/api/cv/extract` midt i en Hosted-økt gir nettverksfeil-alerten, ikke omdirigering til `/tilgang` (hører sammen med punktet fra story 1.6)
 - [ ] 2026-11-16 [story-1-11-upload-cv-file](975-2026-11-16-19-48-54-story-1-11-upload-cv-file.md) — filvelgerens tilgjengelige navn mangler den synlige teksten «Velg en annen fil» (WCAG 2.5.3); avklar i EXPERIENCE.md
-- [ ] 2026-11-16 [story-1-11-upload-cv-file](975-2026-11-16-19-48-54-story-1-11-upload-cv-file.md) — spec 1.11 og `sprint-status.yaml` er ikke satt til `done`
+- [x] 2026-11-16 [story-1-11-upload-cv-file](975-2026-11-16-19-48-54-story-1-11-upload-cv-file.md) — spec 1.11 og `sprint-status.yaml` er ikke satt til `done` (løst 2026-11-16: PR #24 merget, status `done`)
+- [ ] 2026-11-16 [story-1-11-upload-cv-file](975-2026-11-16-19-48-54-story-1-11-upload-cv-file.md) — TXT i Windows-1252 eller UTF-16 gir U+FFFD for æøå (AC-en sier UTF-8); vurder fallback-dekoding
