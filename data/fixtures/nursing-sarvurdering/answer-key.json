@@ -1,0 +1,82 @@
+{
+  "keywords": {
+    "matched": [
+      "sykepleier",
+      "sårstell",
+      "behandling av trykksår og diabetessår",
+      "dokumenterer i pasientjournal",
+      "norskkunnskaper",
+      "sykehjem"
+    ],
+    "missing": [
+      "legemiddelhåndtering",
+      "smertelindring hos eldre",
+      "tverrfaglig samarbeid",
+      "erfaring med demens",
+      "sårvurdering",
+      "erfaring med forskning"
+    ]
+  },
+  "score": 50,
+  "mustNotMatch": [
+    {
+      "term": "Bergen",
+      "reason": "lokasjon, ikke ferdighet"
+    },
+    {
+      "term": "med",
+      "reason": "småord, ikke ferdighet"
+    },
+    {
+      "term": "helsefagarbeidere",
+      "reason": "beskriver et annet medlem av teamet, ikke studenten"
+    },
+    {
+      "term": "hjelpepleiere",
+      "reason": "beskriver et annet medlem av teamet, ikke studenten"
+    },
+    {
+      "term": "lege",
+      "reason": "beskriver et annet medlem av teamet, ikke studenten"
+    },
+    {
+      "term": "fysioterapeut",
+      "reason": "beskriver et annet medlem av teamet, ikke studenten"
+    },
+    {
+      "term": "ergoterapeut",
+      "reason": "beskriver et annet medlem av teamet, ikke studenten"
+    }
+  ],
+  "gaps": {
+    "rewordable": [
+      {
+        "keyword": "legemiddelhåndtering",
+        "evidence": "Fulgte med på legemidlene som ble gitt, og lærte å dobbeltsjekke sammen med en annen sykepleier"
+      },
+      {
+        "keyword": "smertelindring hos eldre",
+        "evidence": "Gjorde smertekartlegging hos beboerne og meldte fra til sykepleieren."
+      },
+      {
+        "keyword": "tverrfaglig samarbeid",
+        "evidence": "Deltok på møter der legen og fysioterapeuten gikk gjennom de nye planene."
+      },
+      {
+        "keyword": "sårvurdering",
+        "evidence": "Skrev eksamensoppgave om diabetiske fotsår vs trykksår (likheter og forskjeller)"
+      }
+    ],
+    "real": ["erfaring med demens", "erfaring med forskning"]
+  },
+  "mustNeverSuggest": [
+    {
+      "keyword": "erfaring med demens",
+      "reason": "CVen nevner demens i utdanning, men ikke i erfaring."
+    },
+    {
+      "keyword": "erfaring med forskning",
+      "reason": "CVen nevner ikke forskning på sårvurdering men eksamensoppgave i sårvurdering. En overdrivelse å foreslå at studenten har erfaring med forskning"
+    }
+  ]
+}

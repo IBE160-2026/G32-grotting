@@ -2,7 +2,7 @@
 title: 'Story 2.2: Write the nursing Fixture (outside IT, «sårvurdering»)'
 type: 'feature'
 created: '2026-11-16'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 baseline_commit: '107093a771d80c5d2259ff66661f9cac6151e4d7'
 review_loop_iteration: 0
@@ -60,7 +60,7 @@ context:
 - [x] `data/fixtures/nursing-sarvurdering/ad.txt` -- draft a fictional nursing ad in bokmål with «sårvurdering» among its Keywords
 - [x] `data/fixtures/nursing-sarvurdering/meta.json` -- job title and employer for the ad
 - [x] `data/fixtures/nursing-sarvurdering/cv.txt` -- draft a fictional nursing student CV with the exam-paper entry and inflected forms of ad Keywords
-- [ ] Helene (hand-off) -- read and edit the drafts, then write `answer-key.json` by hand; the story stays `in-review` until it exists and the tests pass
+- [x] Helene (hand-off) -- read and edit the drafts, then write `answer-key.json` by hand; the story stays `in-review` until it exists and the tests pass
 
 **Acceptance Criteria:**
 - Given the nursing ad, when the CV is read, then it contains the exam-paper entry word for word and its other lines use inflected forms of ad Keywords.
@@ -75,6 +75,7 @@ context:
 - CV inflections used: «sårstellene», «pasientjournalene», «pårørende», «bandasjer», «legemidlene». Near-miss words in the CV: «smertekartlegging» (ad: «smertelindring»), «Legemiddelregning» (ad: «legemiddelhåndtering»). Whether either counts as a must-not-match term is Helene's call. Nothing in the CV names an Answer-key item.
 - Checked: «sårvurdering», «forsket», «forsker», «forskning» and «vurder*» are absent from `cv.txt`. The only `forsk` match is «forskjeller» inside the mandated exam-paper entry. Exam-paper entry is on one line, word for word.
 - Biome passes. `fixtures.test.ts`: 7 pass, 1 fails by design (`nursing-sarvurdering has nothing wrong (SM-2)` reports `answer-key.json is missing`) until Helene's hand-off.
+- 2026-11-16: Helene wrote `answer-key.json` by hand (6 Matched, 6 Missing, score 50). The key needed «erfaring med forskning» as a Real gap for the must-never-suggest item (the schema requires it, checklist G2), so Claude added one bullet about forskning to `ad.txt` at her request. The CV is unchanged. biome and all 204 tests pass. Status set to done.
 
 ## Spec Change Log
 
