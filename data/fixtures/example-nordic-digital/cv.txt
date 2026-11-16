@@ -1,0 +1,32 @@
+Violet Hansen
+Junior frontendutvikler
+violet.hansen@example.com | +47 000 00 000 | Oslo
+
+Profil
+Nyutdannet bachelorstudent i informatikk med interesse for nettutvikling. Jeg liker å bygge ting som folk faktisk bruker, og jeg lærer raskt.
+
+Utdanning
+Bachelor i informatikk, Høgskolen i Oslo (fiktiv), 2023–2026
+Relevante emner:
+- Webutvikling 1: HTML, CSS og JavaScript. Bygde en nettside som tilpasser seg mobilskjermer.
+- Webutvikling 2: React og komponenter. Bygde en liten app med state og skjemaer.
+- Programmering 2: Objektorientert programmering i Java.
+- Programvareutvikling: Agile og Scrum i praksis, med to ukers sprinter og retrospektiv.
+- Brukeropplevelse: Prototyping i Figma og universell utforming av nettsider.
+- Databaser: SQL og enkel datamodellering.
+
+Prosjekt
+Semesterprosjekt i gruppe, høsten 2025
+Fire studenter utviklet en nettside for en lokal frivillig organisasjon som trengte en enklere måte å melde seg på arrangementer.
+- Jeg hadde ansvar for brukergrensesnittet og skrev komponentene i React.
+- Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen.
+- Vi hadde møter med organisasjonen hver andre uke, og jeg viste frem og forklarte hva vi hadde laget.
+- Jeg skrev enkle tester for skjemaene våre.
+
+Arbeidserfaring
+Butikkmedarbeider, Nærbutikken (fiktiv), deltid, 2022–2025
+Kundeservice, kasse og varepåfyll. Lærte å forklare ting enkelt og å jobbe sammen i et lite team.
+
+Ferdigheter
+JavaScript, React, HTML, CSS, Git, Figma
+Språk: norsk (morsmål), engelsk (flytende)

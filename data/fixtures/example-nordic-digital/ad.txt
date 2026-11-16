@@ -1,0 +1,25 @@
+Junior frontendutvikler
+
+Nordic Digital er et digitalbyrå i Oslo med 40 ansatte. Vi bygger nettløsninger for kunder i offentlig og privat sektor, og vi har et åpent og uformelt arbeidsmiljø der alle blir hørt. Vi trenger en ny kollega i frontend-teamet vårt.
+
+Om stillingen
+Du blir en del av et team på fem som bygger brukervendte løsninger for kundene våre. Du får en erfaren utvikler som mentor det første året, og du jobber tett med designere og testere. Vi jobber etter Agile-prinsipper med to ukers sprinter, og du deltar på planlegging, demo og retrospektiv. Du følger opp stakeholders i kundens organisasjon sammen med prosjektlederen vår, og du forklarer tekniske valg på en forståelig måte.
+
+Dette ser vi etter
+- Du har kunnskap om React og bruker TypeScript.
+- Du behersker HTML og CSS, og du bygger responsive nettsider som fungerer godt på mobil.
+- Du har erfaring med Git og samarbeid i pull requests.
+- Du har erfaring med testing av frontend-kode.
+- Du bryr deg om universell utforming og tilgjengelighet.
+- Du kan jobbe med REST API-er.
+- Du har fullført eller er i ferd med å fullføre en bachelor i informatikk, webutvikling eller tilsvarende.
+
+Det er et pluss om du har erfaring med Figma, men det er ikke et krav.
+
+Vi tilbyr
+- Fleksibel arbeidstid og hjemmekontor to dager i uken
+- Gode pensjons- og forsikringsordninger
+- Kompetansebudsjett på 20 000 kroner i året
+- Sentral beliggenhet i Oslo, tre minutter fra Jernbanetorget
+
+Søknadsfrist er 30. november. Vi behandler søknader fortløpende.
