@@ -90,3 +90,6 @@
 - [x] 2026-11-15 [story-1-7-deploy-hosted-skeleton](980-2026-11-15-15-17-50-story-1-7-deploy-hosted-skeleton.md) — sett opp Supabase og Vercel etter `docs/qa/hosted-deployment.md`, sett `HOSTED_URL`, kjør keep-alive, fyll FR-30-raden og legg Hosted-URL i README (løst 2026-11-15)
 - [ ] 2026-11-15 [story-1-7-deploy-hosted-skeleton](980-2026-11-15-15-17-50-story-1-7-deploy-hosted-skeleton.md) — tilpass planen (story 3.12, 6.12, 7.x, FR-30/FR-31, UJ-3) til at README-kjøringen er leveransen; vurder `bmad-correct-course`
 - [ ] 2026-11-15 [story-1-7-deploy-hosted-skeleton](980-2026-11-15-15-17-50-story-1-7-deploy-hosted-skeleton.md) — bestem om `main` settes til `false` i `vercel.json` for å fryse Hosted-versjonen (PRD §5.1 kutt 0)
+- [ ] 2026-11-16 [story-2-1-example-pair-fixture](979-2026-11-16-14-31-00-story-2-1-example-pair-fixture.md) — Helene: lag `cv.pdf`, kjør `npm run fixtures:extract` og skriv `answer-key.json` for hånd; testen for Example pair er rød til da
+- [ ] 2026-11-16 [story-2-1-example-pair-fixture](979-2026-11-16-14-31-00-story-2-1-example-pair-fixture.md) — story 2.7 må avrunde score med `Math.round` (.5 opp) som Answer-key-skjemaet
+- [ ] 2026-11-16 [story-2-1-example-pair-fixture](979-2026-11-16-14-31-00-story-2-1-example-pair-fixture.md) — 1.8-utkastet og epic-1-context-endringene ligger i `git stash`; `git stash pop` på 1.8-grenen
