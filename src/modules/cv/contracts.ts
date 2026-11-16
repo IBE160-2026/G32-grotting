@@ -47,3 +47,40 @@ export function restoreCv(stored: {
     cvLengthError(draft) === undefined;
   return { draft, confirmed };
 }
+
+// FR-1: a CV file is a .pdf or .txt of at most 2 MB.
+export const CV_FILE_MAX_BYTES = 2 * 1024 * 1024;
+export const CV_FILE_EXTENSIONS = [".pdf", ".txt"] as const;
+
+export type CvFileKind = "pdf" | "txt";
+
+// The codes a wrong file is reported with; the UI maps each to a text in
+// messages.nb.ts. The server answers the same two as INVALID_INPUT with the
+// field `file.type` or `file.size`.
+export type CvFileErrorCode = "FILE_TYPE" | "FILE_TOO_LARGE";
+
+// Browsers report empty or wrong MIME types, so the extension decides, judged
+// case-insensitively.
+export function cvFileKind(name: string): CvFileKind | undefined {
+  const lower = name.toLowerCase();
+  if (lower.endsWith(".pdf")) return "pdf";
+  if (lower.endsWith(".txt")) return "txt";
+  return undefined;
+}
+
+// The one check the browser and the route share. The type is judged first.
+export function cvFileError(
+  name: string,
+  size: number,
+): CvFileErrorCode | undefined {
+  if (cvFileKind(name) === undefined) return "FILE_TYPE";
+  return size > CV_FILE_MAX_BYTES ? "FILE_TOO_LARGE" : undefined;
+}
+
+// What `POST /api/cv/extract` returns: the text as found, and whether the file
+// held none (a scanned PDF), in which case `text` is empty.
+export const cvExtractResponseSchema = z.object({
+  text: z.string(),
+  noText: z.boolean(),
+});
+export type CvExtractResponse = z.infer<typeof cvExtractResponseSchema>;

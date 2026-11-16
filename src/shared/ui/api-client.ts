@@ -30,6 +30,17 @@ function fail(code: MessageKey, retryable: boolean): ApiResult<never> {
 // A request that never answers ends as NETWORK_ERROR, so a busy button frees.
 export const REQUEST_TIMEOUT_MS = 15_000;
 
+// A FormData body goes as it is, and the browser sets the multipart header;
+// anything else is JSON.
+function requestBody(body: unknown): Pick<RequestInit, "body" | "headers"> {
+  if (body === undefined) return {};
+  if (body instanceof FormData) return { body };
+  return {
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  };
+}
+
 export async function callApi<T>(
   path: string,
   schema: z.ZodType<T>,
@@ -40,11 +51,7 @@ export async function callApi<T>(
     const response = await fetch(path, {
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       method: init.method ?? (init.body === undefined ? "GET" : "POST"),
-      headers:
-        init.body === undefined
-          ? undefined
-          : { "content-type": "application/json" },
-      body: init.body === undefined ? undefined : JSON.stringify(init.body),
+      ...requestBody(init.body),
     });
     body = await response.json();
   } catch {
