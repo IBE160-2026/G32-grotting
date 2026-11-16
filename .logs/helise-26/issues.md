@@ -93,4 +93,4 @@
 - [ ] 2026-11-16 [story-1-8-hjem](978-2026-11-16-14-30-00-story-1-8-hjem.md) — `docker compose run --rm --build test` er ikke kjørt for story 1.8 (Docker Desktop kjørte ikke)
 - [ ] 2026-11-16 [story-1-8-hjem](978-2026-11-16-14-30-00-story-1-8-hjem.md) — Hjem er ikke sett i nettleser ved 1280 og 360 px, på ekte telefon eller med skjermleser; bare Playwright og axe
 - [ ] 2026-11-16 [story-1-8-hjem](978-2026-11-16-14-30-00-story-1-8-hjem.md) — Hjem-teksten lover eksempel (2.10), ordrette sitater og samtykke før KI (Epic 3) og valgfri tone (3.7) som ikke finnes ennå; sjekk at hvert løfte stemmer når storyen er ferdig
-- [ ] 2026-11-16 [story-1-8-hjem](978-2026-11-16-14-30-00-story-1-8-hjem.md) — story 1.8 er ikke pushet og har ingen PR (grenen `story/1.8-read-what-jobassistant-does-on-hjem` ligger i worktreet `C:\IBE160\JobAssistant-1.8`)
+- [x] 2026-11-16 [story-1-8-hjem](978-2026-11-16-14-30-00-story-1-8-hjem.md) — story 1.8 er ikke pushet og har ingen PR (grenen `story/1.8-read-what-jobassistant-does-on-hjem` ligger i worktreet `C:\IBE160\JobAssistant-1.8`) (løst 2026-11-16: pushet, PR #16)
