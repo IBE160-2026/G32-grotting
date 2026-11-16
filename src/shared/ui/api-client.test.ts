@@ -29,6 +29,26 @@ describe("AD-7 api-client", () => {
     expect(init.body).toBe('{"code":"x"}');
   });
 
+  it("sends a FormData body as it is, with no JSON header", async () => {
+    const fetchMock = stubFetch(async () =>
+      Response.json({ ok: true, data: { opened: true } }),
+    );
+    const form = new FormData();
+    form.set("file", new File(["hei"], "cv.txt"));
+    expect(await callApi("/api/cv/extract", schema, { body: form })).toEqual({
+      ok: true,
+      data: { opened: true },
+    });
+    const [, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(init.method).toBe("POST");
+    expect(init.body).toBe(form);
+    expect(init.headers).toBeUndefined();
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("returns the error code, field and retryable flag", async () => {
     stubFetch(async () =>
       Response.json(

@@ -7,6 +7,7 @@ import {
 } from "@/modules/identity/contracts";
 import { announce } from "@/shared/ui/announce";
 import { callApi } from "@/shared/ui/api-client";
+import { Alert } from "@/shared/ui/components/alert";
 import { Button } from "@/shared/ui/components/button";
 import { PasswordToggle } from "@/shared/ui/components/password-toggle";
 import { TextField } from "@/shared/ui/components/text-field";
@@ -81,15 +82,7 @@ export function AccessForm() {
   return (
     <form onSubmit={onSubmit} noValidate>
       {failed ? (
-        <p
-          role="alert"
-          className="mb-6 flex items-baseline gap-2 border border-rust bg-alert-ground px-4 py-3 text-body text-ink"
-        >
-          <span className="code border border-rust px-1.5 text-rust">
-            {messages.errorStrip}
-          </span>
-          {messages.networkFailure}
-        </p>
+        <Alert className="mb-6">{messages.networkFailure}</Alert>
       ) : null}
       <TextField
         id={fieldId}

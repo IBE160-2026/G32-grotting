@@ -15,6 +15,8 @@ export const messages = {
   counter: (used: string, max: string) => `${used} av ${max} tegn`,
   networkFailure:
     "Fikk ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
+  // «184 kB»: the size shown beside a chosen file.
+  fileSize: (kilobytes: string) => `${kilobytes} kB`,
   passwordToggle: { show: "Vis", hide: "Skjul" },
   access: {
     heading: "Tilgangskode",
@@ -30,6 +32,19 @@ export const messages = {
     confirm: "Bekreft CV-teksten",
     confirmed: (count: string) => `CV-tekst bekreftet · ${count} tegn`,
     reopen: "Endre CV-teksten",
+    pasteHint: "Lim inn teksten her. Minst 200 tegn.",
+    file: {
+      choose: "Velg fil",
+      chooseAnother: "Velg en annen fil",
+      inputName: "Velg fil, PDF eller TXT, maks 2 MB",
+      extracting: "Henter ut teksten fra CV-en …",
+      scanned:
+        "Vi fant ingen tekst i denne PDF-en. Den kan være skannet. Lim inn teksten fra CV-en din i stedet.",
+      errors: {
+        FILE_TYPE: "Bare PDF- og TXT-filer støttes.",
+        FILE_TOO_LARGE: "Filen er for stor.",
+      },
+    },
     errors: {
       CV_LENGTH: "CV-teksten må være mellom 200 og 20 000 tegn.",
       CV_NOT_CONFIRMED: "Bekreft CV-teksten før du går videre.",

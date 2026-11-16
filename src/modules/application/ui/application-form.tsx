@@ -118,6 +118,13 @@ export function ApplicationForm() {
     }
   }
 
+  // The text of an uploaded file replaces the field as an edit, so it needs
+  // confirming (FR-3), and its length is judged at once.
+  function extractedCv(text: string) {
+    changeCv(text);
+    setError("cvText", cvLengthError(normaliseNewlines(text)));
+  }
+
   // Leaving the CV field judges the length only; a missing confirmation stays
   // until the Student confirms, since an edit leaves the text unconfirmed.
   function blurCv() {
@@ -189,6 +196,7 @@ export function ApplicationForm() {
         error={errorText("cvText")}
         onChange={changeCv}
         onBlur={blurCv}
+        onExtracted={extractedCv}
         onConfirm={confirmCv}
       />
       <TextField
