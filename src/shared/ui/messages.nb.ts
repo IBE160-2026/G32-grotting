@@ -23,6 +23,21 @@ export const messages = {
     wrong: "Feil tilgangskode.",
     tooShort: "Koden har minst 16 tegn.",
   },
+  application: {
+    heading: "Ny søknad",
+    jobTitle: "Stillingstittel",
+    employer: "Arbeidsgiver",
+    jobAd: "Stillingsannonse",
+    jobAdHint: "Lim inn hele annonseteksten, minst 200 tegn.",
+    counter: (used: string, max: string) => `${used} av ${max} tegn`,
+    submit: "Analyser og skriv utkast",
+    errors: {
+      JOB_AD_LENGTH: "Stillingsannonsen må være mellom 200 og 15 000 tegn.",
+      JOB_TITLE_REQUIRED: "Fyll inn stillingstittelen.",
+      EMPLOYER_REQUIRED: "Fyll inn arbeidsgiveren.",
+      TOO_LONG: "Maks 200 tegn.",
+    },
+  },
   notFound: {
     heading: "Fant ikke siden",
     body: "Den finnes ikke, eller du har ikke tilgang til den.",
