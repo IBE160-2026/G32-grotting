@@ -2,14 +2,8 @@
   summary: A slice file can still reach another slice's internals with a short relative import (for example `../../b/server/x` from `server/`).
   evidence: Biome `noRestrictedImports` cannot tell an own-slice `../../core/x` from a cross-slice `../../b/x` by pattern; only 3+ levels up and the `@/` alias are caught. Convention is the `@/` alias across slices. Revisit if a slice breaks it, or add an import-graph check in CI (Story 1.4).
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-1-scaffold-the-app-with-a-pinned-stack-and-boundary-rules.md`
-  summary: `keywords/core` and `integrity/core` ban a fixed list of framework, database and Node packages, not every package except an allow-list.
-  evidence: Core may legitimately import `@orama/stemmers` (Story 2.4), so a full allow-list needs the real dependency set. Turn the ban list into an allow-list in Story 2.4.
-- source_spec: `_bmad-output/implementation-artifacts/spec-1-1-scaffold-the-app-with-a-pinned-stack-and-boundary-rules.md`
   summary: `npm test` needs Playwright's Chromium, which nothing in the repo installs yet.
   evidence: Chromium was installed by hand with `npx playwright install chromium`. The Docker `test` stage (Story 1.3) installs it, and the README (NFR-9) must name it for the developer loop.
-- source_spec: `_bmad-output/implementation-artifacts/spec-1-1-scaffold-the-app-with-a-pinned-stack-and-boundary-rules.md`
-  summary: `src/shared/core` has no purity rule, so it can import Node built-ins, `server-only`, `next/*` or `drizzle-orm` while `keywords/core` and `integrity/core` stay "pure" through it.
-  evidence: Found in the Story 1.1 walkthrough code review. Add a core-purity override for `src/shared/core/**` (same ban list as the core slices) with a lint-boundary fixture, together with the allow-list work in Story 2.4.
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-2-read-configuration-in-one-place-and-answer-a-health-check.md`
   summary: Hosted does not fail when `AI_PROVIDER` is set without an AI key, and a key without a provider silently gives Test mode.
   evidence: AD-3 requires the key once `AI_PROVIDER` is set on Hosted; the story's AC lists other rules. Add the rule and a test in Story 3.12, when live AI goes on.
@@ -59,3 +53,12 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-7-deploy-the-skeleton-to-the-hosted-version.md`
   summary: Unverified (would be medium): `sslmode=require` on the Supabase session pooler with postgres-js, and the Vercel build running `db:migrate` with the Production variables.
   evidence: Needs the real Supabase and Vercel projects; settled by the first deploy and the FR-30 manual row in `docs/qa/hosted-deployment.md`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-4-normalise-and-stem-norwegian-words.md`
+  summary: `normalise` joins every space between two letters, so a multi-word term is stemmed only on its last word and single-letter words glue on («utvikler av systemer» vs «utviklere av systemer» differ; «R og Python» becomes «rogpython»).
+  evidence: Edge Case Hunter and Blind Hunter. Spec Design Notes choose joining so split compounds equal whole ones. Story 2.5/2.6 should match by token first (stem each word) and use the joined form only for the compound stage.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-4-normalise-and-stem-norwegian-words.md`
+  summary: `normalise` removes a dash next to digits («ISO-27001» becomes «iso27001» but «ISO 27001» stays «iso 27001»; «2020-2024» becomes «20202024»).
+  evidence: Edge Case Hunter and Blind Hunter. The spec says every dash is removed. Decide in 2.5/2.6 whether letter-digit variants should compare alike, with an Answer-key case to justify it.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-4-normalise-and-stem-norwegian-words.md`
+  summary: The new core allow-lists still let a relative import leave the slice from a `core` folder («../../integrity/core» from `keywords/core`, «../../keywords/core/stem» from `integrity/core`).
+  evidence: Verification Gap and Edge Case Hunter. The same hole existed with the old ban lists (see the first entry about short relative imports). Needs the import-graph check or a `../../**` ban once core folders stay flat.

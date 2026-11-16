@@ -119,6 +119,91 @@ const fixtures: Fixture[] = [
     code: "export const log = (m: string) => console.log(m);\n",
     violates: null,
   },
+  {
+    path: "src/modules/keywords/core/bad-package.ts",
+    code: 'import x from "lodash";\nexport const k = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/modules/keywords/core/bad-other-stemmer.ts",
+    code: 'import { x } from "@orama/stemmers/english";\nexport const k = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/modules/keywords/core/bad-other-slice-index.ts",
+    code: 'import { x } from "@/modules/integrity/core";\nexport const k = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/modules/keywords/server/bad-stemmer.ts",
+    code: 'import { x } from "@orama/stemmers/norwegian";\nexport const k = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/modules/integrity/core/bad-package.ts",
+    code: 'import x from "lodash";\nexport const i = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/modules/integrity/core/bad-node.ts",
+    code: 'import { x } from "node:fs";\nexport const i = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/modules/integrity/core/bad-stemmer.ts",
+    code: 'import { x } from "@orama/stemmers/norwegian";\nexport const i = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/shared/core/bad-package.ts",
+    code: 'import x from "lodash";\nexport const s = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/shared/core/bad-node.ts",
+    code: 'import { x } from "node:fs";\nexport const s = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/shared/core/bad-slice.ts",
+    code: 'import { x } from "@/modules/keywords/core";\nexport const s = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/shared/core/bad-stemmer.ts",
+    code: 'import { x } from "@orama/stemmers/norwegian";\nexport const s = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/shared/server/bad-stemmer.ts",
+    code: 'import { x } from "@orama/stemmers/norwegian";\nexport const s = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/app/bad-stemmer.ts",
+    code: 'import { x } from "@orama/stemmers/norwegian";\nexport const s = x;\n',
+    violates: RESTRICTED,
+  },
+  {
+    path: "src/modules/keywords/core/ok-stemmer.ts",
+    code: 'import { stemmer } from "@orama/stemmers/norwegian";\nimport { a } from "./a";\nimport { b } from "../b";\nexport const k = [stemmer, a, b];\n',
+    violates: null,
+  },
+  {
+    path: "src/modules/keywords/core/ok-test.test.ts",
+    code: 'import { readFileSync } from "node:fs";\nimport { it } from "vitest";\nit("x", () => readFileSync);\n',
+    violates: null,
+  },
+  {
+    path: "src/modules/integrity/core/ok-relative.ts",
+    code: 'import { a } from "./a";\nexport const i = a;\n',
+    violates: null,
+  },
+  {
+    path: "src/shared/core/ok-zod.ts",
+    code: 'import { z } from "zod";\nimport { a } from "./a";\nimport { canon } from "@/shared/core/canon";\nexport const s = [z, a, canon];\n',
+    violates: null,
+  },
 ];
 
 type Diagnostic = { category: string; location: { path: string } };
