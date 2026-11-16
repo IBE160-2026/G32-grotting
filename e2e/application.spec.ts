@@ -486,6 +486,7 @@ test.describe("FR-1 CV file picker", () => {
       `Feil ${WRONG_TYPE}`,
     );
     await expect(pickerRow(page)).toHaveCSS("border-top-color", RUST);
+    await expect(page.locator("#live-action")).toHaveText(WRONG_TYPE);
     await expect(page.locator("form").getByText(/^cv\.docx · /)).toBeVisible();
     await expect(cvField(page)).toHaveValue(CV);
     expect(calls).toEqual([]);
@@ -503,6 +504,7 @@ test.describe("FR-1 CV file picker", () => {
       buffer: Buffer.alloc(2 * 1024 * 1024 + 1, "a"),
     });
     await expect(page.locator("form").getByText(TOO_LARGE)).toBeVisible();
+    await expect(page.locator("#live-action")).toHaveText(TOO_LARGE);
     await expect(cvField(page)).toHaveValue(CV);
     expect(calls).toEqual([]);
   });
@@ -715,8 +717,65 @@ test.describe("FR-1 CV file picker", () => {
       buffer: Buffer.from("dette er ikke en PDF"),
     });
     await expect(page.locator("form").getByText(WRONG_TYPE)).toBeVisible();
+    await expect(page.locator("#live-action")).toHaveText(WRONG_TYPE);
     await expect(cvField(page)).toHaveValue("");
   });
+
+  test("an answer that lands after the CV was confirmed does not touch the confirmed text", async ({
+    page,
+  }) => {
+    await openForm(page);
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/cv/extract", async (route) => {
+      await held;
+      await route.continue();
+    });
+    await picker(page).setInputFiles(TEXT_PDF);
+    await confirmCv(page);
+    await page.getByLabel("Stillingstittel").fill("Utvikler");
+    await page.getByLabel("Arbeidsgiver").fill("Nordic Digital");
+    await page.getByLabel("Stillingsannonse").fill(AD);
+    await page.getByRole("button", { name: SUBMIT }).click();
+    const id = (await session(page)).applicationId;
+    expect(id).toMatch(/^[0-9a-f-]{36}$/);
+
+    const answered = page.waitForResponse("**/api/cv/extract");
+    release();
+    await answered;
+    await page.waitForTimeout(500);
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · /),
+    ).toBeVisible();
+    const stored = await session(page);
+    expect(stored.inputs.cvText).toBe(CV);
+    expect(stored.applicationId).toBe(id);
+  });
+
+  for (const [name, file] of [
+    ["a scanned PDF", SCANNED_PDF],
+    ["a rejected .docx", DOCX],
+  ] as const) {
+    test(`confirming the CV resets the picker after ${name}`, async ({
+      page,
+    }) => {
+      await openForm(page);
+      await picker(page).setInputFiles(file);
+      await expect(page.locator("form").getByText(/ · \d+ kB$/)).toBeVisible();
+      await confirmCv(page);
+      await page.getByRole("button", { name: "Endre CV-teksten" }).click();
+      await expect(page.locator("label:has(input[type=file])")).toHaveText(
+        "Velg fil",
+      );
+      await expect(page.locator("form").getByText(/ · \d+ kB$/)).toHaveCount(0);
+      await expect(page.locator("form").getByRole("alert")).toHaveCount(0);
+      await expect(page.locator("form").getByText(WRONG_TYPE)).toHaveCount(0);
+      await expect(page.locator("form").getByText(PASTE_HINT)).toHaveCount(0);
+      await expect(pickerRow(page)).toHaveCSS("border-top-color", EDGE);
+    });
+  }
 
   test("a network failure shows the network alert, keeps the text and leaves focus on the picker", async ({
     page,
@@ -848,6 +907,13 @@ test.describe("NFR-2 accessibility of Søknad", () => {
       );
     await picker(page).setInputFiles(SCANNED_PDF);
     await expect(page.locator("form").getByRole("alert")).toBeVisible();
+    expect(await overflow()).toBeLessThanOrEqual(0);
+    await picker(page).setInputFiles({
+      name: `${"Helene_Grotting_CV_2026_final_v3_".repeat(4)}.pdf`,
+      mimeType: "application/pdf",
+      buffer: Buffer.from("x"),
+    });
+    await expect(page.locator("form").getByText(/ · \d+ kB$/)).toBeVisible();
     expect(await overflow()).toBeLessThanOrEqual(0);
     await picker(page).setInputFiles({
       name: `${"en-veldig-lang-filnavn-".repeat(6)}.docx`,

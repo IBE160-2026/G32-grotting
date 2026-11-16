@@ -23,8 +23,9 @@ async function pdfText(bytes: Uint8Array): Promise<string | undefined> {
   }
 }
 
+// TextDecoder drops a byte order mark by default.
 function txtText(bytes: Uint8Array): string {
-  return new TextDecoder("utf-8").decode(bytes).replace(/^﻿/, "");
+  return new TextDecoder("utf-8").decode(bytes);
 }
 
 // Extracts the text of an uploaded CV file in memory (FR-1). Nothing is written

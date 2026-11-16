@@ -80,12 +80,26 @@ export function CvInput({
   const latestChoice = useRef(0);
   const collapsed = confirmed && !reopened;
 
+  // An answer that lands after the Student has left must not rewrite the form.
+  useEffect(() => {
+    const choices = latestChoice;
+    return () => {
+      choices.current++;
+    };
+  }, []);
+
+  // Focus stays on the picker, so a rejection is also spoken (UX-DR19).
+  function reject(shown: PickerState["file"], fileError: CvFileErrorCode) {
+    setPicker({ ...IDLE, file: shown, fileError });
+    announce("action", messages.cv.file.errors[fileError]);
+  }
+
   async function choose(file: File) {
     const choice = ++latestChoice.current;
     const shown = { name: file.name, size: file.size };
     const wrong = cvFileError(file.name, file.size);
     if (wrong !== undefined) {
-      setPicker({ ...IDLE, file: shown, fileError: wrong });
+      reject(shown, wrong);
       return;
     }
     setPicker({ ...IDLE, file: shown, extracting: true });
@@ -104,11 +118,11 @@ export function CvInput({
           ? serverFileError(result.error.field)
           : undefined;
       // Any other failure leaves the file unjudged; focus stays on the picker.
-      setPicker(
-        fileError === undefined
-          ? { ...IDLE, file: shown, failed: true }
-          : { ...IDLE, file: shown, fileError },
-      );
+      if (fileError === undefined) {
+        setPicker({ ...IDLE, file: shown, failed: true });
+      } else {
+        reject(shown, fileError);
+      }
       return;
     }
     if (result.data.noText) {

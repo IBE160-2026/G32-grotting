@@ -91,7 +91,7 @@ export function FilePicker({
           />
         </label>
         {file ? (
-          <div className="min-w-0 font-mono text-mono-meta text-ink">
+          <div className="min-w-0 font-mono text-mono-meta text-ink [overflow-wrap:anywhere]">
             <p>
               {file.name} ·{" "}
               {messages.fileSize(formatCount(kilobytes(file.size)))}
