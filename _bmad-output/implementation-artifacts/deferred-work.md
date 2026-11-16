@@ -54,11 +54,14 @@
   summary: Unverified (would be medium): `sslmode=require` on the Supabase session pooler with postgres-js, and the Vercel build running `db:migrate` with the Production variables.
   evidence: Needs the real Supabase and Vercel projects; settled by the first deploy and the FR-30 manual row in `docs/qa/hosted-deployment.md`.
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-4-normalise-and-stem-norwegian-words.md`
-  summary: `normalise` joins every space between two letters, so a multi-word term is stemmed only on its last word and single-letter words glue on («utvikler av systemer» vs «utviklere av systemer» differ; «R og Python» becomes «rogpython»).
-  evidence: Edge Case Hunter and Blind Hunter. Spec Design Notes choose joining so split compounds equal whole ones. Story 2.5/2.6 should match by token first (stem each word) and use the joined form only for the compound stage.
-- source_spec: `_bmad-output/implementation-artifacts/spec-2-4-normalise-and-stem-norwegian-words.md`
-  summary: `normalise` removes a dash next to digits («ISO-27001» becomes «iso27001» but «ISO 27001» stays «iso 27001»; «2020-2024» becomes «20202024»).
-  evidence: Edge Case Hunter and Blind Hunter. The spec says every dash is removed. Decide in 2.5/2.6 whether letter-digit variants should compare alike, with an Answer-key case to justify it.
-- source_spec: `_bmad-output/implementation-artifacts/spec-2-4-normalise-and-stem-norwegian-words.md`
   summary: The new core allow-lists still let a relative import leave the slice from a `core` folder («../../integrity/core» from `keywords/core`, «../../keywords/core/stem» from `integrity/core`).
   evidence: Verification Gap and Edge Case Hunter. The same hole existed with the old ban lists (see the first entry about short relative imports). Needs the import-graph check or a `../../**` ban once core folders stay flat.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary.md`
+  summary: The Norwegian ESCO skills list as a backup vocabulary source is not in the code; the vocabulary is the curated `data/vocabulary/nb.json` only.
+  evidence: Spec 2.5 Never list. Revisit in Story 2.11 (FR-5b) if code-only extraction fails the Answer keys on the held-out Fixture.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary.md`
+  summary: `tokenise` splits a word at a soft hyphen or zero-width character, so a PDF-extracted CV word is missed.
+  evidence: Edge Case Hunter. `normalise` strips these, but the tokeniser runs first. Pasted ads do not carry them; Story 2.6 reuses `tokenise` on CV text from PDFs, so handle it there with a test.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary.md`
+  summary: Some vocabulary entries are ambiguous in running text («Spark», «Swift», «Lean», «Ruby», «salg»), and there are no soft-skill or Office terms.
+  evidence: Blind Hunter. Matching is case-insensitive and stem-based, so a common word can hit. Tune against the Answer keys and the held-out Fixture in Stories 2.7 and 2.11, bumping `vocabularyVersion`.
