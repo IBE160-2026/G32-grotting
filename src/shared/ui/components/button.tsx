@@ -1,7 +1,9 @@
 import type { ComponentProps } from "react";
 
+type Variant = "primary" | "secondary";
+
 type ButtonProps = Omit<ComponentProps<"button">, "disabled"> & {
-  variant?: "primary" | "secondary";
+  variant?: Variant;
   small?: boolean;
   disabled?: boolean;
   // A running request: still focusable, label kept, clicks ignored (NFR-5).
@@ -25,6 +27,29 @@ const SIZE = {
 
 const DISABLED =
   "cursor-not-allowed border-disabled-edge bg-transparent text-disabled-ink";
+
+type ButtonLook = {
+  small?: boolean;
+  disabled?: boolean;
+  busy?: boolean;
+  className?: string;
+};
+
+// The one source of the button look: Button and Link kind="button" both use it.
+export function buttonClasses(
+  variant: Variant = "primary",
+  { small = false, disabled = false, busy = false, className }: ButtonLook = {},
+) {
+  return [
+    BASE,
+    SIZE[small ? "small" : "standard"],
+    disabled ? DISABLED : VARIANT[variant],
+    busy ? "cursor-progress" : "",
+    className ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
 
 // An 18 px square-capped arc; it turns only when motion is allowed.
 function ProgressGlyph() {
@@ -56,24 +81,13 @@ export function Button({
   children,
   ...rest
 }: ButtonProps) {
-  const style = disabled ? DISABLED : VARIANT[variant];
-  const classes = [
-    BASE,
-    SIZE[small ? "small" : "standard"],
-    style,
-    busy ? "cursor-progress" : "",
-    className ?? "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <button
       {...rest}
       type={type}
       disabled={disabled}
       aria-disabled={busy ? "true" : undefined}
-      className={classes}
+      className={buttonClasses(variant, { small, disabled, busy, className })}
       onClick={
         busy
           ? (event) => {
