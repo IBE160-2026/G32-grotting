@@ -103,3 +103,5 @@
 - [ ] 2026-11-16 [story-1-9-enter-job-ad-on-soknad](978-2026-11-16-15-09-00-story-1-9-enter-job-ad-on-soknad.md) — Epic 3: behold `applicationId` i minnet når `sessionStorage` er blokkert, og normaliser CRLF også på serveren
 - [ ] 2026-11-16 [story-1-9-enter-job-ad-on-soknad](978-2026-11-16-15-09-00-story-1-9-enter-job-ad-on-soknad.md) — ikke verifisert: ekte telefon og skjermleser på Søknad
 - [ ] 2026-11-16 [story-1-9-enter-job-ad-on-soknad](978-2026-11-16-15-09-00-story-1-9-enter-job-ad-on-soknad.md) — story 1.9 er ikke pushet og har ingen PR ennå (branch `story/1.9-enter-job-ad-on-soknad`)
+- [ ] 2026-11-16 [story-2-2-nursing-fixture](977-2026-11-16-18-15-00-story-2-2-nursing-fixture.md) — Helene: les/rediger `ad.txt` og `cv.txt`, skriv `answer-key.json` for hånd; så grønn test og spec/sprint-status til `done`
+- [ ] 2026-11-16 [story-2-2-nursing-fixture](977-2026-11-16-18-15-00-story-2-2-nursing-fixture.md) — story 2.2 er ikke pushet og har ingen PR ennå (branch `story/2.2-nursing-fixture`)
