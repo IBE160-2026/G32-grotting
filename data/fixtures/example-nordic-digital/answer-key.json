@@ -1,0 +1,72 @@
+{
+  "keywords": {
+    "matched": [
+      "HTML",
+      "CSS",
+      "REACT",
+      "Bachelor i informatikk",
+      "GIT",
+      "Figma",
+      "universell utforming",
+      "Agile",
+      "junior frontendutvikler"
+    ],
+    "missing": [
+      "TypeScript",
+      "REST-API",
+      "samarbeid i pull requests",
+      "testing",
+      "responsive mobil"
+    ]
+  },
+  "score": 64,
+  "mustNotMatch": [
+    {
+      "term": "Oslo",
+      "reason": "lokasjon, ikke ferdighet"
+    },
+    {
+      "term": "for",
+      "reason": "småord, ikke ferdighet"
+    },
+    {
+      "term": "og",
+      "reason": "småord, ikke ferdighet"
+    },
+    {
+      "term": "en",
+      "reason": "småord, ikke ferdighet"
+    },
+    {
+      "term": "mentor",
+      "reason": "beskriver et annet medlem av teamet, ikke studenten"
+    },
+    {
+      "term": "designere",
+      "reason": "beskriver andre medlemmer av teamet, ikke studenten"
+    }
+  ],
+  "gaps": {
+    "rewordable": [
+      {
+        "keyword": "samarbeid i pull requests",
+        "evidence": "Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen."
+      },
+      {
+        "keyword": "testing",
+        "evidence": "Jeg skrev enkle tester for skjemaene våre"
+      },
+      {
+        "keyword": "responsive mobil",
+        "evidence": "Bygde en nettside som tilpasser seg mobilskjermer."
+      }
+    ],
+    "real": ["REST-API", "TypeScript"]
+  },
+  "mustNeverSuggest": [
+    {
+      "keyword": "REST-API",
+      "reason": "CVen nevner ikke REST-API eller noe som kan tolkes som erfaring med REST-API"
+    }
+  ]
+}

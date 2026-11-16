@@ -2,7 +2,7 @@
 title: 'Story 2.1: Write the Example pair Fixture (frontend, English terms)'
 type: 'feature'
 created: '2026-11-16'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 baseline_commit: '2885ece2545b1e7f748b98ce3b738ff2c5611243'
 review_loop_iteration: 0
@@ -85,6 +85,8 @@ context:
 - Verified `extractCvText` on a hand-built PDF; the real `cv.pdf` is Helene's.
 - Open hand-off: `cv.pdf` and `answer-key.json`. Until `answer-key.json` exists, `example-nordic-digital has nothing wrong (SM-2)` fails by design (it reports `answer-key.json is missing`). Everything else passes: biome, tsc, 180 tests.
 - Draft texts: the ad has React, TypeScript, HTML/CSS, Git, Agile, stakeholders, testing, universell utforming, REST API and Figma as candidate terms; the CV states its own coverage. These are AI drafts for Helene to read and edit before writing the key.
+
+- 2026-11-16: Helene exported `cv.pdf`, ran `npm run fixtures:extract` and wrote `answer-key.json` by hand (9 Matched, 5 Missing, score 64). All 181 tests pass; the Example pair check is green. Status set to done.
 
 ## Spec Change Log
 
