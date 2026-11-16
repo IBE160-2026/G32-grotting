@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-16-2026 20:30
+last_updated: 11-16-2026 21:20
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -52,7 +52,7 @@ development_status:
   epic-2: in-progress
   2-1-write-the-example-pair-fixture-frontend-english-terms: done
   2-2-write-the-nursing-fixture-outside-it-sårvurdering: done
-  2-3-write-the-two-column-fixture-split-compounds-prosjektledelse: review
+  2-3-write-the-two-column-fixture-split-compounds-prosjektledelse: done
   2-4-normalise-and-stem-norwegian-words: backlog
   2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary: backlog
   2-6-find-each-keyword-in-the-cv-text-with-its-evidence: backlog

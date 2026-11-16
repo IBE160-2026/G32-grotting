@@ -2,7 +2,7 @@
 title: 'Story 2.3: Write the two-column Fixture (split compounds, «prosjektledelse»)'
 type: 'feature'
 created: '2026-11-16'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 baseline_commit: '34439d31ef2760ffa642621668a15b319acac98e'
 review_loop_iteration: 0
@@ -62,7 +62,7 @@ context:
 - [x] `data/fixtures/two-column-fjord-analytics/ad.txt` -- draft a fictional ad, Junior produktanalytiker at Fjord Analytics, with «prosjektledelse» and «dataanalyse» among its Keywords
 - [x] `data/fixtures/two-column-fjord-analytics/meta.json` -- job title and employer
 - [x] `data/fixtures/two-column-fjord-analytics/cv.txt` -- draft a fictional CV (text in two-column reading order) with split compounds, inflected forms, a lone «ledelse», and a semester group project entry
-- [ ] Helene (hand-off) -- read and edit the drafts, lay out `cv.pdf` in two columns, run `npm run fixtures:extract`, check that a line is scrambled, then write `answer-key.json` by hand; the story stays `in-review` until all exist and the tests pass
+- [x] Helene (hand-off) -- read and edit the drafts, lay out `cv.pdf` in two columns, run `npm run fixtures:extract`, check that a line is scrambled, then write `answer-key.json` by hand; the story stays `in-review` until all exist and the tests pass
 
 **Acceptance Criteria:**
 - Given the UJ-2 ad and the two-column `cv.pdf`, when the script extracts it, then at least one line of `cv.txt` is scrambled.
@@ -77,6 +77,8 @@ context:
 - Ad Keyword candidates: dataanalyse, SQL, dashbord, Power BI, statistikk, datamodellering, prosjektledelse, rapporter, Python (a plus), Excel/R are not in the ad. These are AI drafts for Helene to read and edit before she writes the key.
 - CV draft: «Data analyse» (split compound for «dataanalyse»), «datamodellene», «dashbordene», «rapporten», «dataene» (definite forms), a lone «ledelse» in «Organisasjon og ledelse». The group project entry is neutral: it says tasks were shared and the group met weekly, and names no planning or coordination role. Whether it counts is Helene's call. Nothing in the CV names an Answer-key item.
 - Checked: «prosjektledelse», «prosjekt ledelse», «prosjektleder*» and «python» are absent from `cv.txt`. Biome passes. `fixtures.test.ts`: 8 pass, 1 fails by design (`two-column-fjord-analytics has nothing wrong (SM-2)` reports `answer-key.json is missing`) until Helene's hand-off.
+
+- 2026-11-16: Helene exported a two-column `cv.pdf`, ran `npm run fixtures:extract` and wrote `answer-key.json` by hand (6 Matched, 3 Missing, score 67). The extraction reads the left column first, so «Utdanning», «Ferdigheter» and «Språk» come before «Profil», and the email and a few lines break mid-word (FR-3 correction case). «prosjektledelse» is a Real gap and must-never-suggest (no leadership role in the project entry); «ledelse» is a must-not-match term. Claude made only mechanical fixes to the key (a missing comma, `score`, `biome format`). biome, tsc and all 246 tests pass.
 
 ## Spec Change Log
 
