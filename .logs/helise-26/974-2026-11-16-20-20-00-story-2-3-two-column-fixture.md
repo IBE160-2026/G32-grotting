@@ -44,4 +44,4 @@ Fullføre story 2.3: Helene lagde tospalte-`cv.pdf` og skrev fasiten, testene sk
 
 ### Åpne punkter
 - Story 2.3 er ikke pushet og har ingen PR ennå (branch `story/2.3-two-column-fixture`).
-- Valgfritt: `mustNotMatch` har «Bergen», «med» og «utvikler»-lignende ord som er annonseord eller småord; de tester ikke over-matching mot CV-en. Fasiten er Helenes, så vurder om de skal strammes inn før motoren (2.4–2.6) bygges mot den.
+- Valgfritt: `mustNotMatch` har «Bergen» og «med» (stedsnavn og småord) ved siden av «ledelse»; de to første tester ikke over-matching av et nøkkelord mot CV-en. Fasiten er Helenes, så vurder om de skal strammes inn før motoren (2.4–2.6) bygges mot den.
