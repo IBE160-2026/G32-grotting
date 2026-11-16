@@ -11,6 +11,8 @@ export const messages = {
     menuClose: "Lukk",
   },
   errorStrip: "Feil",
+  // «612 av 20 000 tegn»: the counter under a long text field.
+  counter: (used: string, max: string) => `${used} av ${max} tegn`,
   networkFailure:
     "Fikk ikke kontakt med serveren. Sjekk tilkoblingen og prøv igjen.",
   passwordToggle: { show: "Vis", hide: "Skjul" },
@@ -23,13 +25,22 @@ export const messages = {
     wrong: "Feil tilgangskode.",
     tooShort: "Koden har minst 16 tegn.",
   },
+  cv: {
+    label: "CV-tekst",
+    confirm: "Bekreft CV-teksten",
+    confirmed: (count: string) => `CV-tekst bekreftet · ${count} tegn`,
+    reopen: "Endre CV-teksten",
+    errors: {
+      CV_LENGTH: "CV-teksten må være mellom 200 og 20 000 tegn.",
+      CV_NOT_CONFIRMED: "Bekreft CV-teksten før du går videre.",
+    },
+  },
   application: {
     heading: "Ny søknad",
     jobTitle: "Stillingstittel",
     employer: "Arbeidsgiver",
     jobAd: "Stillingsannonse",
     jobAdHint: "Lim inn hele annonseteksten, minst 200 tegn.",
-    counter: (used: string, max: string) => `${used} av ${max} tegn`,
     submit: "Analyser og skriv utkast",
     errors: {
       JOB_AD_LENGTH: "Stillingsannonsen må være mellom 200 og 15 000 tegn.",

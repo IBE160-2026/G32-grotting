@@ -63,16 +63,28 @@ describe("NFR-5, AD-16 client session", () => {
     const storage = memoryStorage(
       JSON.stringify({
         v: 1,
-        inputs: { cvText: "cv", tone: "formal" },
+        inputs: { cvText: "cv", tone: "formal", fresh: 1 },
         extra: 1,
       }),
     );
     writeSession({ inputs: { jobAd: "annonse" } }, storage);
     expect(JSON.parse(storage.dump() ?? "{}")).toEqual({
       v: 1,
-      inputs: { cvText: "cv", tone: "formal", jobAd: "annonse" },
+      inputs: { cvText: "cv", tone: "formal", fresh: 1, jobAd: "annonse" },
       extra: 1,
     });
+  });
+
+  it("keeps the CV draft and removes the confirmed text on an edit", () => {
+    const storage = memoryStorage();
+    writeSession({ inputs: { cvDraft: "cv", cvText: "cv" } }, storage);
+    expect(readSession(storage).inputs).toEqual({
+      cvDraft: "cv",
+      cvText: "cv",
+    });
+    writeSession({ inputs: { cvDraft: "cv2", cvText: undefined } }, storage);
+    expect(readSession(storage).inputs).toEqual({ cvDraft: "cv2" });
+    expect(storage.dump()).not.toContain("cvText");
   });
 
   it("sets, keeps and removes the applicationId", () => {
