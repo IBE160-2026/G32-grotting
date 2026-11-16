@@ -45,3 +45,20 @@ Fullføre story 2.3: Helene lagde tospalte-`cv.pdf` og skrev fasiten, testene sk
 ### Åpne punkter
 - Story 2.3 er ikke pushet og har ingen PR ennå (branch `story/2.3-two-column-fixture`).
 - Valgfritt: `mustNotMatch` har «Bergen» og «med» (stedsnavn og småord) ved siden av «ledelse»; de to første tester ikke over-matching av et nøkkelord mot CV-en. Fasiten er Helenes, så vurder om de skal strammes inn før motoren (2.4–2.6) bygges mot den.
+
+## 2026-11-16 kl. 21:35 — Helise-26
+
+### Oppgave
+Helene la til to must-not-match-ord i `answer-key.json` etter at PR #26 var merget; endringen skulle inn i `main` via en ny PR.
+
+### Plan
+- Helene la til «data» og «tall» i `mustNotMatch`. Det manglet igjen et komma, som jeg la til, og kjørte `biome format --write`. Innholdet er hennes.
+- PR #26 var allerede merget, så jeg lagde `story/2.3-answer-key-negatives` fra `origin/main` (c13e18b) og tok endringen med dit. Lokal `main` er satt til `origin/main`.
+
+### Resultat
+- Commit på `story/2.3-answer-key-negatives`: `data/fixtures/two-column-fjord-analytics/answer-key.json` (to nye must-not-match-ord). Verifisert: biome grønn, vitest 246 av 246.
+- **Ordene og begrunnelsene er skrevet av Helene for hånd. Claude har ikke skrevet eller foreslått innholdet.**
+- PR #26 (story 2.3) er merget til `main` som `c13e18b`; CI var grønn.
+
+### Åpne punkter
+- Om «data» alene ikke skal matche, må motoren (2.4–2.6) behandle det som negativt tilfelle mot «dataanalyse»/«datamodellering». Det er et motorspørsmål, ikke et fasitspørsmål.
