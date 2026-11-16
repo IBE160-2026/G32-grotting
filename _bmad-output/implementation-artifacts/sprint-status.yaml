@@ -43,8 +43,8 @@ development_status:
   1-5-show-every-page-in-the-jobassistant-look-with-an-accessible: done
   1-6-close-the-hosted-version-with-an-access-code: done
   1-7-deploy-the-skeleton-to-the-hosted-version: done
-  1-8-read-what-jobassistant-does-on-hjem: backlog
-  1-9-enter-the-job-ad-job-title-and-employer-on-søknad: backlog
+  1-8-read-what-jobassistant-does-on-hjem: done
+  1-9-enter-the-job-ad-job-title-and-employer-on-søknad: done
   1-10-paste-and-confirm-the-cv-text-on-søknad: backlog
   1-11-upload-a-cv-file-and-correct-the-extracted-text: backlog
   epic-1-retrospective: optional
