@@ -1,0 +1,29 @@
+Ingrid Moen
+Junior produktanalytiker
+ingrid.moen@example.com | +47 000 00 000 | Bergen
+Profil
+Nyutdannet bachelorstudent i økonomi og analyse. Jeg liker å finne
+mønstre i tall og forklare dem på en enkel måte.
+Utdanning
+Bachelor i økonomi og analyse, Vestfjord høgskole (fiktiv), 2023–2026
+Relevante emner:
+- Statistikk 1 og 2: Regresjon, hypotesetesting og tolkning av resultater.
+- Data analyse: Utforskende analyse av reelle datasett i Excel og R.
+- Databaser: SQL og datamodellene bak en nettbutikk.
+- Organisasjon og ledelse: Teorier om team og beslutninger.
+- Forretningsforståelse: Nøkkeltall og lønnsomhet.
+Prosjekt
+Semesterprosjekt i gruppe, våren 2026
+Fire studenter analyserte salgstallene til et lokalt kaffebrenneri.
+- Jeg skrev SQL-spørringene som hentet ut dataene og laget
+dashbordene i Power BI.
+- Gruppen delte oppgavene mellom seg og hadde møte hver uke.
+- Vi leverte rapporten og presenterte funnene for faglærer og et
+annet kull.
+Arbeidserfaring
+Kundeservicemedarbeider, Bergen Bokhandel (fiktiv), deltid, 2022–2025
+Kasse, bestillinger og kundekontakt. Lærte å lytte til kunder og å
+forklare ting enkelt.
+Ferdigheter
+SQL, Power BI, Excel, R, statistikk
+Språk: norsk (morsmål), engelsk (flytende)

@@ -1,0 +1,26 @@
+Junior produktanalytiker
+
+Fjord Analytics er et analysebyrå i Bergen med 25 ansatte. Vi hjelper norske nettbutikker og apper med å forstå hvordan kundene bruker produktene deres, og vi har et lite og uformelt miljø der alle bidrar. Vi trenger en ny kollega i produktteamet vårt.
+
+Om stillingen
+Du blir en del av et team på fire som gjør analyser for kundene våre. Du får en erfaren analytiker som mentor, og du jobber tett med produkteiere og utviklere hos kundene. Du bygger dashbord, skriver rapporter som kundene forstår, og presenterer funnene i møter. Du får ansvar for små delprosjekter underveis, og vi forventer at du kan holde orden på fremdrift og frister.
+
+Dette ser vi etter
+- Du har erfaring med dataanalyse og kan trekke konklusjoner fra tall.
+- Du kan SQL og har brukt det til å hente ut data fra databaser.
+- Du kan bygge dashbord i Power BI eller et lignende verktøy.
+- Du har grunnleggende kunnskap om statistikk.
+- Du har vært borti datamodellering og vet hvorfor god struktur på dataene er viktig.
+- Du har erfaring med prosjektledelse, for eksempel fra et studieprosjekt.
+- Du skriver rapporter som er korte, tydelige og lette å bruke.
+- Du har fullført eller er i ferd med å fullføre en bachelor i økonomi, statistikk, informatikk eller tilsvarende.
+
+Det er et pluss om du kan Python, men det er ikke et krav.
+
+Vi tilbyr
+- Fleksibel arbeidstid og hjemmekontor to dager i uken
+- Gode pensjons- og forsikringsordninger
+- Kompetansebudsjett på 15 000 kroner i året
+- Kontor ved Bryggen, to minutter fra Bybanen
+
+Søknadsfrist er 15. desember. Vi behandler søknader fortløpende.
