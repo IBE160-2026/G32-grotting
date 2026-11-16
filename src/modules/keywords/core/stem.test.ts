@@ -4,10 +4,10 @@ import { sameWord, stem } from "./stem";
 const sameGroups: string[][] = [
   ["utvikler", "utviklere", "utviklerne", "utvikleren", "Utviklerens"],
   ["prosjektleder", "prosjektlederen", "prosjektledere", "prosjektlederne"],
-  ["front-end", "front end", "frontend", "Front‑End"],
+  ["front-end", "front end", "frontend", "Front\u2011End"],
   ["data analyse", "dataanalyse", "Data-analyse"],
-  ["SÅRVURDERING", "sårvurdering", "sårvurdering"],
-  ["ledelse", "ledelsen", "ledelser", "ledelsene"],
+  ["SÅRVURDERING", "s\u00E5rvurdering", "sa\u030Arvurdering"],
+  ["ledelse", "ledelsen", "ledelser", "ledelsene", "ledelses", "ledelsens"],
   ["prosjektledelse", "prosjektledelsen", "prosjektledelser"],
 ];
 

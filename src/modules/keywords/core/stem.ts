@@ -5,7 +5,7 @@ import { normalise } from "./normalise";
 // normalise() removes every dash, so no ordinary stem can contain it.
 const ELSE_MARKER = "-else";
 
-const ELSE_ENDING = /^(.{2,})else(?:n|r|ne)?$/u;
+const ELSE_ENDING = /^(.{2,})else(?:n|r|ne|s|ns|rs|nes)?$/u;
 const AGENT_ENDING = /^(.{3,}er)(?:e|ne|en|ens)$/u;
 
 /**

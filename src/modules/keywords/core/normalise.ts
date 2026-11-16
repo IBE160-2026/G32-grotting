@@ -1,13 +1,19 @@
 import { canon } from "@/shared/core/canon";
 
-// Soft hyphen, zero-width space/non-joiner/joiner, word joiner and BOM: PDF
-// extraction leaves these inside words.
-const INVISIBLE = /[­​-‍⁠﻿]/g;
+// PDF extraction leaves these inside words: soft hyphen (U+00AD), zero-width
+// space, non-joiner and joiner (U+200B-U+200D), left-to-right and right-to-left
+// marks (U+200E, U+200F), word joiner (U+2060) and BOM (U+FEFF).
+const INVISIBLE = /[\u00AD\u200B-\u200F\u2060\uFEFF]/g;
 
-// Hyphen-minus, the U+2010..U+2015 dashes (hyphen, non-breaking hyphen, figure
-// dash, en dash, em dash, horizontal bar), minus sign, small and full-width
-// hyphen-minus.
-const DASH = /[-‐-―−﹘﹣－]/g;
+// Typographic ligatures (U+FB00 to U+FB06: ff, fi, fl, ffi, ffl) that PDFs keep as one
+// character; NFC leaves them alone, so they are spelled out here.
+const LIGATURE = /[\uFB00-\uFB06]/g;
+
+// Hyphen-minus, the U+2010-U+2015 dashes (hyphen, non-breaking hyphen, figure
+// dash, en dash, em dash, horizontal bar), minus sign (U+2212), small
+// hyphen-minus (U+FE63), small em dash (U+FE58) and full-width hyphen-minus
+// (U+FF0D).
+const DASH = /[-\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g;
 
 // Whitespace with a letter (or a combining mark) on both sides. Whitespace
 // next to digits or punctuation is kept, so «c++ utvikler» stays two words.
@@ -27,6 +33,7 @@ export function normalise(term: string): string {
     .toLowerCase()
     .normalize("NFC")
     .replace(INVISIBLE, "")
+    .replace(LIGATURE, (ligature) => ligature.normalize("NFKC"))
     .replace(DASH, "")
     .replace(SPACE_BETWEEN_LETTERS, "");
   return canon(folded);
