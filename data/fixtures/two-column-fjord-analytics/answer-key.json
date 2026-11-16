@@ -1,0 +1,47 @@
+{
+  "keywords": {
+    "matched": [
+      "SQL",
+      "Power BI",
+      "statistikk",
+      "dataanalyse",
+      "bachelor i økonomi",
+      "datamodellering"
+    ],
+    "missing": ["prosjektledelse", "skriver rapporter", "Python"]
+  },
+  "score": 67,
+  "mustNotMatch": [
+    {
+      "term": "Bergen",
+      "reason": "lokasjon, ikke ferdighet"
+    },
+    {
+      "term": "med",
+      "reason": "småord, ikke ferdighet"
+    },
+    {
+      "term": "ledelse",
+      "reason": "Studenten har ikke oppgitt en lederrolle i CVen, se 'prosjektledelse' i gaps"
+    }
+  ],
+  "gaps": {
+    "rewordable": [
+      {
+        "keyword": "skriver rapporter",
+        "evidence": "- Vi leverte rapporten og presenterte funnene for faglærer og et annet kull."
+      }
+    ],
+    "real": ["prosjektledelse", "Python"]
+  },
+  "mustNeverSuggest": [
+    {
+      "keyword": "prosjektledelse",
+      "reason": "Studenten har ikke hatt en lederrolle i semesterprosjektet."
+    },
+    {
+      "keyword": "Python",
+      "reason": "Studenten har ikke nevnt Python i CV"
+    }
+  ]
+}
