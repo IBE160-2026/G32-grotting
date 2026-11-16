@@ -89,6 +89,10 @@
                   {
                     "group": ["../../../**"],
                     "message": "A slice file must not reach outside its slice with a relative import; use the @/ alias."
+                  },
+                  {
+                    "group": ["@orama/stemmers", "@orama/stemmers/**"],
+                    "message": "Only keywords/core stems or compares words: import it through @/modules/keywords/core."
                   }
                 ]
               }
@@ -120,6 +124,10 @@
                       "!@/modules/integrity/core/index"
                     ],
                     "message": "Import another slice only through its index.ts, contracts.ts, ui/index.ts, or core/index.ts (keywords and integrity)."
+                  },
+                  {
+                    "group": ["@orama/stemmers", "@orama/stemmers/**"],
+                    "message": "Only keywords/core stems or compares words: import it through @/modules/keywords/core."
                   }
                 ]
               }
@@ -140,6 +148,10 @@
                   {
                     "group": ["@/modules/**"],
                     "message": "The shared kernel must not import slices."
+                  },
+                  {
+                    "group": ["@orama/stemmers", "@orama/stemmers/**"],
+                    "message": "Only keywords/core stems or compares words: import it through @/modules/keywords/core."
                   }
                 ]
               }
@@ -149,7 +161,7 @@
       }
     },
     {
-      "includes": ["src/modules/keywords/core/**"],
+      "includes": ["src/modules/keywords/core/**", "!**/*.test.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -158,8 +170,14 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["@/**", "!@/shared/core/**"],
-                    "message": "keywords/core may import only shared/core."
+                    "group": [
+                      "**",
+                      "!./**",
+                      "!../**",
+                      "!@/shared/core/**",
+                      "!@orama/stemmers/norwegian"
+                    ],
+                    "message": "keywords/core may import only shared/core, its own slice by relative path, and @orama/stemmers/norwegian."
                   },
                   {
                     "group": [
@@ -172,39 +190,6 @@
                       "../**/app/**"
                     ],
                     "message": "keywords/core must not reach server, ui, shared or other slices by a relative import."
-                  },
-                  {
-                    "group": [
-                      "node:*",
-                      "react",
-                      "react-dom",
-                      "next",
-                      "next/**",
-                      "server-only",
-                      "drizzle-orm",
-                      "drizzle-orm/**",
-                      "postgres",
-                      "fs",
-                      "fs/**",
-                      "path",
-                      "crypto",
-                      "os",
-                      "child_process",
-                      "http",
-                      "https",
-                      "net",
-                      "stream",
-                      "stream/**",
-                      "util",
-                      "url",
-                      "zlib",
-                      "buffer",
-                      "worker_threads",
-                      "timers",
-                      "timers/**",
-                      "process"
-                    ],
-                    "message": "core is pure: no Node built-ins, framework or database packages."
                   }
                 ]
               }
@@ -214,7 +199,7 @@
       }
     },
     {
-      "includes": ["src/modules/integrity/core/**"],
+      "includes": ["src/modules/integrity/core/**", "!**/*.test.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -224,12 +209,14 @@
                 "patterns": [
                   {
                     "group": [
-                      "@/**",
+                      "**",
+                      "!./**",
+                      "!../**",
                       "!@/shared/core/**",
                       "!@/modules/keywords/core",
                       "!@/modules/keywords/core/index"
                     ],
-                    "message": "integrity/core may import only keywords/core and shared/core."
+                    "message": "integrity/core may import only keywords/core, shared/core and its own slice by relative path."
                   },
                   {
                     "group": [
@@ -242,39 +229,44 @@
                       "../**/app/**"
                     ],
                     "message": "integrity/core must not reach server, ui, shared or other slices by a relative import."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/shared/core/**", "!**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "**",
+                      "!zod",
+                      "!./**",
+                      "!../**",
+                      "!@/shared/core/**"
+                    ],
+                    "message": "shared/core is pure: it may import only zod, relative paths and itself."
                   },
                   {
                     "group": [
-                      "node:*",
-                      "react",
-                      "react-dom",
-                      "next",
-                      "next/**",
-                      "server-only",
-                      "drizzle-orm",
-                      "drizzle-orm/**",
-                      "postgres",
-                      "fs",
-                      "fs/**",
-                      "path",
-                      "crypto",
-                      "os",
-                      "child_process",
-                      "http",
-                      "https",
-                      "net",
-                      "stream",
-                      "stream/**",
-                      "util",
-                      "url",
-                      "zlib",
-                      "buffer",
-                      "worker_threads",
-                      "timers",
-                      "timers/**",
-                      "process"
+                      "../**/server",
+                      "../**/server/**",
+                      "../**/ui",
+                      "../**/ui/**",
+                      "../**/shared/**",
+                      "../**/modules/**",
+                      "../**/app/**"
                     ],
-                    "message": "core is pure: no Node built-ins, framework or database packages."
+                    "message": "shared/core must not reach server, ui, shared or other slices by a relative import."
                   }
                 ]
               }
