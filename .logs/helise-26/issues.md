@@ -151,3 +151,4 @@
 - [ ] 2026-11-17 [story-2-9-pulse-plot](968-2026-11-17-11-55-00-story-2-9-pulse-plot.md) — ikke verifisert: `docker compose run --rm --build test` og øvrige e2e-filer; Hjem-fallbacken (uten plott) har ingen test
 - [ ] 2026-11-17 [story-2-10-try-with-example](967-2026-11-17-12-20-00-story-2-10-try-with-example.md) — Helene: kjør FR-3- og FR-8-sjekkene i `docs/qa/example-pair-manual-checks.md` og fyll inn resultat (AC 3 og 4 i 2.10 er åpne til da)
 - [ ] 2026-11-17 [story-2-10-try-with-example](967-2026-11-17-12-20-00-story-2-10-try-with-example.md) — ikke verifisert: `docker compose run --rm --build test` og øvrige e2e-filer for 2.10
+- [ ] 2026-11-17 [story-2-11-fr-5b-held-out-fixture](966-2026-11-17-12-14-05-story-2-11-fr-5b-held-out-fixture.md) — Helene: skriv `answer-key.json` for hånd i `data/fixtures/held-out-regnskap-kvale/` før motoren kjøres på den; deretter fortsetter 2.11 (SM-2, FR-5b-beslutning, review, merge)
