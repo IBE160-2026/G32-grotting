@@ -60,3 +60,7 @@ SM-2 failed on one Fixture, so under the story's rules FR-5b applies. Changes ma
 | Date | Decided by | Outcome | Note |
 | --- | --- | --- | --- |
 | 2026-11-17 | Helene | FR-5b applies | After reading the 13 differences above |
+
+## Later change to the vocabulary (2026-11-17)
+
+After this decision, PR #36 changed `data/vocabulary/nb.json` from `v1-d3a1887d` to `v1-bbb32bad`. The change aligned the nordic and nursing Fixtures with their updated Answer keys: the fixture-fitted terms «samarbeid i pull requests», «responsive mobil», «smertelindring hos eldre» and «dokumenterer i pasientjournal» were renamed or removed, «pasientjournal» and «infeksjonsforebygging» were added, and three aliases that made Missing keywords match («norsk morsmål», «trykksår», «diabetessår») were removed. The held-out Fixture was not used to tune any of it. The run and the 13 differences above are from `v1-d3a1887d` and are kept as they were; the held-out list test is still an expected failure.
