@@ -6,6 +6,7 @@ import { toRunMode } from "@/shared/server/run-mode";
 import { LIVE_REGION_IDS } from "@/shared/ui/announce";
 import { AppBar } from "@/shared/ui/components/app-bar";
 import { messages } from "@/shared/ui/messages.nb";
+import { QueryProvider } from "@/shared/ui/query-provider";
 import { RunModeProvider } from "@/shared/ui/run-mode";
 import "./globals.css";
 
@@ -58,7 +59,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             tabIndex={-1}
             className="flex-1 px-page-x pt-page-top pb-page-bottom max-640:px-page-x-mobile max-640:pt-page-top-mobile max-640:pb-page-bottom-mobile"
           >
-            {children}
+            <QueryProvider>{children}</QueryProvider>
           </main>
         </RunModeProvider>
         <div

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
@@ -31,6 +32,34 @@ const FILES = fileURLToPath(new URL("./files/", import.meta.url));
 const TEXT_PDF = `${FILES}text-cv.pdf`;
 const SCANNED_PDF = `${FILES}scanned.pdf`;
 const DOCX = `${FILES}cv.docx`;
+
+// The Example pair and its Answer key: the counts the result must show come
+// from the key, not from numbers typed here (SM-2).
+const EXAMPLE = fileURLToPath(
+  new URL("../data/fixtures/example-nordic-digital/", import.meta.url),
+);
+const exampleFile = (name: string) => readFileSync(`${EXAMPLE}${name}`, "utf8");
+const EXAMPLE_META = JSON.parse(exampleFile("meta.json")) as {
+  jobTitle: string;
+  employer: string;
+};
+const EXAMPLE_KEY = JSON.parse(exampleFile("answer-key.json")) as {
+  keywords: { matched: string[]; missing: string[] };
+  score: number;
+};
+const EXAMPLE_AD = exampleFile("ad.txt");
+const EXAMPLE_PARAGRAPHS = EXAMPLE_AD.replace(/\r\n?/g, "\n")
+  .split(/\n(?:[^\S\n]*\n)+/)
+  .filter((paragraph) => paragraph.trim() !== "").length;
+const EXAMPLE_MATCHED = EXAMPLE_KEY.keywords.matched.length;
+const EXAMPLE_MISSING = EXAMPLE_KEY.keywords.missing.length;
+const EXAMPLE_TOTAL = EXAMPLE_MATCHED + EXAMPLE_MISSING;
+const EXAMPLE_SENTENCE = `${EXAMPLE_KEY.score} % samsvar – ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord`;
+// Words of no use as Keywords, long enough to pass the length check.
+const NO_KEYWORDS =
+  "Vi er et selskap som holder til i Oslo og har kontor. ".repeat(6);
+const AD_UNCLEAR =
+  "Annonsen er for kort eller uklar til å analyseres. Lim inn hele stillingsannonsen, også kravene.";
 
 async function seriousFindings(page: Page) {
   const { violations } = await new AxeBuilder({ page })
@@ -91,6 +120,25 @@ function trackApiCalls(page: Page): string[] {
   const calls: string[] = [];
   page.on("request", (request) => {
     if (new URL(request.url()).pathname.startsWith("/api/")) {
+      calls.push(request.url());
+    }
+  });
+  return calls;
+}
+
+// Fills the form with the Example pair and confirms the CV.
+async function fillExample(page: Page, jobAd: string = EXAMPLE_AD) {
+  await openForm(page);
+  await confirmCv(page, exampleFile("cv.txt"));
+  await page.getByLabel("Stillingstittel").fill(EXAMPLE_META.jobTitle);
+  await page.getByLabel("Arbeidsgiver").fill(EXAMPLE_META.employer);
+  await page.getByLabel("Stillingsannonse").fill(jobAd);
+}
+
+function analysisCalls(page: Page): string[] {
+  const calls: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/analyses") {
       calls.push(request.url());
     }
   });
@@ -821,21 +869,38 @@ test.describe("AD-16, AD-8 client session and applicationId", () => {
     await expect(cvField(page)).toHaveValue("");
   });
 
-  test("makes one applicationId on a valid submit, sends no request, and drops it on an edit", async ({
+  test("makes one applicationId on a valid submit, sends it with the request, and drops it on an edit", async ({
     page,
   }) => {
-    const apiCalls = trackApiCalls(page);
+    // An answer that keeps the form, so the submit can be pressed again.
+    const sent: string[] = [];
+    await page.route("**/api/analyses", async (route) => {
+      sent.push(route.request().postDataJSON().applicationId);
+      await route.fulfill({
+        status: 400,
+        json: {
+          ok: false,
+          error: {
+            code: "INVALID_INPUT",
+            field: "inputs.jobAd",
+            retryable: false,
+          },
+        },
+      });
+    });
     await openForm(page);
     await confirmCv(page);
     await page.getByLabel("Stillingstittel").fill("Utvikler");
     await page.getByLabel("Arbeidsgiver").fill("Nordic Digital");
     await page.getByLabel("Stillingsannonse").fill(AD);
     const submit = page.getByRole("button", { name: SUBMIT });
-    await submit.dblclick();
+    await submit.click();
 
     const first = (await session(page)).applicationId;
     expect(first).toMatch(/^[0-9a-f-]{36}$/);
+    await expect(page.locator("form").getByText(AD_UNCLEAR)).toBeVisible();
     await submit.click();
+    await expect.poll(() => sent.length).toBe(2);
     expect((await session(page)).applicationId).toBe(first);
     await page.reload();
     await page.waitForLoadState("networkidle");
@@ -845,14 +910,15 @@ test.describe("AD-16, AD-8 client session and applicationId", () => {
     await page.getByLabel("Arbeidsgiver").fill("Annen AS");
     expect((await session(page)).applicationId).toBeUndefined();
     await page.getByRole("button", { name: SUBMIT }).click();
+    await expect.poll(() => sent.length).toBe(4);
     const second = (await session(page)).applicationId;
     expect(second).toMatch(/^[0-9a-f-]{36}$/);
     expect(second).not.toBe(first);
+    expect(sent).toEqual([first, first, first, second]);
 
     await page.getByRole("button", { name: "Endre CV-teksten" }).click();
     await cvField(page).fill(`${CV} Mer.`);
     expect((await session(page)).applicationId).toBeUndefined();
-    expect(apiCalls).toEqual([]);
   });
 });
 
@@ -925,4 +991,223 @@ test.describe("NFR-2 accessibility of Søknad", () => {
     await confirmCv(page);
     expect(await overflow()).toBeLessThanOrEqual(0);
   });
+});
+
+test.describe("FR-7, FR-8 Søknad result", () => {
+  test("shows the score, the formula and both lists for the Example pair after one request", async ({
+    page,
+  }) => {
+    const calls = analysisCalls(page);
+    await fillExample(page);
+    await page.getByRole("button", { name: SUBMIT }).click();
+
+    const heading = page.getByRole("heading", { level: 1 });
+    await expect(heading).toHaveText(EXAMPLE_META.employer);
+    await expect(heading).toBeFocused();
+    expect(calls).toHaveLength(1);
+    await expect(page.locator("form")).toHaveCount(0);
+
+    const credits = page.locator("dl");
+    await expect(credits).toContainText(EXAMPLE_META.jobTitle);
+    await expect(credits).toContainText(
+      `${EXAMPLE_PARAGRAPHS} avsnitt · ${EXAMPLE_TOTAL} nøkkelord`,
+    );
+    await expect(credits).toContainText(/\d{1,2}\. [a-zæøå]+\.? 20\d\d/);
+
+    await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText(
+      EXAMPLE_SENTENCE,
+    );
+    const verdict =
+      EXAMPLE_KEY.score >= 70 ? "Sterkt samsvar" : "Bør forbedres";
+    await expect(page.getByText(verdict, { exact: true })).toBeVisible();
+    await expect(page.getByText("Formel", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText(
+        `${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord funnet = ${EXAMPLE_KEY.score} %`,
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering, og ingen spådom om intervjusjanser.",
+      ),
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Funnet i CV-en" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Mangler i CV-en" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 3, name: /Funnet$/ }),
+    ).toHaveCount(EXAMPLE_MATCHED);
+    await expect(
+      page.getByRole("heading", { level: 3, name: /Mangler$/ }),
+    ).toHaveCount(EXAMPLE_MISSING);
+    await expect(
+      page.getByText(/^Bevis · CV-linje \d+ · annonsen avsnitt \d\d$/),
+    ).toHaveCount(EXAMPLE_MATCHED);
+    await expect(page.getByText(/^Fra annonsen · avsnitt \d\d$/)).toHaveCount(
+      EXAMPLE_MISSING,
+    );
+    await expect(
+      page.getByText(
+        /^Annonsen ber om «.+»\. CV-en din viser det ikke ennå\.$/,
+      ),
+    ).toHaveCount(EXAMPLE_MISSING);
+    await expect(page.locator("mark").first()).toBeVisible();
+  });
+
+  test("speaks the score sentence and the Verdict once in the first live region", async ({
+    page,
+  }) => {
+    await fillExample(page);
+    await page.getByRole("button", { name: SUBMIT }).click();
+    const verdict =
+      EXAMPLE_KEY.score >= 70 ? "sterkt samsvar" : "bør forbedres";
+    await expect(page.locator("#live-phase")).toHaveText(
+      `Samsvaret er klart: ${EXAMPLE_KEY.score} %, ${verdict}, ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord.`,
+    );
+  });
+
+  test("sends one request on a double click and keeps the button busy meanwhile", async ({
+    page,
+  }) => {
+    const calls = analysisCalls(page);
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/analyses", async (route) => {
+      await held;
+      await route.continue();
+    });
+    await fillExample(page);
+    const submit = page.getByRole("button", { name: SUBMIT });
+    await submit.dblclick();
+    await expect(submit).toHaveAttribute("aria-disabled", "true");
+    // A click while busy, past the actionability wait, does nothing.
+    await submit.dispatchEvent("click");
+    release();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      EXAMPLE_META.employer,
+    );
+    expect(calls).toHaveLength(1);
+  });
+
+  test("a too-short ad gives the alert at the Job ad field, focus there and no result", async ({
+    page,
+  }) => {
+    await fillExample(page, NO_KEYWORDS);
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.locator("form").getByText(AD_UNCLEAR)).toBeVisible();
+    await expect(page.locator("#live-action")).toHaveText(AD_UNCLEAR);
+    await expect(page.getByLabel("Stillingsannonse")).toBeFocused();
+    await expect(page.getByLabel("Stillingsannonse")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Ny søknad",
+    );
+    await expect(page.getByText("samsvar –")).toHaveCount(0);
+    // The message goes when the ad is edited.
+    await page.getByLabel("Stillingsannonse").fill(EXAMPLE_AD);
+    await expect(page.locator("form").getByText(AD_UNCLEAR)).toHaveCount(0);
+  });
+
+  test("a network failure shows the alert at the top, keeps the inputs and leaves focus on the button", async ({
+    page,
+  }) => {
+    await page.route("**/api/analyses", (route) => route.abort());
+    await fillExample(page);
+    const submit = page.getByRole("button", { name: SUBMIT });
+    await submit.click();
+    await expect(page.locator("form").getByRole("alert").first()).toHaveText(
+      `Feil${NETWORK_FAILURE}`,
+    );
+    await expect(submit).toBeFocused();
+    await expect(page.getByLabel("Stillingsannonse")).toHaveValue(EXAMPLE_AD);
+    await expect(page.getByLabel("Arbeidsgiver")).toHaveValue(
+      EXAMPLE_META.employer,
+    );
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Ny søknad",
+    );
+    // Free again: the button is no longer busy.
+    await expect(submit).not.toHaveAttribute("aria-disabled", "true");
+  });
+
+  test("«Endre annonsen» brings the form back with every input and focus on the h1", async ({
+    page,
+  }) => {
+    await fillExample(page);
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      EXAMPLE_META.employer,
+    );
+    await page.getByRole("button", { name: "Endre annonsen" }).click();
+    const heading = page.getByRole("heading", { level: 1 });
+    await expect(heading).toHaveText("Ny søknad");
+    await expect(heading).toBeFocused();
+    await expect(page.getByLabel("Stillingstittel")).toHaveValue(
+      EXAMPLE_META.jobTitle,
+    );
+    await expect(page.getByLabel("Arbeidsgiver")).toHaveValue(
+      EXAMPLE_META.employer,
+    );
+    await expect(page.getByLabel("Stillingsannonse")).toHaveValue(EXAMPLE_AD);
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · /),
+    ).toBeVisible();
+    // It can be sent again without a new confirmation.
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      EXAMPLE_META.employer,
+    );
+  });
+
+  test("a refresh shows the form with its inputs and no error", async ({
+    page,
+  }) => {
+    await fillExample(page);
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      EXAMPLE_META.employer,
+    );
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Ny søknad",
+    );
+    await expect(page.getByLabel("Stillingsannonse")).toHaveValue(EXAMPLE_AD);
+    await expect(page.getByLabel("Stillingstittel")).toHaveValue(
+      EXAMPLE_META.jobTitle,
+    );
+    await expect(page.locator("form").getByRole("alert")).toHaveCount(0);
+  });
+
+  for (const [name, size] of [
+    ["1280 px", WIDE],
+    ["360 px", PHONE],
+    ["320 px", NARROW],
+  ] as const) {
+    test(`has no serious axe findings and no horizontal scroll on the result at ${name}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(size);
+      await fillExample(page);
+      await page.getByRole("button", { name: SUBMIT }).click();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        EXAMPLE_META.employer,
+      );
+      expect(await seriousFindings(page)).toEqual([]);
+      const overflow = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
+  }
 });

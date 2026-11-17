@@ -81,3 +81,10 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-7-score-the-inputs-on-the-server-phase-1.md`
   summary: `POST /api/analyses` reads `request.json()` with no body-size cap and `analyseRequestSchema` has no length bound on the ignored client `fingerprint`; `CONTRACT_VERSION` is a manual constant with no test that pins it to scoring behaviour.
   evidence: Edge Case Hunter, low. The route is behind the Access code and the schema caps the inputs after parsing. Revisit with the hosted-hardening story or when scoring changes.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-8-read-the-score-and-the-keyword-lists-on-soknad.md`
+  summary: Give Søknad a generic error text (and a Daily-cap text) instead of showing the network-failure alert for every non-ad failure.
+  evidence: `send()` in `application-form.tsx` sets one `failed` flag for UNEXPECTED, other INVALID_INPUT fields and any later cap; `messages.nb.ts` has no generic key. A cap hit would read as «sjekk tilkoblingen».
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-8-read-the-score-and-the-keyword-lists-on-soknad.md`
+  summary: Add e2e tests for a non-network failure body (429/500) and for the `sending` guard in the window before the busy button renders.
+  evidence: The double-click test passes with the guard removed because the busy `Button` swallows the clicks; only an abort reaches the failure branch.

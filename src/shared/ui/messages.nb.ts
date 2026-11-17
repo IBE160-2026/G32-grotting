@@ -57,11 +57,61 @@ export const messages = {
     jobAd: "Stillingsannonse",
     jobAdHint: "Lim inn hele annonseteksten, minst 200 tegn.",
     submit: "Analyser og skriv utkast",
+    // The server judged the ad to hold too few Keywords (FR-4).
+    adUnclear:
+      "Annonsen er for kort eller uklar til å analyseres. Lim inn hele stillingsannonsen, også kravene.",
     errors: {
       JOB_AD_LENGTH: "Stillingsannonsen må være mellom 200 og 15 000 tegn.",
       JOB_TITLE_REQUIRED: "Fyll inn stillingstittelen.",
       EMPLOYER_REQUIRED: "Fyll inn arbeidsgiveren.",
       TOO_LONG: "Maks 200 tegn.",
+    },
+  },
+  // The phase-1 result on Søknad (FR-7, FR-8). Percent sign with a space and
+  // sjevroner for quotes, as in EXPERIENCE.md, Key strings.
+  result: {
+    editAd: "Endre annonsen",
+    credits: { position: "Stilling", date: "Dato", ad: "Annonse" },
+    // «14 avsnitt · 7 nøkkelord»
+    adSummary: (paragraphs: string, keywords: string) =>
+      `${paragraphs} avsnitt · ${keywords} nøkkelord`,
+    // «71 % samsvar – 5 av 7 nøkkelord»
+    score: (score: number, matched: number, total: number) =>
+      `${score} % samsvar – ${matched} av ${total} nøkkelord`,
+    verdict: {
+      strong: "Sterkt samsvar",
+      "needs-work": "Bør forbedres",
+    },
+    threshold: {
+      strong: "70 % eller mer gir «Sterkt samsvar».",
+      "needs-work":
+        "Under 70 % gir «Bør forbedres». Se hva som mangler nedenfor.",
+    },
+    formulaLabel: "Formel",
+    // «5 av 7 nøkkelord funnet = 71 %»
+    formula: (matched: number, total: number, score: number) =>
+      `${matched} av ${total} nøkkelord funnet = ${score} %`,
+    disclaimer:
+      "Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering, og ingen spådom om intervjusjanser.",
+    // The before-S3 form of the phase-1 line, without the AI sentence.
+    live: (score: number, verdict: string, matched: number, total: number) =>
+      `Samsvaret er klart: ${score} %, ${verdict.toLowerCase()}, ${matched} av ${total} nøkkelord.`,
+    found: {
+      heading: "Funnet i CV-en",
+      strip: "Funnet",
+      // «Bevis · CV-linje 8 · annonsen avsnitt 03»
+      source: (line: number, paragraph: string | undefined) =>
+        paragraph === undefined
+          ? `Bevis · CV-linje ${line}`
+          : `Bevis · CV-linje ${line} · annonsen avsnitt ${paragraph}`,
+    },
+    missing: {
+      heading: "Mangler i CV-en",
+      strip: "Mangler",
+      line: (keyword: string) =>
+        `Annonsen ber om «${keyword}». CV-en din viser det ikke ennå.`,
+      // «Fra annonsen · avsnitt 08»
+      source: (paragraph: string) => `Fra annonsen · avsnitt ${paragraph}`,
     },
   },
   home: {
