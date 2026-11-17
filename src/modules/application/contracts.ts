@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { type CvErrorCode, cvTextSchema } from "@/modules/cv/contracts";
+import { analysisResultSchema } from "@/modules/match/contracts";
 
 // FR-4: the Job ad is 200 to 15 000 characters; job title and employer are
 // required and at most 200 characters each.
@@ -51,6 +52,26 @@ export const analysisInputsSchema = z.object({
 });
 
 export type AnalysisInputs = z.infer<typeof analysisInputsSchema>;
+
+// Bumped when the result shape or the scoring changes, so an old fingerprint
+// never matches a new contract (AD-6).
+export const CONTRACT_VERSION = 1;
+
+// `POST /api/analyses`. A client fingerprint is ignored in phase 1.
+export const analyseRequestSchema = z.object({
+  applicationId: z.uuid(),
+  fingerprint: z.string().optional(),
+  inputs: analysisInputsSchema,
+});
+
+export type AnalyseRequest = z.infer<typeof analyseRequestSchema>;
+
+export const analyseResponseSchema = z.object({
+  result: analysisResultSchema,
+  fingerprint: z.string(),
+});
+
+export type AnalyseResponse = z.infer<typeof analyseResponseSchema>;
 export type InputField = keyof AnalysisInputs;
 
 // The first error code per field, for the form; the server uses the schema.
