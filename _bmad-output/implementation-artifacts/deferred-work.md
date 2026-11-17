@@ -88,3 +88,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-8-read-the-score-and-the-keyword-lists-on-soknad.md`
   summary: Add e2e tests for a non-network failure body (429/500) and for the `sending` guard in the window before the busy button renders.
   evidence: The double-click test passes with the guard removed because the busy `Button` swallows the clicks; only an abort reaches the failure branch.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-9-see-the-job-ad-drawn-as-a-pulse-plot.md`
+  summary: The pulse plot's first render is the full variant on server and client; on a phone it swaps to compact after mount, and the container width (not the viewport) picks the mode, so a layout jump and a mode that differs from the CSS breakpoint near 640–670 px are possible.
+  evidence: Edge Case and Blind Hunter, low. The spec prescribes first-render-full. Look at it in the keyboard and phone walk of Story 7.2; if the jump shows, reserve the height or render after measuring.

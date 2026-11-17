@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { analyseExample, type ExampleAnalysis } from "@/modules/application";
+import { PulsePlot } from "@/modules/match/ui";
+import { log } from "@/shared/server/log";
 import { Link } from "@/shared/ui/components/link";
 import { messages } from "@/shared/ui/messages.nb";
 import { pageTitle } from "@/shared/ui/page-title";
@@ -6,9 +9,23 @@ import { pageTitle } from "@/shared/ui/page-title";
 export const metadata: Metadata = { title: pageTitle(messages.nav.home) };
 
 // Hjem before S6: what the app does, then one way into Søknad. The layout owns
-// <main>. The pulse plot arrives with Story 2.9.
-export default function Home() {
+// <main>. The pulse plot draws the Example ad from phase-1 data the server
+// computes, so the browser makes no request for it (FR-8, UX-DR34).
+export default async function Home() {
   const { home } = messages;
+  // The plot is decoration: an unreadable Example pair costs Hjem the plot,
+  // not the page.
+  let example: ExampleAnalysis | undefined;
+  try {
+    example = await analyseExample();
+  } catch (error) {
+    log({
+      kind: "error",
+      code: "UNEXPECTED",
+      errorName: error instanceof Error ? error.name : "Error",
+      route: "/",
+    });
+  }
   return (
     <>
       <div className="max-w-measure">
@@ -23,6 +40,20 @@ export default function Home() {
         </div>
         <p className="mt-4 text-ink-2">{home.tryExample}</p>
       </div>
+
+      {example ? (
+        <div className="mt-section max-640:mt-section-mobile">
+          <p className="mb-5 max-w-measure text-ink-2">
+            {messages.plot.homeIntro}
+          </p>
+          <PulsePlot
+            placement="home"
+            paragraphs={example.paragraphs}
+            matched={example.matched}
+            missing={example.missing}
+          />
+        </div>
+      ) : null}
 
       <section className="mt-section max-640:mt-section-mobile">
         <h2 className="text-heading">{home.outputsHeading}</h2>

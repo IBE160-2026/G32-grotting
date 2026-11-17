@@ -1,3 +1,4 @@
 import "server-only";
 
-export { analyseInputs } from "./server/analyse";
+export type { ExampleAnalysis } from "./server/analyse";
+export { analyseExample, analyseInputs } from "./server/analyse";

@@ -104,7 +104,8 @@ test.describe("UX-DR33 Hjem before S6", () => {
     const text = await page.locator("main").textContent();
     expect(text).not.toContain("Vurder CV");
     expect(text).not.toContain("Vurder søknad");
-    await expect(page.locator("main svg, main figure")).toHaveCount(0);
+    // The Example ad's pulse plot is the one figure (Story 2.9).
+    await expect(page.locator("main figure")).toHaveCount(1);
   });
 });
 
@@ -175,5 +176,89 @@ test.describe("NFR-2 NFR-3 Hjem layout and accessibility", () => {
         document.documentElement.clientWidth,
     );
     expect(overflow).toBe(false);
+  });
+});
+
+test.describe("FR-8 UX-DR34 the Example ad's pulse plot on Hjem", () => {
+  test("draws the Example ad between the action block and the outputs, with no request from the browser", async ({
+    page,
+  }) => {
+    const calls: string[] = [];
+    page.on("request", (request) => {
+      const { pathname } = new URL(request.url());
+      if (pathname.startsWith("/api/")) calls.push(pathname);
+    });
+    await page.setViewportSize(WIDE);
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    const figure = page.locator("main figure");
+    await expect(figure).toHaveCount(1);
+    await expect(figure).toHaveAttribute("role", "img");
+    await expect(figure.locator("svg")).toHaveAttribute(
+      "viewBox",
+      /^0 0 620 \d+$/,
+    );
+    const label = (await figure.getAttribute("aria-label")) ?? "";
+    expect(label).toMatch(/^\d+ avsnitt i annonsen tegnet som puls\. /);
+    expect(label).toContain("Funnet i CV-en: ");
+    expect(label).toContain("Mangler: ");
+
+    await expect(
+      figure.locator("svg text", { hasText: "FUNNET" }),
+    ).not.toHaveCount(0);
+    await expect(
+      figure.locator("svg text", { hasText: "MANGLER" }),
+    ).not.toHaveCount(0);
+    await expect(
+      page.getByText("Tykk linje: nøkkelord funnet i CV-en"),
+    ).toBeVisible();
+
+    const action = await box(page.getByText(EXAMPLE_LINE));
+    const plot = await box(figure);
+    const outputs = await box(page.getByRole("heading", { level: 2 }).first());
+    expect(plot.y).toBeGreaterThan(action.y + action.height);
+    expect(plot.y + plot.height).toBeLessThan(outputs.y);
+    expect(calls).toEqual([]);
+  });
+
+  test("has no focusable part", async ({ page }) => {
+    await page.goto("/");
+    const parts = await page
+      .locator("main figure")
+      .evaluate(
+        (el) =>
+          el.querySelectorAll("a, button, input, [tabindex], title").length,
+      );
+    expect(parts).toBe(0);
+  });
+
+  test("is compact at 360 px with its figcaption, and does not scroll sideways at 320 px", async ({
+    page,
+  }) => {
+    await page.setViewportSize(PHONE);
+    await page.goto("/");
+    const figure = page.locator("main figure");
+    await expect(figure.locator("svg")).toHaveAttribute(
+      "viewBox",
+      /^0 0 328 \d+$/,
+    );
+    await expect(figure.locator("figcaption")).toHaveText(
+      /^Viser de \d+ av \d+ avsnittene som har nøkkelord\. Tallet til venstre er avsnittet\.$/,
+    );
+    expect(await figure.getAttribute("aria-label")).toMatch(
+      /^\d+ av \d+ avsnitt /,
+    );
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto("/");
+    await expect(figure.locator("svg")).toHaveAttribute("viewBox", /^0 0 328 /);
+    const overflow = await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    );
+    expect(overflow).toBe(false);
+    const svg = await box(figure.locator("svg"));
+    expect(svg.x + svg.width).toBeLessThanOrEqual(320);
   });
 });
