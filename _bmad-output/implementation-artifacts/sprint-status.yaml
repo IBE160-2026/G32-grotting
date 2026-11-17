@@ -56,7 +56,7 @@ development_status:
   2-4-normalise-and-stem-norwegian-words: done
   2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary: done
   2-6-find-each-keyword-in-the-cv-text-with-its-evidence: done
-  2-7-score-the-inputs-on-the-server-phase-1: backlog
+  2-7-score-the-inputs-on-the-server-phase-1: done
   2-8-read-the-score-and-the-keyword-lists-on-søknad: backlog
   2-9-see-the-job-ad-drawn-as-a-pulse-plot: backlog
   2-10-try-the-app-with-the-example: backlog

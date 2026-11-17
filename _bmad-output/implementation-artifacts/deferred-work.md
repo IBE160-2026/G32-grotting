@@ -75,3 +75,9 @@
   summary: `findKeyword` splits lines on CRLF and CR only; U+2028, U+2029, U+0085, vertical tab and form feed are not line breaks, and PDF line-end hyphenation («program-» / «mering»), bidi controls U+202A-U+202E and an artefact list kept in both `tokenise.ts` and `normalise.ts` are not handled.
   evidence: Edge Case and Blind Hunter, low. No Fixture needs it (unpdf text gives LF). Revisit with the held-out Fixture (2.11) or the first real PDF CV that fails.
 
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-7-score-the-inputs-on-the-server-phase-1.md`
+  summary: The fingerprint hashes `canon()` text (AD-6), which collapses line breaks, so two CVs or ads that differ only in line structure get one fingerprint but different Evidence lines, offsets and `adParagraphs`.
+  evidence: Edge Case and Blind Hunter, medium. Harmless in phase 1 (recomputed per request). It matters when an analysis is stored or cached by fingerprint (AD-8, accounts epic): a newline-only edit would be a no-op double submit and keep stale «CV-linje N». Decide then: hash line-preserving text, or add `adParagraphs` and the Evidence lines to the hash.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-7-score-the-inputs-on-the-server-phase-1.md`
+  summary: `POST /api/analyses` reads `request.json()` with no body-size cap and `analyseRequestSchema` has no length bound on the ignored client `fingerprint`; `CONTRACT_VERSION` is a manual constant with no test that pins it to scoring behaviour.
+  evidence: Edge Case Hunter, low. The route is behind the Access code and the schema caps the inputs after parsing. Revisit with the hosted-hardening story or when scoring changes.
