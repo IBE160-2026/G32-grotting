@@ -438,7 +438,7 @@ describe("NFR-6 Fixtures", () => {
       ["universell utforming", "exact", "universell utforming"],
       ["React", "exact", "React"],
       ["REST API", "exact", "REST API"],
-      ["responsive mobil", "alias", "responsive"],
+      ["responsive nettsider", "exact", "responsive nettsider"],
       ["junior frontendutvikler", "exact", "Junior frontendutvikler"],
     ],
     "nursing-sarvurdering": [
