@@ -86,8 +86,18 @@ const FIELD_ORDER: readonly InputField[] = [
   "jobAd",
 ];
 
-export function ApplicationForm() {
+type ApplicationFormProps = {
+  // The Example pair, read by the server component page. Without it the form
+  // has no «Bruk eksempelet» button (FR-27).
+  example?: AnalysisInputs;
+};
+
+export function ApplicationForm({ example }: ApplicationFormProps) {
   const cvRef = useRef<HTMLTextAreaElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  // Counts the presses of «Bruk eksempelet»; it is the key of the CV slot, so
+  // the slot starts over, collapsed on the confirmed text.
+  const [exampleRuns, setExampleRuns] = useState(0);
   const jobTitleRef = useRef<HTMLInputElement>(null);
   const employerRef = useRef<HTMLInputElement>(null);
   const jobAdRef = useRef<HTMLTextAreaElement>(null);
@@ -213,6 +223,30 @@ export function ApplicationForm() {
     writeSession({ inputs: { cvDraft: cv.draft, cvText: cv.draft } });
     announce("action", messages.cv.confirmed(formatCount(cv.draft.length)));
     return true;
+  }
+
+  // The Example pair replaces every input and counts as a confirmed CV: it is
+  // not extraction output (FR-27, FR-3). Nothing is sent and nothing submits.
+  function fillExample() {
+    if (example === undefined) return;
+    const filled: JobValues = {
+      jobTitle: normaliseNewlines(example.jobTitle),
+      employer: normaliseNewlines(example.employer),
+      jobAd: normaliseNewlines(example.jobAd),
+    };
+    const draft = normaliseNewlines(example.cvText);
+    setValues(filled);
+    setCv({ draft, confirmed: true });
+    setErrors({});
+    setAdUnclear(false);
+    setFailed(false);
+    setExampleRuns((count) => count + 1);
+    writeSession({
+      applicationId: null,
+      inputs: { ...filled, cvDraft: draft, cvText: draft },
+    });
+    submitRef.current?.focus();
+    announce("action", messages.application.exampleFilled);
   }
 
   function blur(field: JobField) {
@@ -368,6 +402,7 @@ export function ApplicationForm() {
       <form onSubmit={onSubmit} noValidate className="mt-8 flex flex-col gap-6">
         {failed ? <Alert>{messages.networkFailure}</Alert> : null}
         <CvInput
+          key={exampleRuns}
           inputRef={cvRef}
           draft={cv.draft}
           confirmed={cv.confirmed}
@@ -397,6 +432,20 @@ export function ApplicationForm() {
           onChange={(event) => change("employer", event.target.value)}
           onBlur={() => blur("employer")}
         />
+        {example === undefined ? null : (
+          <div>
+            <Button
+              variant="secondary"
+              type="button"
+              // As «Bekreft CV-teksten»: a blur first could raise an error and
+              // move the button before the click lands.
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={fillExample}
+            >
+              {messages.application.useExample}
+            </Button>
+          </div>
+        )}
         <TextArea
           ref={jobAdRef}
           label={messages.application.jobAd}
@@ -414,7 +463,7 @@ export function ApplicationForm() {
           onBlur={() => blur("jobAd")}
         />
         <div>
-          <Button type="submit" busy={analysis.isPending}>
+          <Button ref={submitRef} type="submit" busy={analysis.isPending}>
             {messages.application.submit}
           </Button>
         </div>

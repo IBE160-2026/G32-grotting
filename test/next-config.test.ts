@@ -15,10 +15,17 @@ describe("AD-15 file tracing of data/", () => {
     ]);
   });
 
+  it("includes the Example pair for Søknad", () => {
+    expect(nextConfig.outputFileTracingIncludes?.["/soknad"]).toEqual([
+      "./data/fixtures/example-nordic-digital/**",
+    ]);
+  });
+
   it("lists no other route", () => {
     expect(Object.keys(nextConfig.outputFileTracingIncludes ?? {})).toEqual([
       "/api/**",
       "/",
+      "/soknad",
     ]);
   });
 });
