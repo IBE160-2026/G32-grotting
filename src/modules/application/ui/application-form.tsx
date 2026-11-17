@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import {
   type FormEvent,
   type RefObject,
@@ -15,14 +16,23 @@ import {
   restoreCv,
 } from "@/modules/cv/contracts";
 import { CvInput } from "@/modules/cv/ui";
+import { splitParagraphs } from "@/modules/keywords/core";
+import type { AnalysisResult } from "@/modules/match/contracts";
+import { KeywordList, phaseOneLine, ScoreBlock } from "@/modules/match/ui";
 import { formatCount } from "@/shared/core/format-count";
 import { announce } from "@/shared/ui/announce";
+import { callApi } from "@/shared/ui/api-client";
 import { readSession, writeSession } from "@/shared/ui/client-session";
+import { Alert } from "@/shared/ui/components/alert";
 import { Button } from "@/shared/ui/components/button";
+import { CatalogueHeading } from "@/shared/ui/components/catalogue-heading";
+import { CreditsList } from "@/shared/ui/components/credits-list";
 import { TextArea, TextField } from "@/shared/ui/components/text-field";
 import { messages } from "@/shared/ui/messages.nb";
 import {
+  type AnalyseRequest,
   type AnalysisInputs,
+  analyseResponseSchema,
   type InputErrorCode,
   type InputField,
   inputErrors,
@@ -36,6 +46,24 @@ type JobValues = Omit<AnalysisInputs, "cvText">;
 
 const EMPTY: JobValues = { jobTitle: "", employer: "", jobAd: "" };
 const EMPTY_CV: CvState = { draft: "", confirmed: false };
+
+// What the result view shows, kept as it was submitted: the form can change
+// only after «Endre annonsen» has brought it back. Held in this component only,
+// never stored (AD-8).
+type Outcome = {
+  readonly result: AnalysisResult;
+  readonly jobTitle: string;
+  readonly employer: string;
+  readonly date: string;
+  readonly adParagraphs: readonly string[];
+};
+
+// «17. nov. 2026»
+const DATE = new Intl.DateTimeFormat("nb-NO", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
 
 const ERROR_TEXTS: Record<InputErrorCode, string> = {
   ...messages.application.errors,
@@ -59,6 +87,23 @@ export function ApplicationForm() {
   const [values, setValues] = useState<JobValues>(EMPTY);
   const [cv, setCv] = useState<CvState>(EMPTY_CV);
   const [errors, setErrors] = useState<Errors>({});
+  // The server found too few Keywords in the ad; it stays until the ad is
+  // edited (FR-4).
+  const [adUnclear, setAdUnclear] = useState(false);
+  // The request got no answer, or the answer was not a result.
+  const [failed, setFailed] = useState(false);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  // Counts the times the form and the result have traded places; the new `h1`
+  // takes focus once it is on the page (UX-DR19).
+  const [headingFocus, setHeadingFocus] = useState(0);
+  // A second submit while one runs does nothing, even before React has
+  // rendered the busy button (NFR-5).
+  const sending = useRef(false);
+  const analysis = useMutation({
+    mutationFn: (request: AnalyseRequest) =>
+      callApi("/api/analyses", analyseResponseSchema, { body: request }),
+  });
   // Nothing is written until what the tab held has been read back (AD-16).
   const [restored, setRestored] = useState(false);
 
@@ -83,9 +128,16 @@ export function ApplicationForm() {
     jobAd: jobAdRef,
   };
 
+  useEffect(() => {
+    if (headingFocus > 0) headingRef.current?.focus();
+  }, [headingFocus]);
+
   function errorText(field: InputField): string | undefined {
     const code = errors[field];
-    return code === undefined ? undefined : ERROR_TEXTS[code];
+    if (code !== undefined) return ERROR_TEXTS[code];
+    return field === "jobAd" && adUnclear
+      ? messages.application.adUnclear
+      : undefined;
   }
 
   function setError(field: InputField, code: InputErrorCode | undefined) {
@@ -101,6 +153,7 @@ export function ApplicationForm() {
   function change(field: JobField, raw: string) {
     const value = normaliseNewlines(raw);
     setValues((current) => ({ ...current, [field]: value }));
+    if (field === "jobAd") setAdUnclear(false);
     if (restored) {
       writeSession({ applicationId: null, inputs: { [field]: value } });
     }
@@ -180,64 +233,167 @@ export function ApplicationForm() {
       }
       return;
     }
-    // The id lives as long as the inputs do; a second submit reuses it. No
-    // analysis request is sent yet.
-    if (readSession().applicationId === undefined) {
-      writeSession({ applicationId: crypto.randomUUID() });
+    if (sending.current) return;
+    // The id lives as long as the inputs do; a second submit reuses it.
+    let applicationId = readSession().applicationId;
+    if (applicationId === undefined) {
+      applicationId = crypto.randomUUID();
+      writeSession({ applicationId });
     }
+    send({ applicationId, inputs: { cvText: cv.draft, ...values } });
+  }
+
+  // One request for phase 1: code only, so the result needs no AI (NFR-4).
+  function send(request: AnalyseRequest) {
+    sending.current = true;
+    setAdUnclear(false);
+    setFailed(false);
+    analysis.mutate(request, {
+      onSuccess: (answer) => {
+        sending.current = false;
+        if (answer.ok) {
+          show(answer.data.result, request.inputs);
+          return;
+        }
+        const { code, field } = answer.error;
+        if (code === "INVALID_INPUT" && field === "inputs.jobAd") {
+          setAdUnclear(true);
+          jobAdRef.current?.focus();
+          announce("action", messages.application.adUnclear);
+          return;
+        }
+        // The network failed or something else went wrong: nothing was judged,
+        // so the inputs stay and focus stays where it was.
+        setFailed(true);
+      },
+      onError: () => {
+        sending.current = false;
+        setFailed(true);
+      },
+    });
+  }
+
+  function show(result: AnalysisResult, inputs: AnalysisInputs) {
+    setHeadingFocus((count) => count + 1);
+    setOutcome({
+      result,
+      jobTitle: inputs.jobTitle,
+      employer: inputs.employer,
+      date: DATE.format(new Date()),
+      adParagraphs: splitParagraphs(inputs.jobAd),
+    });
+    announce("phase", phaseOneLine(result));
+  }
+
+  function backToForm() {
+    setHeadingFocus((count) => count + 1);
+    setOutcome(null);
+  }
+
+  if (outcome !== null) {
+    const { result } = outcome;
+    return (
+      <>
+        <CatalogueHeading ref={headingRef} employer>
+          {outcome.employer}
+        </CatalogueHeading>
+        <div className="mt-6 flex flex-col gap-8">
+          <CreditsList
+            items={[
+              {
+                term: messages.result.credits.position,
+                value: outcome.jobTitle,
+              },
+              { term: messages.result.credits.date, value: outcome.date },
+              {
+                term: messages.result.credits.ad,
+                value: messages.result.adSummary(
+                  formatCount(result.adParagraphs),
+                  formatCount(result.totalCount),
+                ),
+              },
+            ]}
+          />
+          <div>
+            <Button variant="secondary" onClick={backToForm}>
+              {messages.result.editAd}
+            </Button>
+          </div>
+          <ScoreBlock result={result} />
+          <KeywordList
+            kind="matched"
+            entries={result.matched}
+            adParagraphs={outcome.adParagraphs}
+          />
+          <KeywordList
+            kind="missing"
+            entries={result.missing}
+            adParagraphs={outcome.adParagraphs}
+          />
+        </div>
+      </>
+    );
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
-      <CvInput
-        inputRef={cvRef}
-        draft={cv.draft}
-        confirmed={cv.confirmed}
-        error={errorText("cvText")}
-        onChange={changeCv}
-        onBlur={blurCv}
-        onExtracted={extractedCv}
-        onConfirm={confirmCv}
-      />
-      <TextField
-        ref={jobTitleRef}
-        label={messages.application.jobTitle}
-        error={errorText("jobTitle")}
-        name="jobTitle"
-        autoComplete="off"
-        value={values.jobTitle}
-        onChange={(event) => change("jobTitle", event.target.value)}
-        onBlur={() => blur("jobTitle")}
-      />
-      <TextField
-        ref={employerRef}
-        label={messages.application.employer}
-        error={errorText("employer")}
-        name="employer"
-        autoComplete="organization"
-        value={values.employer}
-        onChange={(event) => change("employer", event.target.value)}
-        onBlur={() => blur("employer")}
-      />
-      <TextArea
-        ref={jobAdRef}
-        label={messages.application.jobAd}
-        hint={messages.application.jobAdHint}
-        counter={messages.counter(
-          formatCount(values.jobAd.length),
-          formatCount(JOB_AD_MAX),
-        )}
-        error={errorText("jobAd")}
-        name="jobAd"
-        rows={12}
-        autoComplete="off"
-        value={values.jobAd}
-        onChange={(event) => change("jobAd", event.target.value)}
-        onBlur={() => blur("jobAd")}
-      />
-      <div>
-        <Button type="submit">{messages.application.submit}</Button>
-      </div>
-    </form>
+    <>
+      <CatalogueHeading ref={headingRef}>
+        {messages.application.heading}
+      </CatalogueHeading>
+      <form onSubmit={onSubmit} noValidate className="mt-8 flex flex-col gap-6">
+        {failed ? <Alert>{messages.networkFailure}</Alert> : null}
+        <CvInput
+          inputRef={cvRef}
+          draft={cv.draft}
+          confirmed={cv.confirmed}
+          error={errorText("cvText")}
+          onChange={changeCv}
+          onBlur={blurCv}
+          onExtracted={extractedCv}
+          onConfirm={confirmCv}
+        />
+        <TextField
+          ref={jobTitleRef}
+          label={messages.application.jobTitle}
+          error={errorText("jobTitle")}
+          name="jobTitle"
+          autoComplete="off"
+          value={values.jobTitle}
+          onChange={(event) => change("jobTitle", event.target.value)}
+          onBlur={() => blur("jobTitle")}
+        />
+        <TextField
+          ref={employerRef}
+          label={messages.application.employer}
+          error={errorText("employer")}
+          name="employer"
+          autoComplete="organization"
+          value={values.employer}
+          onChange={(event) => change("employer", event.target.value)}
+          onBlur={() => blur("employer")}
+        />
+        <TextArea
+          ref={jobAdRef}
+          label={messages.application.jobAd}
+          hint={messages.application.jobAdHint}
+          counter={messages.counter(
+            formatCount(values.jobAd.length),
+            formatCount(JOB_AD_MAX),
+          )}
+          error={errorText("jobAd")}
+          name="jobAd"
+          rows={12}
+          autoComplete="off"
+          value={values.jobAd}
+          onChange={(event) => change("jobAd", event.target.value)}
+          onBlur={() => blur("jobAd")}
+        />
+        <div>
+          <Button type="submit" busy={analysis.isPending}>
+            {messages.application.submit}
+          </Button>
+        </div>
+      </form>
+    </>
   );
 }
