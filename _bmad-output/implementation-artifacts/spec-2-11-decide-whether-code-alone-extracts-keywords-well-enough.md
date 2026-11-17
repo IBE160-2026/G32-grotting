@@ -2,7 +2,7 @@
 title: 'Story 2.11: Decide whether code alone extracts Keywords well enough (FR-5b)'
 type: 'feature'
 created: '2026-11-17'
-status: 'in-review'
+status: 'done'
 route: 'dispatch'
 baseline_commit: '287eb05a3bd298678619343702960c7897e88e4f'
 review_loop_iteration: 0
