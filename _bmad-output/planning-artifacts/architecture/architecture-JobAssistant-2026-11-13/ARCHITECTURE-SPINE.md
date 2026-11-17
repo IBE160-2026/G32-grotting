@@ -697,7 +697,7 @@ erDiagram
 | Decision | Why it can wait | Owner, when |
 |---|---|---|
 | AI provider and model | The bake-off at the start of S3 picks between the two contender packages, and `AiClient` hides the choice. The losing package is removed afterwards. Both are first checked against the DPF list (PRD §8.1, OQ3). The Gap prompt doesn't exist until S4, so the bake-off uses a rough Gap prompt written for it; S4 replaces that prompt. | Helene, 18 Nov |
-| FR-5b on or off | Decided against SM-2 on every Fixture plus a held-out one. AD-5, AD-6, AD-13 and `FEATURE_KEYWORD_FALLBACK` cover both outcomes. | Helene, 17 Nov (OQ2) |
+| FR-5b on or off | **Decided 2026-11-17: FR-5b applies.** Code-only extraction failed SM-2 on the held-out Fixture (`docs/qa/fr-5b-decision.md`). AD-5, AD-6, AD-13 and `FEATURE_KEYWORD_FALLBACK` carry the path; the flag stays off until Story 3.11 switches it on. | Helene, 17 Nov (OQ2) |
 | Vocabulary contents and size | Tuned against the Answer keys in Epic 2. Its location and versioning are fixed (AD-5). | Epic 2 |
 | Prompt wording | Owned by the `letter` and `gaps` slices and versioned by AD-15. | Epics 3–5 |
 | Login rate limiting | Two users, and a random Access code of 16 or more characters. Add it in Epic 6 if a story needs it. | Epic 6 |

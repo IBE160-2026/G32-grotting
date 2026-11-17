@@ -1,6 +1,6 @@
 # FR-5b: does code alone extract Keywords well enough?
 
-Story 2.11 (FR-5, FR-5b, SM-2, NFR-10, PRD Open questions 2 and 6). **Decision: not yet taken.** Helene has seen the result below and wants to look at the failures before confirming. Nothing in the PRD, epics or architecture has been changed.
+Story 2.11 (FR-5, FR-5b, SM-2, NFR-10, PRD Open questions 2 and 6). **Decision (Helene, 2026-11-17): FR-5b applies.** Helene first looked at the failures below, then confirmed.
 
 ## Run
 
@@ -45,8 +45,8 @@ Reading of the pattern (for Helene to judge, not a conclusion): 9 of the 13 diff
 
 ## Decision
 
-Open. Under the story's rules, SM-2 failing on any Fixture means FR-5b applies (the FR-5b table is written into FR-8, NFR-4, P6, NFR-8, FR-24, FR-25, FR-27 and NFR-6, the change is logged in PRD §11, Story 3.11 is kept). Passing on every Fixture would delete FR-5b instead.
+SM-2 failed on one Fixture, so under the story's rules FR-5b applies. Changes made for it (commit message names the IDs): FR-5b written into FR-8, NFR-4, SM-7, P6, NFR-8, FR-24, FR-25, FR-27, UJ-3 and NFR-6; Open question 2 resolved; D24 logged in PRD §11; Story 3.11 kept; `FEATURE_KEYWORD_FALLBACK` stays off until Story 3.11 switches it on. The vocabulary was not changed to make the held-out Fixture pass.
 
 | Date | Decided by | Outcome | Note |
 | --- | --- | --- | --- |
-|  |  |  |  |
+| 2026-11-17 | Helene | FR-5b applies | After reading the 13 differences above |
