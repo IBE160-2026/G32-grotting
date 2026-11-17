@@ -2,7 +2,7 @@
 title: 'Story 2.6: Find each Keyword in the CV text, with its Evidence'
 type: 'feature'
 created: '2026-11-17'
-status: 'in-progress'
+status: 'done'
 route: 'dispatch'
 baseline_commit: '9b3adb7'
 review_loop_iteration: 0
@@ -38,7 +38,7 @@ context:
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |----------|--------------|---------------------------|----------------|
 | Inflection | Term «sårstell», CV line «Utførte sårstellene til …» | One hit, stage `inflection`, correct line number and offsets | N/A |
-| Split compound | Term «dataanalyse», CV «Data analyse: …» | Hit, stage `compound` | N/A |
+| Split compound | Term «dataanalyse», CV «Data analyse: …» | Hit, stage `exact` (2.5 rule: equal once spaces between letters are ignored); «Data analysene» gives `compound` | N/A |
 | Alias | Term «Agile», alias «smidig», CV «smidig utvikling» | Hit, stage `alias` | N/A |
 | Case | CV «REACT» for term «React» | Hit, stage `exact` | N/A |
 | Part of compound | Term «prosjektledelse», CV has only «ledelse» | `[]` | N/A |
@@ -56,7 +56,7 @@ context:
 - `src/modules/keywords/core/tokenise.ts` -- `TOKEN` regex; add invisible characters inside a word. Tests in `tokenise.test.ts`.
 - `src/modules/keywords/core/find.ts`, `find.test.ts` -- new: `findKeyword`, `KeywordHit`; export through `index.ts`.
 - `src/modules/keywords/core/sm2.test.ts` -- new: Fixture test (reads `data/fixtures/*` and `data/vocabulary/nb.json` directly; tests may).
-- `data/vocabulary/nb.json` -- tune; new version. Needed from the keys: add «junior frontendutvikler», «samarbeid i pull requests», «behandling av trykksår og diabetessår» (aliases sårbehandling, trykksår, diabetessår), «dokumenterer i pasientjournal» (aliases pasientjournal, journalføring), «smertelindring hos eldre», «erfaring med demens», «erfaring med forskning», «skriver rapporter»; rename «responsiv design» to «responsive mobil» (aliases responsive, responsiv design); aliases «norsk» on norskkunnskaper and «datamodell» on datamodellering; remove frontend, stakeholder, webutvikling, dashbord, autorisasjon, infeksjonsforebygging, sårbehandling, pasientjournal.
+- `data/vocabulary/nb.json` -- tune; new version. Needed from the keys: add «junior frontendutvikler», «samarbeid i pull requests», «behandling av trykksår og diabetessår» (aliases sårbehandling, trykksår, diabetessår), «dokumenterer i pasientjournal» (aliases pasientjournal, journalføring), «smertelindring hos eldre», «erfaring med demens», «erfaring med forskning», «skriver rapporter»; rename «responsiv design» to «responsive mobil» (aliases responsive, responsiv design); aliases «norsk morsmål» on norskkunnskaper and «datamodell» on datamodellering; remove frontend, stakeholder, webutvikling, dashbord, autorisasjon, infeksjonsforebygging, sårbehandling, pasientjournal.
 - `src/modules/keywords/core/extract.test.ts` -- update: 5-token limit, `1 to 5 tokens`, Fixture expectations that named removed terms («stakeholder»).
 - `_bmad-output/implementation-artifacts/deferred-work.md` -- remove the resolved soft-hyphen entry and the vocabulary-precision entry's tuned part; add open points.
 
@@ -88,7 +88,29 @@ context:
 
 ## Spec Change Log
 
+- Matrix row «Split compound» said stage `compound`; the 2.5 stage rule (kept, not changed) gives `exact` for «Data analyse». Found by the Edge Case Hunter and confirmed in `stageOf`. The row was a drafting error, amended with the user's delegation to use the recommended spec; the matrix test now asserts `exact` and the `compound` case. KEEP: stage rules of 2.5 unchanged.
+- The alias for norskkunnskaper in the Code Map is «norsk morsmål», not «norsk» (bare «norsk» extracted the Keyword from «norske nettbutikker»).
+
 ## Review Triage Log
+
+Three reviewer subagents (Blind Hunter, Edge Case Hunter, Verification Gap) ran on the diff; Edge Case Hunter and Verification Gap agree on the first two rows.
+
+| Finding | Verdict | Evidence / route |
+|---|---|---|
+| Phrase term with its own alias (`dokumenterer i pasientjournal` / `pasientjournal`) reports only the alias, wrong stage and offsets; contradicts «longest wins» | medium | Real: `orderCandidates` dropped the wider span. Patch: keep a wider span whose stage is better; tests in `find.test.ts`, `extract.test.ts`. |
+| Parentheses in `SPAN_GAP` bridge «Power) BI», «Power(BI)» and change extraction with no test | medium | Real. Patch: only « (» after whitespace; tests in `find.test.ts` and `extract.test.ts`. |
+| Matrix row says `compound` for a split compound, code gives `exact` | medium (bad_spec in the matrix) | Real, see Spec Change Log. Matrix row amended. |
+| SM-2 test computes a score; spec says no scoring | low | Real, direct deletion: the Answer-key schema already checks the score. Removed. |
+| Evidence test near-tautology; no Matched Keyword asserted to have a hit | low | Real. Patch: each Matched Keyword has a hit, slice not empty, a pinned Figma Evidence case. |
+| `compound` stage naming misleading; JSDoc silent | low | Real. Patch: `KeywordStage` doc. |
+| Code Map says alias «norsk» | low | Real; Code Map corrected (see Spec Change Log). |
+| Unknown term gives `[]` like Missing | low | Rejected as a code change: callers pass extracted Keywords. Documented in the JSDoc. |
+| Index cache defeated; CV re-tokenised per Keyword | low | Rejected: 255 terms, a few ms; a batch API belongs to 2.7 if it measures slow. |
+| Line separators U+2028/2029/0085, vertical tab, form feed not line breaks | low | Deferred: PDF text from unpdf gives LF/CRLF; recorded. |
+| Line-end hyphenation, bidi controls, artefact list in two files | low | Deferred / rejected: not needed by any Fixture; recorded. |
+| Offsets stop before «)» in «norsk (morsmål» | low | Rejected: the span is the tokens; the Evidence is the whole line. |
+| Vocabulary fitted to the Fixtures; single-word aliases make a phrase Matched; phrase keywords found through aliases only | low | Known and deferred in the story's own items. |
+| SM-2 test paths relative to cwd, `>= 3` magic number, must-not-match substring check | low | Rejected: same convention as the other Fixture tests; the Never list is covered by «ledelse» tests. |
 
 ## Design Notes
 

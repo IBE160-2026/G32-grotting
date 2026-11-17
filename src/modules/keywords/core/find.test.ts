@@ -70,6 +70,18 @@ describe("FR-6 findKeyword: stages and Evidence", () => {
     expect(slice(found)).toBe("norsk (morsmål");
   });
 
+  it("reports the whole phrase, not its own alias, when the phrase is there", () => {
+    const aliases = { "dokumenterer i pasientjournal": ["pasientjournal"] };
+    const phrase = "dokumenterer i pasientjournal";
+    const full = hit(`Jeg ${phrase} daglig.`, phrase, aliases);
+    expect(full).toHaveLength(1);
+    expect(full[0].stage).toBe("exact");
+    expect(slice(full[0])).toBe(phrase);
+    const alone = hit("Førte pasientjournalene.", phrase, aliases);
+    expect(alone).toHaveLength(1);
+    expect(alone[0].stage).toBe("alias");
+  });
+
   it("gives every hit in text order", () => {
     const cv = "Git her\n\nIngenting\nOg Git igjen, git til slutt";
     const hits = hit(cv, "Git");
@@ -109,6 +121,12 @@ describe("FR-6 findKeyword: what must not match", () => {
 
   it("does not find «ledelse» in «prosjektledelse»", () => {
     expect(hit("Jeg har prosjektledelse.", "ledelse")).toEqual([]);
+  });
+
+  it("does not bridge a closing parenthesis or an unspaced one", () => {
+    expect(hit("Jeg kan Power) BI.", "Power BI")).toEqual([]);
+    expect(hit("Jeg kan Power(BI).", "Power BI")).toEqual([]);
+    expect(hit("Jeg kan Power (BI) her.", "Power BI")).toHaveLength(1);
   });
 
   it("does not find a term whose words are split by a line break", () => {

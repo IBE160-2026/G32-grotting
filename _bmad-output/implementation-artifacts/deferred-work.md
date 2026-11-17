@@ -69,5 +69,9 @@
   summary: Phrase Keywords that are not written in one run in the ad («dokumenterer i pasientjournal» for «dokumenterer nøyaktig i pasientjournal», «responsive mobil» for «responsive nettsider … på mobil») are found only through an alias.
   evidence: Spans are contiguous. Tune or add phrase-level matching in Story 2.7 or 2.11 only if an Answer key justifies it.
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-6-find-each-keyword-in-the-cv-text-with-its-evidence.md`
-  summary: Span gaps now allow parentheses in CV and ad text, and `findKeyword` searches line by line, so a Keyword split by a PDF line break (two-column CVs) is missed.
+  summary: Span gaps now allow an opening parenthesis after a space in CV and ad text, and `findKeyword` searches line by line, so a Keyword split by a PDF line break (two-column CVs) is missed.
   evidence: Story 2.6 AC says the CV line is the Evidence. No Fixture needs a cross-line match; revisit with the held-out Fixture.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-6-find-each-keyword-in-the-cv-text-with-its-evidence.md`
+  summary: `findKeyword` splits lines on CRLF and CR only; U+2028, U+2029, U+0085, vertical tab and form feed are not line breaks, and PDF line-end hyphenation («program-» / «mering»), bidi controls U+202A-U+202E and an artefact list kept in both `tokenise.ts` and `normalise.ts` are not handled.
+  evidence: Edge Case and Blind Hunter, low. No Fixture needs it (unpdf text gives LF). Revisit with the held-out Fixture (2.11) or the first real PDF CV that fails.
+

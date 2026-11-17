@@ -23,7 +23,9 @@ export type KeywordHit = {
  * the term and its aliases from the vocabulary, case ignored, inflections,
  * hyphen and space variants and split compounds accepted. A word that only
  * shares part of a compound does not match. A match sits on one line. Hits come
- * in text order; no hit means the Keyword is Missing. Pure and synchronous.
+ * in text order; no hit means the Keyword is Missing, which is also what a term
+ * that is not in the vocabulary gives (callers pass Keywords extracted from the
+ * same vocabulary). Pure and synchronous.
  */
 export function findKeyword(
   text: string,

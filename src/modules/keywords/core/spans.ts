@@ -6,6 +6,12 @@ import { tokenise } from "./tokenise";
 // The span engine shared by extractKeywords (job ad) and findKeyword (CV): one
 // place decides what counts as «the same word» in running text (AD-5).
 
+/**
+ * How a span matched, best first: `exact` (same text once case, dashes and
+ * spaces between letters are ignored, so «data analyse» is exact for
+ * «dataanalyse»), `inflection` (same word by word after stemming), `compound`
+ * (only the joined stems are equal: a split and inflected form) or `alias`.
+ */
 export type KeywordStage = "exact" | "inflection" | "compound" | "alias";
 
 // A span of 1 to 5 tokens is compared with the vocabulary.
@@ -19,11 +25,12 @@ const STAGE_RANK: Record<KeywordStage, number> = {
   alias: 3,
 };
 
-// Between two tokens of one span there may be only spaces, dashes and
-// parentheses («norsk (morsmål)»), or a lone dot or slash with no space
-// («Node.js», «CI/CD»). A sentence end, comma, bullet or line break stops a
-// span.
-const SPAN_GAP = /^(?:[ \t\xA0()\-\u{2010}-\u{2015}]*|[./])$/u;
+// Between two tokens of one span there may be only spaces and dashes, an
+// opening parenthesis after a space («norsk (morsmål)»), or a lone dot or slash
+// with no space («Node.js», «CI/CD»). A closing parenthesis, sentence end,
+// comma, bullet or line break stops a span.
+const SPAN_GAP =
+  /^(?:[ \t\xA0\-\u{2010}-\u{2015}]*|[ \t\xA0]\([ \t\xA0]*|[./])$/u;
 
 // One written form of a vocabulary entry: the term itself or one alias.
 export type Entry = {
@@ -182,9 +189,11 @@ export function candidatesIn(
 }
 
 /**
- * Drops a wider span of a term when a span of the same term lies inside it, so
- * a short word cannot glue on («sykehjem er»). Sorted longest span first, then
- * earliest, then vocabulary order.
+ * Drops a wider span of a term when a span of the same term lies inside it and
+ * is at least as good a match, so a short word cannot glue on («sykehjem er»).
+ * A wider span with a better stage stays: the whole phrase beats its own alias
+ * («dokumenterer i pasientjournal» over «pasientjournal»). Sorted longest span
+ * first, then earliest, then vocabulary order.
  */
 export function orderCandidates(all: Candidate[]): Candidate[] {
   return all
@@ -193,6 +202,7 @@ export function orderCandidates(all: Candidate[]): Candidate[] {
         !all.some(
           (inner) =>
             inner.termIndex === wide.termIndex &&
+            STAGE_RANK[wide.stage] >= STAGE_RANK[inner.stage] &&
             inner.length < wide.length &&
             inner.first >= wide.first &&
             inner.first + inner.length <= wide.first + wide.length,

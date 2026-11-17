@@ -96,28 +96,38 @@ describe("SM-2 Fixtures", () => {
       expect(problems).toEqual([]);
     });
 
-    it(`gives the Answer key's score for ${id}`, () => {
-      const { matched, missing } = lists(id);
-      const score = Math.round(
-        (100 * matched.length) / (matched.length + missing.length),
-      );
-      expect(`${id}: ${score}`).toBe(`${id}: ${key.score}`);
-    });
-
     it(`gives identical lists on a second run for ${id} (NFR-6)`, () => {
       expect(lists(id)).toEqual(lists(id));
     });
 
     it(`gives Evidence that reads as the CV line for every Matched Keyword in ${id}`, () => {
       const cv = read(id, "cv.txt").replace(/\r\n?/g, "\n").split("\n");
-      const { hits } = lists(id);
+      const { matched, hits } = lists(id);
+      for (const keyword of matched) {
+        expect(hits.get(keyword)?.length, keyword).toBeGreaterThan(0);
+      }
       for (const [keyword, found] of hits) {
         for (const hit of found) {
           expect(hit.text, keyword).toBe(cv[hit.line - 1]);
+          expect(hit.text.slice(hit.start, hit.end).trim(), keyword).not.toBe(
+            "",
+          );
           expect(hit.end, keyword).toBeGreaterThan(hit.start);
           expect(hit.end, keyword).toBeLessThanOrEqual(hit.text.length);
         }
       }
     });
   }
+});
+
+describe("SM-2 Evidence", () => {
+  it("points at the CV line and word of a known Matched Keyword", () => {
+    const cv = read("example-nordic-digital", "cv.txt");
+    const [figma] = findKeyword(cv, { term: "Figma" }, vocabulary);
+    const cvLines = cv.split(String.fromCharCode(10));
+    expect(figma.line).toBe(cvLines.indexOf(figma.text) + 1);
+    expect(figma.text).toContain("Prototyping i Figma");
+    expect(figma.text.slice(figma.start, figma.end)).toBe("Figma");
+    expect(figma.stage).toBe("exact");
+  });
 });

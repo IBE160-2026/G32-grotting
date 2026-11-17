@@ -204,6 +204,23 @@ describe("FR-5 extractKeywords: spans", () => {
     ]);
   });
 
+  it("joins across an opening parenthesis after a space, not a closing one", () => {
+    expect(
+      found("Vi vil ha Power (BI) her.", ["Power BI"]).map((k) => k.term),
+    ).toEqual(["Power BI"]);
+    expect(found("Vi vil ha Power) BI her.", ["Power BI"])).toEqual([]);
+  });
+
+  it("keeps the whole phrase, with stage exact, over its own alias", () => {
+    const [keyword] = found(
+      "Du dokumenterer i pasientjournal.",
+      ["dokumenterer i pasientjournal"],
+      { "dokumenterer i pasientjournal": ["pasientjournal"] },
+    );
+    expect(keyword.stage).toBe("exact");
+    expect(keyword.positions).toHaveLength(1);
+  });
+
   it("matches a 5-token term but never a 6-token one", () => {
     const five = found("Vi vil ha en to tre fire fem.", ["en to tre fire fem"]);
     expect(five.map((keyword) => keyword.term)).toEqual(["en to tre fire fem"]);
