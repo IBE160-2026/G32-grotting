@@ -31,13 +31,17 @@
     {
       "term": "tall",
       "reason": "flere forekomster av 'tall' i CVen, men ikke en ferdighet i seg selv"
+    },
+    {
+      "term": "dashbord",
+      "reason": "del av Power BI og dekkes av 'Power BI' i matched"
     }
   ],
   "gaps": {
     "rewordable": [
       {
         "keyword": "skriver rapporter",
-        "evidence": "- Vi leverte rapporten og presenterte funnene for faglærer og et annet kull."
+        "evidence": "Vi leverte rapporten og presenterte funnene for faglærer og et annet kull."
       }
     ],
     "real": ["prosjektledelse", "Python"]

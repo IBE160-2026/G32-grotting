@@ -1,5 +1,5 @@
 {
-  "vocabularyVersion": "v1-d3a1887d",
+  "vocabularyVersion": "v1-bbb32bad",
   "terms": [
     "HTML",
     "CSS",
@@ -248,11 +248,10 @@
     "landbruk",
     "fiskeri",
     "junior frontendutvikler",
-    "samarbeid i pull requests",
-    "responsive mobil",
+    "responsive nettsider",
     "behandling av trykksår og diabetessår",
-    "dokumenterer i pasientjournal",
-    "smertelindring hos eldre",
+    "pasientjournal",
+    "infeksjonsforebygging",
     "erfaring med demens",
     "erfaring med forskning",
     "skriver rapporter"
@@ -284,7 +283,6 @@
     "legemiddelhåndtering": ["medisinhåndtering", "dobbeltkontroll"],
     "smertelindring": ["smertebehandling"],
     "demens": ["demensomsorg"],
-    "norskkunnskaper": ["norsk morsmål"],
     "forskning": ["forskningsmetode"],
     "palliasjon": ["palliativ omsorg"],
     "geriatri": ["eldreomsorg"],
@@ -314,12 +312,8 @@
     "Adobe Illustrator": ["Illustrator"],
     "Adobe InDesign": ["InDesign"],
     "tekstforfatting": ["copywriting"],
-    "responsive mobil": ["responsive", "responsiv design"],
-    "behandling av trykksår og diabetessår": [
-      "sårbehandling",
-      "trykksår",
-      "diabetessår"
-    ],
-    "dokumenterer i pasientjournal": ["pasientjournal", "journalføring"]
+    "responsive nettsider": ["responsive", "responsiv design"],
+    "behandling av trykksår og diabetessår": ["sårbehandling"],
+    "pasientjournal": ["journalføring"]
   }
 }

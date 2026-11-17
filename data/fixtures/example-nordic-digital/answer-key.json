@@ -5,7 +5,7 @@
       "CSS",
       "REACT",
       "Bachelor i informatikk",
-      "GIT",
+      "Git",
       "Figma",
       "universell utforming",
       "Agile",
@@ -14,9 +14,9 @@
     "missing": [
       "TypeScript",
       "REST-API",
-      "samarbeid i pull requests",
+      "pull requests",
       "testing",
-      "responsive mobil"
+      "responsive nettsider"
     ]
   },
   "score": 64,
@@ -30,26 +30,18 @@
       "reason": "småord, ikke ferdighet"
     },
     {
-      "term": "og",
-      "reason": "småord, ikke ferdighet"
+      "term": "utvikler",
+      "reason": "dekkes av 'junior frontendutvikler' i matched"
     },
     {
-      "term": "en",
-      "reason": "småord, ikke ferdighet"
-    },
-    {
-      "term": "mentor",
-      "reason": "beskriver et annet medlem av teamet, ikke studenten"
-    },
-    {
-      "term": "designere",
-      "reason": "beskriver andre medlemmer av teamet, ikke studenten"
+      "term": "sprinter",
+      "reason": "ikke en ferdighet og dekkes av 'Agile' i matched"
     }
   ],
   "gaps": {
     "rewordable": [
       {
-        "keyword": "samarbeid i pull requests",
+        "keyword": "pull requests",
         "evidence": "Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen."
       },
       {
@@ -57,7 +49,7 @@
         "evidence": "Jeg skrev enkle tester for skjemaene våre"
       },
       {
-        "keyword": "responsive mobil",
+        "keyword": "responsive nettsider",
         "evidence": "Bygde en nettside som tilpasser seg mobilskjermer."
       }
     ],
