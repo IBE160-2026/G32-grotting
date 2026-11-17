@@ -19,8 +19,11 @@ Implementere spesifikasjonen `_bmad-output/implementation-artifacts/spec-2-8-rea
 - Verdict kommer fra `verdictOf` via `match/ui` (`phaseOneLine` bygger live-linja der, så applikasjonen ikke importerer `match/core`).
 - Verifisert: `npx biome check` rent, `npm run typecheck` rent, `npx vitest run` 469 grønne, `npx playwright test` hele suiten 202 grønne (to runder). Eksempelparet i e2e leser tallene fra fasiten.
 - Eksisterende e2e-test for `applicationId` ble skrevet om: den sendte før ingen forespørsel; nå stubbes `/api/analyses` med 400 slik at skjemaet blir stående.
-- Ikke committet (kode); kun loggfila committes av skillen.
+- Tre review-subagenter (Blind Hunter, Edge Case Hunter, Verification Gap) kjørte på diffen. Patchet: `trimQuote` (lang rekke uten mellomrom og merke lengre enn grensen) med to tester, grammatikk i terskelsetningene («gir «Bør forbedres»»), `#live-action`-assertion for for-kort-annonse-varselet og en `expect.poll` før reload i applicationId-testen. Resten avvist eller utsatt, se Review Triage Log i spec-fila.
+- Etter review: `biome check`, `typecheck`, `vitest run` (49 filer, 471 tester) og `playwright test e2e/application.spec.ts` (57 tester) grønne.
+- Kode committet som `1b05c07` på `story/2.8-read-score-and-keyword-lists`; spec `done`, sprint-status `done`.
 
 ### Åpne punkter
 - «Andre feil» (alt annet enn `INVALID_INPUT` på `inputs.jobAd` og `NETWORK_ERROR`) viser samme tekst som nettverksfeil, fordi det ikke finnes noen egen generisk feiltekst i `messages.nb.ts` (samme mønster som `access-form` og `cv-input`). Avgjør om det trengs en egen tekst.
+- Utsatt (deferred-work.md): e2e for ikke-nettverksfeil (429/500) og for `sending`-vakta før den opptatte knappen rendres.
 - Ikke verifisert: `docker compose run --rm --build test`; resultatsiden er ikke sett i nettleser av meg (kun axe, scroll-sjekk og DOM-assertions ved 1280/360/320 px). Layouten (to kolonner i poengblokka innenfor `max-w-measure`) bør vurderes visuelt.
