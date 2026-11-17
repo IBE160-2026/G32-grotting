@@ -149,3 +149,5 @@
 - [ ] 2026-11-17 [story-2-8-read-score-and-keyword-lists](969-2026-11-17-11-08-00-story-2-8-read-score-and-keyword-lists.md) — mangler e2e for ikke-nettverksfeil (429/500) og for `sending`-vakta i vinduet før den opptatte knappen rendres (deferred-work.md)
 - [ ] 2026-11-17 [story-2-9-pulse-plot](968-2026-11-17-11-55-00-story-2-9-pulse-plot.md) — pulsplottet bytter fra full til kompakt etter mount (hopp på mobil) og velger modus etter containerbredde; vurder i Story 7.2 (deferred-work.md)
 - [ ] 2026-11-17 [story-2-9-pulse-plot](968-2026-11-17-11-55-00-story-2-9-pulse-plot.md) — ikke verifisert: `docker compose run --rm --build test` og øvrige e2e-filer; Hjem-fallbacken (uten plott) har ingen test
+- [ ] 2026-11-17 [story-2-10-try-with-example](967-2026-11-17-12-20-00-story-2-10-try-with-example.md) — Helene: kjør FR-3- og FR-8-sjekkene i `docs/qa/example-pair-manual-checks.md` og fyll inn resultat (AC 3 og 4 i 2.10 er åpne til da)
+- [ ] 2026-11-17 [story-2-10-try-with-example](967-2026-11-17-12-20-00-story-2-10-try-with-example.md) — ikke verifisert: `docker compose run --rm --build test` og øvrige e2e-filer for 2.10
