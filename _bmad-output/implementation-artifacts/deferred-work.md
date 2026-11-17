@@ -59,9 +59,15 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary.md`
   summary: The Norwegian ESCO skills list as a backup vocabulary source is not in the code; the vocabulary is the curated `data/vocabulary/nb.json` only.
   evidence: Spec 2.5 Never list. Revisit in Story 2.11 (FR-5b) if code-only extraction fails the Answer keys on the held-out Fixture.
-- source_spec: `_bmad-output/implementation-artifacts/spec-2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary.md`
-  summary: `tokenise` splits a word at a soft hyphen or zero-width character, so a PDF-extracted CV word is missed.
-  evidence: Edge Case Hunter. `normalise` strips these, but the tokeniser runs first. Pasted ads do not carry them; Story 2.6 reuses `tokenise` on CV text from PDFs, so handle it there with a test.
-- source_spec: `_bmad-output/implementation-artifacts/spec-2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary.md`
-  summary: Some vocabulary entries are ambiguous in running text («Spark», «Swift», «Lean», «Ruby», «salg»), and there are no soft-skill or Office terms.
-  evidence: Blind Hunter. Matching is case-insensitive and stem-based, so a common word can hit. Tune against the Answer keys and the held-out Fixture in Stories 2.7 and 2.11, bumping `vocabularyVersion`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-6-find-each-keyword-in-the-cv-text-with-its-evidence.md`
+  summary: The vocabulary is now fitted to the three Fixtures' Answer keys (phrase terms, aliases, terms removed such as «stakeholder», «frontend», «webutvikling», «dashbord»), so a green SM-2 test says little about other ads.
+  evidence: Story 2.6 AC needs exact Matched/Missing lists. Story 2.11's held-out Fixture, written after this tuning, shows whether code-only extraction generalises (FR-5b). Ambiguous entries («Spark», «Swift», «Lean», «Ruby», «salg») and the lack of soft-skill and Office terms are still open.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-6-find-each-keyword-in-the-cv-text-with-its-evidence.md`
+  summary: Helene to confirm two Answer-key readings the code reproduces through aliases: «behandling av trykksår og diabetessår» is Matched through the alias «trykksår» (CV line «Skrev eksamensoppgave om diabetiske fotsår vs trykksår»), and «norskkunnskaper» through «norsk (morsmål)».
+  evidence: Neither CV line contains the Keyword as written. The same trykksår line is the Evidence given for the Missing «sårvurdering», so one line backs both readings. Change the Answer key or the alias if the reading is not intended.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-6-find-each-keyword-in-the-cv-text-with-its-evidence.md`
+  summary: Phrase Keywords that are not written in one run in the ad («dokumenterer i pasientjournal» for «dokumenterer nøyaktig i pasientjournal», «responsive mobil» for «responsive nettsider … på mobil») are found only through an alias.
+  evidence: Spans are contiguous. Tune or add phrase-level matching in Story 2.7 or 2.11 only if an Answer key justifies it.
+- source_spec: `_bmad-output/implementation-artifacts/spec-2-6-find-each-keyword-in-the-cv-text-with-its-evidence.md`
+  summary: Span gaps now allow parentheses in CV and ad text, and `findKeyword` searches line by line, so a Keyword split by a PDF line break (two-column CVs) is missed.
+  evidence: Story 2.6 AC says the CV line is the Evidence. No Fixture needs a cross-line match; revisit with the held-out Fixture.

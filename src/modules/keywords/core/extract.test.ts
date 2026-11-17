@@ -204,11 +204,11 @@ describe("FR-5 extractKeywords: spans", () => {
     ]);
   });
 
-  it("matches a 4-token term but never a 5-token one", () => {
-    const four = found("Vi vil ha en to tre fire.", ["en to tre fire"]);
-    expect(four.map((keyword) => keyword.term)).toEqual(["en to tre fire"]);
+  it("matches a 5-token term but never a 6-token one", () => {
+    const five = found("Vi vil ha en to tre fire fem.", ["en to tre fire fem"]);
+    expect(five.map((keyword) => keyword.term)).toEqual(["en to tre fire fem"]);
     expect(
-      found("Vi vil ha en to tre fire fem.", ["en to tre fire fem"]),
+      found("Vi vil ha en to tre fire fem seks.", ["en to tre fire fem seks"]),
     ).toEqual([]);
   });
 
@@ -362,11 +362,11 @@ describe("FR-5 vocabulary file", () => {
     expect(vocabulary.terms.length).toBeLessThanOrEqual(320);
   });
 
-  it("writes every term and alias with 1 to 4 tokens and more than a letter", () => {
+  it("writes every term and alias with 1 to 5 tokens and more than a letter", () => {
     for (const { form } of forms) {
       const tokens = tokenise(form);
       expect(tokens.length, form).toBeGreaterThanOrEqual(1);
-      expect(tokens.length, form).toBeLessThanOrEqual(4);
+      expect(tokens.length, form).toBeLessThanOrEqual(5);
       expect(form.replace(/\s/g, "").length, form).toBeGreaterThan(1);
     }
   });
@@ -421,7 +421,8 @@ describe("NFR-6 Fixtures", () => {
       ["universell utforming", "exact", "universell utforming"],
       ["React", "exact", "React"],
       ["REST API", "exact", "REST API"],
-      ["stakeholder", "inflection", "stakeholders"],
+      ["responsive mobil", "alias", "responsive"],
+      ["junior frontendutvikler", "exact", "Junior frontendutvikler"],
     ],
     "nursing-sarvurdering": [
       ["sårvurdering", "exact", "sårvurdering"],

@@ -7,8 +7,16 @@ export type Token = {
 };
 
 // A token is a run of letters, combining marks and digits, with trailing «+»
-// or «#» kept («C++», «C#», «C+»); a «+» before a letter splits («HTML+CSS»). Hyphens, dots, slashes and the like split tokens.
-const TOKEN = /[\p{L}\p{M}\p{N}]+(?:\+\+|#|\+(?![\p{L}\p{M}\p{N}]))?/gu;
+// or «#» kept («C++», «C#», «C+»); a «+» before a letter splits («HTML+CSS»).
+// Hyphens, dots, slashes and the like split tokens. PDF artefacts inside a word
+// (soft hyphen, zero-width characters, direction marks, word joiner, BOM) stay
+// in the token; `normalise` removes them.
+const WORD = String.raw`[\p{L}\p{M}\p{N}]`;
+const ARTEFACT = `[${String.fromCharCode(0xad, 0x200b)}-${String.fromCharCode(0x200f, 0x2060, 0xfeff)}]`;
+const TOKEN = new RegExp(
+  String.raw`${WORD}+(?:${ARTEFACT}+${WORD}+)*(?:\+\+|#|\+(?!${WORD}))?`,
+  "gu",
+);
 
 // A blank line is a line holding only whitespace (tab, NBSP, form feed...).
 const BLANK_LINE = /\n(?:[^\S\n]*\n)+/;
