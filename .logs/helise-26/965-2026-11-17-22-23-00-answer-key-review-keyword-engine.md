@@ -45,3 +45,20 @@ Helene: sett «Bachelor i informatikk» tilbake til Matched, og deretter «fix t
 ### Åpne punkter
 - Helene: sjekk at Result-kolonnen i `docs/qa/example-pair-manual-checks.md` er faktiske resultater (se issues.md).
 - Vokabularet er endret etter at held-out ble kjørt; vurder om FR-5b-dokumentet skal få en merknad om ny versjon.
+
+## 2026-11-17 kl. 23:10 — Helise-26
+
+### Oppgave
+Helene: «Fix the open issues in issues.md». Valgt omfang: opprydding og enkle gevinster (ingen nye funksjoner).
+
+### Plan
+- Gå gjennom de ~100 åpne punktene; lukk de som allerede er løst av arbeidet i dag etter å ha sjekket koden og dokumentene.
+- Skriv den manglende merknaden om vokabularversjonen i `docs/qa/fr-5b-decision.md`.
+
+### Resultat
+- Lukket 8 punkter i `issues.md` (hver med årsak): FR-5b-beslutningen (to punkter om oppfølging og «fjern Story 3.11»), beslutningen om kode alene, `Math.round` i `score.ts`, de to alias-lesningene i fasiten, frasenøkkelord via alias, «data»/«tall» som must-not-match, og versjonsmerknaden.
+- Ny merknad om `v1-bbb32bad` i `docs/qa/fr-5b-decision.md`. 80 punkter er fortsatt åpne.
+- Bevisst ikke lukket: `git stash` fra 1.8 (stash@{0}, Helene bestemmer om den kan droppes), stram inn must-not-match i fjord-fasiten (delvis gjort), vokabulargjennomgangen, og alt som krever manuelle sjekker, Docker/e2e-kjøringer, leverandørvalg eller beslutninger.
+
+### Åpne punkter
+- Resten av `issues.md` (80). Størst gevinst neste: manuelle sjekker i `docs/qa/example-pair-manual-checks.md`, `docker compose run --rm --build test`, og vokabulargjennomgangen.
