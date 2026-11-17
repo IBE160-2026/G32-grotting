@@ -2,7 +2,7 @@
 title: 'Story 2.11: Decide whether code alone extracts Keywords well enough (FR-5b)'
 type: 'feature'
 created: '2026-11-17'
-status: 'in-progress'
+status: 'in-review'
 route: 'dispatch'
 baseline_commit: '287eb05a3bd298678619343702960c7897e88e4f'
 review_loop_iteration: 0
@@ -43,7 +43,7 @@ context:
 
 ## Code Map
 
-- `src/modules/keywords/core/sm2.test.ts`, `src/shared/core/fixtures.test.ts` -- both scan every folder under `data/fixtures/` (not `_`-prefixed); the held-out folder joins SM-2 automatically once it is complete. Do not change them.
+- `src/modules/keywords/core/sm2.test.ts`, `src/modules/match/core/analyse.test.ts`, `src/shared/core/fixtures.test.ts` -- all scan every folder under `data/fixtures/` (not `_`-prefixed); the held-out folder joins them automatically once it is complete. If SM-2 fails on it, the two list tests pin that as an expected failure (`it.fails`, an `expectedToFail` set) so required CI stays green; no other change to them.
 - `src/shared/core/answer-key.ts` -- Answer-key schema: keywords split, score (must follow the lists), `mustNotMatch`, `gaps` (Rewordable + Real = Missing), `mustNeverSuggest` (subset of Real).
 - `data/fixtures/nursing-sarvurdering/` -- folder shape and style to follow; ads and CVs are about 200–270 words.
 - `_bmad-output/planning-artifacts/prds/prd-JobAssistant-2026-10-31/prd.md` -- FR-5b (§6.2), §5.2, §11, §13 Open questions 2 and 6, and the 15 FR-5b hits; `.memlog.md` and `addendum.md` also mention it.
@@ -55,29 +55,52 @@ context:
 
 **Execution:**
 - [x] `data/fixtures/held-out-regnskap-kvale/{ad.txt,cv.txt,meta.json}` -- draft the held-out pair (AI may draft) -- Phase 1
-- [ ] `data/fixtures/held-out-regnskap-kvale/answer-key.json` -- **Helene writes by hand** from the ad and CV, without running the engine -- the held-out rule
-- [ ] `docs/qa/fr-5b-decision.md` -- run SM-2 twice on every Fixture and record per-Fixture results and the decision -- Phase 2
-- [ ] PRD, epics, architecture spine, `docs/architecture.md`, EXPERIENCE.md, PRD `.memlog.md` -- apply the Pass or Fail branch -- Phase 2
+- [x] `data/fixtures/held-out-regnskap-kvale/answer-key.json` -- **Helene writes by hand** from the ad and CV, without running the engine -- the held-out rule
+- [x] `docs/qa/fr-5b-decision.md` -- run SM-2 twice on every Fixture and record per-Fixture results and the decision -- Phase 2
+- [x] PRD, epics, architecture spine, `docs/architecture.md`, EXPERIENCE.md, PRD `.memlog.md` -- apply the Pass or Fail branch -- Phase 2
 
 **Acceptance Criteria:**
 - Given the held-out Fixture with Helene's Answer key, when `npx vitest run` runs, then SM-2 is run on all four Fixtures and its result is in `docs/qa/fr-5b-decision.md` with the date.
 - Given SM-2 passes on every Fixture, when the decision is recorded, then FR-5b is deleted, Open questions 2 and 6 are closed, the flag stays off and Story 3.11 is dropped.
-- Given SM-2 fails on any Fixture, when the decision is recorded, then the FR-5b table is written into the eight named requirements, PRD §11 logs it and Story 3.11 is kept.
+- Given SM-2 fails on any Fixture, when the decision is recorded, then the FR-5b table is written into the requirements it names (the eight listed, plus SM-7 and UJ-3 that the table also names), PRD §11 logs it and Story 3.11 is kept.
 - Given either outcome, when the planning documents change, then the commit message names the changed IDs and the PRD `.memlog.md` has an entry.
-- Given the repository, when `npx biome check`, `npm run typecheck` and `npx vitest run` run, then all pass (in the Fail case the SM-2 test for the held-out Fixture is the recorded, expected failure, and the PR says so).
+- Given the repository, when `npx biome check`, `npm run typecheck` and `npx vitest run` run, then all pass (in the Fail case the held-out Fixture's list tests are pinned as expected failures, so the suite is green).
 
 ## Implementation Notes
 
-- 2026-11-17, Phase 1 done: `ad.txt` (243 words), `cv.txt` (188 words) and `meta.json` drafted by Claude for `held-out-regnskap-kvale` (accounting, Stavanger; fictional CV «Ola Brekke»). The vocabulary file was not opened while drafting, and no test or engine was run on the Fixture. The wording was written as an ordinary ad and CV, not shaped toward any list.
-- **Stopped on purpose.** `answer-key.json` is Helene's to write by hand from `ad.txt` and `cv.txt` (Matched, Missing, score, must-not-match, Rewordable and Real gaps, must-never-suggest; schema in `src/shared/core/answer-key.ts`). Until it exists, do not run `vitest`, SM-2 or the engine: the Fixture scanners pick up the folder and would also fail on the missing key. Resume with `bmad-build` on this spec (Phase 2: run SM-2 twice, write `docs/qa/fr-5b-decision.md`, apply the Pass or Fail branch).
-- Helene may change the ad or CV before writing the key (it is a draft); once the key is written the Fixture files are frozen.
+- 2026-11-17, Phase 1: `ad.txt`, `cv.txt` and `meta.json` drafted by Claude for `held-out-regnskap-kvale` (accounting, Stavanger; fictional CV «Ola Brekke»); commit `649ac82`. The vocabulary file was not opened while drafting.
+- Helene edited the CV wording («regnskapssystemet Visma») and wrote `answer-key.json` by hand, then fixed schema errors over four checks. Committed (`5bf585e`) before the engine's first run. Biome later reformatted the key's whitespace only (parsed content checked equal).
+- Phase 2: SM-2 passed on the three tuned Fixtures and failed on the held-out one (13 differences). Helene confirmed «FR-5b applies». Record: `docs/qa/fr-5b-decision.md` (`1c3b07e`, `3590388`). The PRD, epics, architecture spine, `docs/architecture.md`, EXPERIENCE.md, addendum and `.memlog.md` were changed for the Fail branch (D24, U24).
+- Review patches: stale conditionals and UX/architecture wording aligned; the held-out list tests in `sm2.test.ts` and `analyse.test.ts` are pinned with `it.fails`.
+- Verified: `npx biome check`, `npm run typecheck`, `npx vitest run` (54 files, 545 passed, 2 expected fail). Docker not run.
 
 ## Spec Change Log
 
+- 2026-11-17, review (Verification Gap, Blind Hunter, Edge Case Hunter all noted it): the Code Map said not to change the Fixture scanners, but with a failing held-out Fixture the required CI check goes red and `main` cannot be merged green. Amended the Code Map, the last acceptance criterion and the Fail-branch criterion (non-frozen). Known-bad state avoided: a permanently red suite (NFR-9). KEEP: the vocabulary and engine are not changed; the failure stays visible (`it.fails` turns red when the lists agree).
+
 ## Review Triage Log
+
+Three reviewer subagents (Blind Hunter, Edge Case Hunter, Verification Gap) ran on the diff.
+
+| Finding | Verdict | Evidence / route |
+|---|---|---|
+| Held-out SM-2 test stays red; required CI blocks the merge (all three) | high | Real; `sm2.test.ts` and `analyse.test.ts` both failed on the held-out Fixture. Spec amended (Change Log), both pinned with `it.fails`. |
+| Some Matched Keywords are not literal CV strings, so part of the 13 differences may be key phrasing (all three) | medium | Real as a concern. Checked: Altinn, lønnskjøring, mva-oppgjør and bokføring are literal in the ad and not extracted, so the failure stands. Patch: section added to `docs/qa/fr-5b-decision.md`. The key itself is Helene's and was not edited. |
+| `mustNotMatch` «med», «regnskapssystemet» weak; `mustNeverSuggest` empty (Blind, Edge) | low | Real, but they are Helene's fasit. Noted in the record as hers to revise; they do not change the lists. |
+| Stale «only if FR-5b applies» in `epics.md` and the spine (Blind, Edge) | medium | Real; patched. `epic-2-context.md` is a generated cache and is rebuilt when the planning documents change. |
+| EXPERIENCE.md contradicts FR-8, NFR-4, FR-24; grammar «the FR-5b's» (Blind, Edge) | medium | Real; patched (AI notice line, score block, phase 1, edge case). |
+| Cost figure not recomputed for the third request (Blind) | low | Patched with a note: recompute when Story 3.11 measures the Keyword request. Daily-cap arithmetic (30 per day) not changed: a product decision, not part of FR-5b's table. |
+| «Eight» requirements but ten changed (Blind, Edge) | low | Real; epics criterion and spec criterion now name SM-7 and UJ-3. |
+| Spec status, tasks, notes and logs stale (Blind) | false | Filled by this step. |
+| FR-5b is AI-first for every new ad; n=1 decision rule (Blind) | false | The scope («for a new Job ad») and the rule (any Fixture fails) are the approved FR-5b text, decided by Helene. |
+| Declined-notice path conflicts with FR-24 (Edge) | low | Pre-existing: the same condition was in the approved FR-5b table and Story 3.11. Not changed here; deferred to Story 3.11. |
+| Hash key without normalisation or versions (Edge) | false | AD-5 and Story 3.11 key by `contentHash(canon(ad))`; the PRD sentence only names the idea. |
+| FR-5b Verify lacks the failed-request path (Edge) | false | Story 3.11's acceptance criteria cover it. |
+| Key provenance not checkable from the diff (Edge) | false | Commit order shows it: `649ac82` (draft), `5bf585e` (key), then the run. |
+| Cost per Application, held-out has no `cached/`, FR-28 count (Blind) | false | Story 3.11 creates `cached/keywords.json` for every Fixture; FR-28 says at least 3. |
 
 ## Verification
 
 **Commands:**
-- `npx vitest run src/modules/keywords/core/sm2.test.ts src/shared/core/fixtures.test.ts` -- expected: lists the result per Fixture (first run only after the Answer key exists)
+- `npx vitest run` -- expected: all pass, 2 expected fail (the held-out Fixture; first run only after the Answer key exists)
 - `npx biome check` and `npm run typecheck` -- expected: no diagnostics

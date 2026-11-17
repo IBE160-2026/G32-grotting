@@ -1,7 +1,16 @@
 {
   "keywords": {
     "matched": [
-      "utdanning innen regnskap", "Altinn", "mva-oppgjør", "Visma", "Excel", "norskkunnskaper", "årsavslutning og skatteoppgjør for aksjeselskaper", "lønnskjøring", "regnskapsmedarbeider", "avstemming av bank og reskontro"
+      "utdanning innen regnskap",
+      "Altinn",
+      "mva-oppgjør",
+      "Visma",
+      "Excel",
+      "norskkunnskaper",
+      "årsavslutning og skatteoppgjør for aksjeselskaper",
+      "lønnskjøring",
+      "regnskapsmedarbeider",
+      "avstemming av bank og reskontro"
     ],
     "missing": ["Power BI", "automatisering av rutiner", "bokføring"]
   },

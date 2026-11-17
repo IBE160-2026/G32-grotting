@@ -434,7 +434,7 @@ flowchart LR
 - **Rule:**
   - **Fixture folders:** `data/fixtures/<id>/`, holding:
     - `cv.txt`, `cv.pdf` where it exists, `ad.txt`, `meta.json` (job title, employer) and `answer-key.json`;
-    - `cached/`: `letter-formell.json`, `letter-personlig.json`, `letter-direkte.json` and `gaps.json`, plus `keywords.json` only if FR-5b applies.
+    - `cached/`: `letter-formell.json`, `letter-personlig.json`, `letter-direkte.json` and `gaps.json`, plus `keywords.json` (FR-5b applies).
   - **Cached file contents:** exactly the `AiOutput<T>` shape (raw adapter output, before any guard), written only by `scripts/record-cached.ts`.
   - **Planted responses:** bad outputs live in `data/fixtures/_planted/`, and only tests read them.
   - **Reading `data/` at runtime:** only through `shared/server/data-files.ts`, which also loads the vocabulary for AD-5. `next.config.ts` sets `outputFileTracingIncludes` for `./data/vocabulary/**` and the Example pair's folder, so Vercel's functions get the files. `_planted/` is never traced.
