@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-16-2026 22:40
+last_updated: 11-17-2026 09:30
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -55,7 +55,7 @@ development_status:
   2-3-write-the-two-column-fixture-split-compounds-prosjektledelse: done
   2-4-normalise-and-stem-norwegian-words: done
   2-5-extract-keywords-from-the-job-ad-with-a-versioned-vocabulary: done
-  2-6-find-each-keyword-in-the-cv-text-with-its-evidence: backlog
+  2-6-find-each-keyword-in-the-cv-text-with-its-evidence: done
   2-7-score-the-inputs-on-the-server-phase-1: backlog
   2-8-read-the-score-and-the-keyword-lists-on-søknad: backlog
   2-9-see-the-job-ad-drawn-as-a-pulse-plot: backlog

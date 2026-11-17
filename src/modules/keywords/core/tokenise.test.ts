@@ -100,3 +100,28 @@ describe("FR-5 splitParagraphs", () => {
     expect(splitParagraphs("  \n\n  ")).toEqual([]);
   });
 });
+
+// Soft hyphen, zero-width space, non-joiner, joiner, word joiner and BOM.
+const ARTEFACTS = [0xad, 0x200b, 0x200c, 0x200d, 0x2060, 0xfeff].map((code) =>
+  String.fromCharCode(code),
+);
+
+describe("tokenise PDF artefacts", () => {
+  it("keeps a soft hyphen and zero-width characters inside a word", () => {
+    for (const mark of ARTEFACTS) {
+      const text = `Re${mark}act og CSS`;
+      expect(tokenise(text).map((token) => token.text)).toEqual([
+        `Re${mark}act`,
+        "og",
+        "CSS",
+      ]);
+    }
+  });
+
+  it("does not take an artefact at the edge of a word into the token", () => {
+    const [soft, zero] = ARTEFACTS;
+    expect(tokenise(`${zero}React${soft}`).map((token) => token.text)).toEqual([
+      "React",
+    ]);
+  });
+});
