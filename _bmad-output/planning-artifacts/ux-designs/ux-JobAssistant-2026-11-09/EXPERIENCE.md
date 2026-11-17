@@ -132,10 +132,10 @@ Microcopy rules. Brand voice lives in DESIGN.md, Brand & Style. The same rules b
 | Submit | «Analyser og skriv utkast» | Mock |
 | Job ad errors | «Stillingsannonsen må være mellom 200 og 15 000 tegn.» · «Fyll inn stillingstittelen.» · «Fyll inn arbeidsgiveren.» · «Maks 200 tegn.» | Old UX / New; FR-4 |
 | Ad too short or unclear | «Annonsen er for kort eller uklar til å analyseres. Lim inn hele stillingsannonsen, også kravene.» | Old UX |
-| Phase 1 progress (FR-5 fallback) | «Henter nøkkelord fra annonsen …» | Old UX |
+| Phase 1 progress (FR-5b) | «Henter nøkkelord fra annonsen …» | Old UX |
 | **AI notice** | | |
 | AI notice title | «Teksten din sendes til en KI-tjeneste» | Mock |
-| AI notice body | «For å skrive gapanalysen og søknadsbrevet sender vi CV-teksten og annonsen til {leverandør}. Ingenting er sendt ennå, og ingenting sendes før du godtar.» + points: «Samsvaret regnes ut her i appen, uten KI.» · «E-postadresser og telefonnumre fjernes før teksten sendes.» · «{Leverandør} trener ikke på teksten og sletter den etter {periode}.» · «Ta ikke med sensitive opplysninger som helse eller fødselsnummer.» · «Du blir bare spurt denne ene gangen.» | Mock + FR-24/FR-26 content, New wording |
+| AI notice body | «For å skrive gapanalysen og søknadsbrevet sender vi CV-teksten og annonsen til {leverandør}. Ingenting er sendt ennå, og ingenting sendes før du godtar.» + points: «Samsvaret regnes ut her i appen. Annonsen, aldri CV-en, sendes også for å hente ut nøkkelord.» · «E-postadresser og telefonnumre fjernes før teksten sendes.» · «{Leverandør} trener ikke på teksten og sletter den etter {periode}.» · «Ta ikke med sensitive opplysninger som helse eller fødselsnummer.» · «Du blir bare spurt denne ene gangen.» | Mock + FR-24/FR-26 content, New wording |
 | AI notice buttons | «Godta og fortsett» · «Avbryt» | Mock |
 | **Result** | | |
 | Back to the form | «Endre annonsen» | New |
@@ -146,7 +146,7 @@ Microcopy rules. Brand voice lives in DESIGN.md, Brand & Style. The same rules b
 | Verdict | «Sterkt samsvar» + «70 % eller mer gir sterkt samsvar.» / «Bør forbedres» + «Under 70 % gir bør forbedres. Se hva som mangler nedenfor.» | PRD / Mock / New |
 | Formula | «Formel» · «5 av 7 nøkkelord funnet = 71 %» | Mock |
 | Disclaimer | «Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering, og ingen spådom om intervjusjanser.» | Mock + FR-8 clause |
-| Less precise (FR-5 fallback only) | «Mindre presist: nøkkelordene er hentet ut uten KI.» | Old UX |
+| Less precise (FR-5b only) | «Mindre presist: nøkkelordene er hentet ut uten KI.» | Old UX |
 | Keyword lists | «Funnet i CV-en» · «Mangler i CV-en» | Mock |
 | Missing line | «Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.» | PRD FR-8 |
 | Source lines | «Bevis · CV-linje 8 · annonsen avsnitt 03» · «Fra annonsen · avsnitt 08» | Mock |
@@ -215,7 +215,7 @@ Behavioural rules. Visual specs live in DESIGN.md, Components, under the same na
 | Catalogue heading | Søknad form and result, Saved Application, Profil («CV · Violet Hansen») | The page's single `h1`. A Saved Application adds the catalogue sequence nav: a link to the previous entry and «Historikk». Focus: see Accessibility Floor, Focus order. |
 | Credits list | Under the catalogue heading; Konto | A `<dl>`: Stilling, Dato, Tone, Annonse («14 avsnitt · 7 nøkkelord»). Read-only. |
 | Pulse plot | Hjem (Example ad), Søknad result, Saved Application; flat on the Søknad form and in empty Historikk | Drawn in the browser from the Job ad text and the phase-1 keyword lists. Each paragraph (split on blank lines) is a line; each Keyword peaks at its first position in its paragraph. The drawing is deterministic: the same ad gives the same plot. It redraws after fonts load and on resize (debounced 150 ms). It has no hover, tooltip or focusable part; the keyword lists below are its full equivalent. Before phase 1 (the form) it is flat and `aria-hidden`. |
-| Score block | Result, phase 1 onward | Shows the score sentence, verdict strip and threshold sentence, formula and disclaimer together. It never waits for AI (FR-8, NFR-4). With the FR-5 fallback's code-only Keywords, a `{components.notice}` «Mindre presist …» sits under the formula. |
+| Score block | Result, phase 1 onward | Shows the score sentence, verdict strip and threshold sentence, formula and disclaimer together. For a saved Keyword list it never waits for AI; for a new Job ad it waits for the Keyword request (FR-8, NFR-4, FR-5b). With code-only Keywords (FR-5b fallback), a `{components.notice}` «Mindre presist …» sits under the formula. |
 | Keyword entry | Result: «Funnet i CV-en», «Mangler i CV-en» | Matched: the Keyword, `{components.code-found}`, the Evidence quote and the source line. Missing: the Keyword, `{components.code-missing}`, the FR-8 template line, the quoted ad line and its source line. Once S4 exists, each Missing entry ends with «Se gapanalysen», an in-page link to its Gap entry's `h3` (FR-8). Focus: see Accessibility Floor, Focus order. |
 | Evidence quote | Keyword entries, Rewordable gap | Word-for-word from the CV text or the Job ad, in sjevroner, with the Keyword marked. Never paraphrased. Trimmed at word boundaries with «…» past about 160 characters (Old UX). |
 | Gap entry | Gapanalyse (S4) | One per Missing keyword, in the order of the Missing list. The label strip («Omformulerbart gap» / «Reelt gap») makes the two kinds differ by text, not only colour. The AI explanation follows the FR-14 order: what is missing, why it matters, the CV entry. A Gap downgraded by FR-15, or one the AI skipped, renders as a Real gap with the template line and nothing else (AD-14). |
@@ -253,7 +253,7 @@ Behavioural rules. Visual specs live in DESIGN.md, Components, under the same na
 | CV not confirmed | Søknad, before S6 | On submit, a field error at the CV field (Key strings, CV not confirmed; FR-3). |
 | Job ad errors | Søknad | Field errors (Key strings, Job ad errors; FR-4). Focus: see Accessibility Floor, Focus order. |
 | Ad too short or unclear | Søknad | Fewer than 3 Keywords: alert at the Job ad field (Key strings, Ad too short or unclear). No score, no result view (FR-4). |
-| Phase 1 running | Søknad | Usually under 2 s: the submit button is busy, with no separate view. Under the FR-5 fallback for a new ad: an unannounced progress line (Key strings, Phase 1 progress). |
+| Phase 1 running | Søknad | Usually under 2 s: the submit button is busy, with no separate view. For a new ad (FR-5b): an unannounced progress line (Key strings, Phase 1 progress). |
 | Phase 1 done, phase 2 running | Result (S07) | Heading, plot, score block and keyword lists are shown. The progress line and one AI placeholder per section are below. One announcement: the phase-1 line (NFR-2). |
 | Result complete | Result (S08) | All sections shown; the progress line is removed; one announcement: the phase-2 line. After S6, «Lagret i Historikk som JA-002.» appears under the heading. |
 | AI section failed or timed out | Result | After 90 s, or on a provider error, that section's placeholder becomes an alert with «Prøv igjen» (Key strings, AI section failed; NFR-4, NFR-5, AD-6). The other section is unaffected. The retry outcome is announced in the second polite region. Focus: see Accessibility Floor, Focus order. |
@@ -362,7 +362,7 @@ Kari grades IBE160 portfolios: a clean machine, a fresh clone, no API keys, and 
 5. **Climax:** the whole Refleksjonsnotat arrives through the same two phases as a live run, with no key and no cost: the score from code, then the Gapanalyse, Omformuleringsforslag and Letter from Cached responses.
 6. **Resolution:** with the Access code from the submission she opens the Hosted version, passes **Tilgangskode (S04)**, and repeats the flow with live AI (FR-30, FR-31).
 
-- **Edge case:** she pastes her own Job ad in Test mode → the score still works (under the FR-5 fallback, with the «Mindre presist» notice), and each AI section shows «Ikke tilgjengelig i testmodus. Bruk eksempelet for å se hele flyten.» (FR-27).
+- **Edge case:** she pastes her own Job ad in Test mode → the score still works (with code-only Keywords, FR-5b, and the «Mindre presist» notice), and each AI section shows «Ikke tilgjengelig i testmodus. Bruk eksempelet for å se hele flyten.» (FR-27).
 - **Failure:** she mistypes the Access code on the Hosted version → the field error «Feil tilgangskode.», with the field kept, and she tries again (FR-31).
 
 ## Responsive & Platform

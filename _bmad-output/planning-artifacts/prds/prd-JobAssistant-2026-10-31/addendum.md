@@ -64,7 +64,7 @@ These notes are suggestions, not decisions. The architecture document must make 
 
 ### 2.1 Keyword engine (FR-5 to FR-7)
 - **Vocabulary is the main quality risk.** Extraction by code alone probably needs a curated vocabulary: the Norwegian labels in ESCO, which span all occupations, plus a list of technology terms. It must work for ads from any field, such as nursing, not only IT (Open questions 2 and 6). *Direction decided 2026-11-08 (now architecture spine of 2026-11-13, AD-5):* a curated core list, with selected ESCO Norwegian labels as backup, as versioned JSON in `data/vocabulary/`.
-- **AI fallback.** Approved on 2026-10-31 and specified in full in FR-5b; decided on 17 November 2026, at the end of S2. Keep extraction behind one interface, so either path fits.
+- **AI fallback.** Approved on 2026-10-31 and specified in FR-5b. Decided on 17 November 2026: it applies (code-only extraction failed SM-2 on the held-out Fixture, D24). Extraction stays behind one interface, so the code-only path remains the fallback.
 - A possible pipeline:
   1. Normalise: case, æøå, hyphens and spaces.
   2. Lemmatise or stem.

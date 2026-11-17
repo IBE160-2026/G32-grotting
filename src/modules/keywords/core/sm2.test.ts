@@ -19,6 +19,12 @@ const ids = readdirSync(root, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
   .map((entry) => entry.name);
 
+// FR-5b (decided 2026-11-17, docs/qa/fr-5b-decision.md): code alone fails SM-2
+// on the held-out Fixture. The failure is expected and pinned here with
+// `it.fails`, so it turns red when the lists start to agree (remove the entry
+// then). The vocabulary is not changed to make it pass.
+const expectedToFail = new Set(["held-out-regnskap-kvale"]);
+
 function read(id: string, file: string): string {
   return readFileSync(join(root, id, file), "utf8");
 }
@@ -68,13 +74,17 @@ describe("SM-2 Fixtures", () => {
       JSON.parse(read(id, "answer-key.json")),
     );
 
-    it(`gives the Answer key's Matched and Missing lists for ${id}`, () => {
-      const { matched, missing } = lists(id);
-      expect([
-        ...differences(id, "Matched", key.keywords.matched, matched),
-        ...differences(id, "Missing", key.keywords.missing, missing),
-      ]).toEqual([]);
-    });
+    const listTest = expectedToFail.has(id) ? it.fails : it;
+    listTest(
+      `gives the Answer key's Matched and Missing lists for ${id}`,
+      () => {
+        const { matched, missing } = lists(id);
+        expect([
+          ...differences(id, "Matched", key.keywords.matched, matched),
+          ...differences(id, "Missing", key.keywords.missing, missing),
+        ]).toEqual([]);
+      },
+    );
 
     it(`matches none of the must-not-match terms in ${id}`, () => {
       const { matched, missing, hits } = lists(id);

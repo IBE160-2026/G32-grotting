@@ -48,7 +48,7 @@ The Match score is calculated by code, never by AI (P2, AD-5). The language mode
 
 The Keyword itself is never cut down to one of its parts, so a CV that says only «ledelse» doesn't match the Keyword «prosjektledelse» (FR-6). The Integrity guards use the same engine, so the score and the guards always agree on what counts as the same word.
 
-If a check against the Answer keys on 17 November shows that code alone can't find Keywords well enough, the approved fallback in FR-5b lets AI propose the Keyword list. Matching and scoring stay in code. The engine is built so that either outcome fits without other changes.
+A check against the Answer keys on 17 November 2026 showed that code alone can't find Keywords well enough: the engine failed on a held-out accounting Fixture. The approved fallback in FR-5b therefore applies, and AI proposes the Keyword list for a new Job ad. Matching and scoring stay in code, and the code-only list stays as the fallback (`docs/qa/fr-5b-decision.md`).
 
 ## 3. Technology choices
 
@@ -81,7 +81,7 @@ The stack began as a reference stack the developer already knew (a Next.js + Fas
 
 **Data rules** (PRD §8.1): only a paid API tier is used, and the provider must not train on inputs, must document its retention period and must offer a data processing agreement. Both contenders process data in the US. Before the bake-off, each is looked up on the EU–US Data Privacy Framework list. If the winner isn't listed, PRD §8.1 is amended to accept the Standard Contractual Clauses in the provider's agreement, and the change is logged.
 
-**Cost** (NFR-8): one Application uses two AI requests, roughly 10,000 input and 5,000 output tokens in total. If the FR-5b fallback is switched on, a new Job ad adds at most one more request. At Claude Sonnet 5.5's price of 2 USD per million input tokens and 10 USD per million output tokens (November 2026), that is about 0.75 NOK per Application. The 200 NOK monthly budget then covers about 250 Applications, more than development, the Fixture runs and the demonstration need. The Daily cap, the absence of automatic retries and a monthly spending limit set with the provider keep the cost bounded.
+**Cost** (NFR-8): one Application uses two AI requests, roughly 10,000 input and 5,000 output tokens in total. Under FR-5b (it applies), a new Job ad adds one more request, which sends only the Job ad and is smaller than the other two. The cost figure below is for the two main requests and is to be recomputed when Story 3.11 measures the Keyword request. At Claude Sonnet 5.5's price of 2 USD per million input tokens and 10 USD per million output tokens (November 2026), that is about 0.75 NOK per Application. The 200 NOK monthly budget then covers about 250 Applications, more than development, the Fixture runs and the demonstration need. The Daily cap, the absence of automatic retries and a monthly spending limit set with the provider keep the cost bounded.
 
 **Why the Vercel AI SDK:** it calls each provider's API directly, so no extra company handles the Student's text. It also lets the bake-off compare both providers by changing configuration, not code. The losing provider's package is removed afterwards.
 
@@ -106,7 +106,7 @@ The stack began as a reference stack the developer already knew (a Next.js + Fas
 
 **Why Supabase:** it offers a free Postgres database in an EU region. Neon, the other free EU option considered, would have worked as well; Supabase was the product owner's choice. Supabase's data processing agreement is part of its terms. Whether it covers the Free plan is checked when the database is set up and recorded in `docs/qa/`; if it doesn't, the README run becomes the delivery (PRD §5.1). Supabase pauses a Free project after seven days without activity, so a scheduled job pings the app's health check twice a day. That keeps the Hosted version available during grading (SM-4).
 
-**What is stored:** nothing about a Student is stored until accounts and encryption exist (build step 6). Until then, the CV text and the results live only in the browser tab. The server stores just the Daily-cap counter and, if the AI keyword fallback is used (FR-5b), Keyword lists per Job ad. Uploaded CV files are never stored: the text is extracted in memory and the file is discarded (FR-23). The CV text is kept once, in the Profile, and never copied into each saved Application.
+**What is stored:** nothing about a Student is stored until accounts and encryption exist (build step 6). Until then, the CV text and the results live only in the browser tab. The server stores just the Daily-cap counter and, once the AI keyword fallback is built (FR-5b, which applies), Keyword lists per Job ad. Uploaded CV files are never stored: the text is extracted in memory and the file is discarded (FR-23). The CV text is kept once, in the Profile, and never copied into each saved Application.
 
 ## 6. Encryption and security
 

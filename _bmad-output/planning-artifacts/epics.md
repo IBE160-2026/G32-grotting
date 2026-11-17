@@ -29,11 +29,11 @@ Requirement IDs are the PRD's own (FR-1 to FR-31, FR-5b, NFR-1 to NFR-11) and ar
 
 **§6.2 Match score and keyword explanation (S2)**
 
-- FR-5: Code with no AI extracts the Keywords from the Job ad: skills, tools, technologies, methods, qualifications and domain terms from any field (not only IT), including English terms common in Norwegian ads. Stop words and boilerplate are excluded. Duplicates and inflected forms count once. The same ad text always gives the same list.
-- FR-5b (pending, decided 17 Nov 2026): if code-only extraction fails SM-2 on every Fixture plus one held-out Fixture, AI may propose the Keyword list once per Job ad. Every AI-proposed Keyword must be found in the ad by the Keyword engine, or it is dropped. The list is saved and reused by a hash of the ad text. If FR-5b applies, its table replaces values in FR-8, NFR-4, SM-7, P6, NFR-8, FR-24, FR-25, FR-27 and NFR-6, and the change is logged in PRD §11. If it passes, FR-5b is deleted.
+- FR-5: Code with no AI extracts the Keywords from the Job ad: skills, tools, technologies, methods, qualifications and domain terms from any field (not only IT), including English terms common in Norwegian ads. Stop words and boilerplate are excluded. Duplicates and inflected forms count once. For a new Job ad, AI proposes the list and code checks it against the ad (FR-5b); a saved list is reused, so the same ad text always gives the same list.
+- FR-5b (applies, decided 17 Nov 2026): code-only extraction failed SM-2 on the held-out Fixture, so AI proposes the Keyword list once per Job ad for a new ad. Every AI-proposed Keyword must be found in the ad by the Keyword engine, or it is dropped. The list is saved and reused by a hash of the ad text. Only the Job ad, never the CV, is sent. Its values are written into FR-8, NFR-4, SM-7, P6, NFR-8, FR-24, FR-25, FR-27 and NFR-6 below, and the change is logged in PRD §11 (D24).
 - FR-6: For each Keyword, the system decides whether and where the CV text contains it. Matching ignores case and accepts Norwegian inflections, hyphen and space variants, split compounds and known English–Norwegian aliases. Paraphrases are left to Gap analysis by default. Over-matching is a defect: each Fixture has negative cases (for example, «ledelse» must not match «prosjektledelse»).
 - FR-7: Match score = Matched ÷ all Keywords × 100, rounded to a whole number 0–100, equal weights. Verdict is Strong match at ≥ 70 and Needs work below, computed from the rounded score. Identical inputs give identical score and lists.
-- FR-8: The Reflection Note shows «X av Y nøkkelord» next to the score with a one-line formula; the Evidence for every Matched keyword; every Missing keyword with a code-template line («Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.») and the quoted ad line; a link to its Gap once S4 exists; and a disclaimer that the score estimates keyword coverage and is not an ATS result or interview prediction. The score and lists appear without waiting for AI.
+- FR-8: The Reflection Note shows «X av Y nøkkelord» next to the score with a one-line formula; the Evidence for every Matched keyword; every Missing keyword with a code-template line («Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.») and the quoted ad line; a link to its Gap once S4 exists; and a disclaimer that the score estimates keyword coverage and is not an ATS result or interview prediction. For a saved Keyword list, the score and lists appear without waiting for AI; for a new Job ad they wait for the Keyword request (FR-5b).
 
 **§6.3 Letter (S3)**
 
@@ -67,13 +67,13 @@ Requirement IDs are the PRD's own (FR-1 to FR-31, FR-5b, NFR-1 to NFR-11) and ar
 
 **§6.8 AI safeguards (built with S3)**
 
-- FR-24: Before a Student's first AI request, a plain-Norwegian notice says that the CV text and Job ad go to the named provider for the Letter, Gaps and suggestions; that the score is calculated locally; that the provider doesn't train on the text and how long it keeps it; and that sensitive information should be left out. The Student must accept to continue. It is shown once per account (once per browser session before S6) and never in Test mode. No AI request is sent before acceptance.
-- FR-25: At most 30 AI requests per Student per day (per installation before accounts, and after cut 1), resetting at local midnight. When the cap is reached, the score still works and the AI sections say the limit is reached and when it resets. A monthly spending limit at the provider backs it up.
+- FR-24: Before a Student's first AI request, a plain-Norwegian notice says that the CV text and Job ad go to the named provider for the Letter, Gaps and suggestions, and that the Job ad, never the CV, also goes there to extract Keywords; that the score is calculated locally; that the provider doesn't train on the text and how long it keeps it; and that sensitive information should be left out. The Student must accept to continue. It is shown once per account (once per browser session before S6) and never in Test mode. No AI request is sent before acceptance.
+- FR-25: At most 30 AI requests per Student per day (per installation before accounts, and after cut 1), resetting at local midnight. When the cap is reached, the score still works (a new Job ad is scored with code-only Keywords, marked as less precise, FR-5b) and the AI sections say the limit is reached and when it resets. A monthly spending limit at the provider backs it up.
 - FR-26: Email addresses and phone numbers are removed from the CV text before it is sent to the AI provider.
 
 **§6.9 Test mode and Fixtures**
 
-- FR-27: With no AI key, or with Test mode switched on, the app runs in Test mode with the banner «Testmodus – KI-svarene er forhåndslagret». The Example pair runs the full core flow on Cached responses. «Bruk eksempelet» on Søknad fills both texts, with or without login. The Example pair is also in the repository as files (CV as PDF and TXT, ad as text), and uploading or pasting them reaches the same Cached responses. There is one cached Letter per Tone; «Lag nytt utkast» shows it again. Cached responses are recorded from a live run of the final prompts and labelled with provider, model, prompt version and date. The score works for any input; for other inputs, the AI sections say they are not available in Test mode. Automated tests never make paid AI requests.
+- FR-27: With no AI key, or with Test mode switched on, the app runs in Test mode with the banner «Testmodus – KI-svarene er forhåndslagret». The Example pair runs the full core flow on Cached responses. «Bruk eksempelet» on Søknad fills both texts, with or without login. The Example pair is also in the repository as files (CV as PDF and TXT, ad as text), and uploading or pasting them reaches the same Cached responses. There is one cached Letter per Tone; «Lag nytt utkast» shows it again. Cached responses are recorded from a live run of the final prompts and labelled with provider, model, prompt version and date. The score works for any input (a new Job ad is scored with code-only Keywords, marked as less precise, FR-5b); for other inputs, the AI sections say they are not available in Test mode. Automated tests never make paid AI requests.
 - FR-28: At least 3 fictional Norwegian Fixtures, each with an Answer key: expected Matched and Missing Keywords, expected score (no tolerance), must-not-match terms, expected Rewordable and Real gaps, and must-never-suggest items. At least one has a two-column PDF CV, one uses English technical terms, one has inflection and split-compound cases, and one is from outside IT (nursing, built around the FR-16 example). One tests «prosjektledelse» against a semester group project. The Example pair is one of the Fixtures. Only fictional CVs.
 - FR-29: Once S6 exists, a local test user (email and password named in the README) exists after setup, with the Example pair's CV in its Profile. The credentials are fictional and local only.
 
@@ -87,11 +87,11 @@ Requirement IDs are the PRD's own (FR-1 to FR-31, FR-5b, NFR-1 to NFR-11) and ar
 - NFR-1 (Language): all interface text and generated content in bokmål, including with English terms in the ad. Every page has `lang="nb"`. Norwegian formats («71 %», «8. sep. 2026», sjevroner). The UX voice: «du», fact first then reason, no cheerleading, exclamation marks or emoji, no needless English loanwords. The Letter follows the same rules but addresses the employer.
 - NFR-2 (Accessibility): every screen (Hjem, Registrer deg, Logg inn, Profil, Søknad with results, Historikk, Konto, Tilgangskode) meets WCAG 2.2 AA: keyboard operation, labelled fields, errors tied to fields, progress announced with `aria-live` once for the score and once for the AI sections, meaning never by colour alone, text alternatives for icons, images and the score badge, text contrast ≥ 4.5:1 and control boundaries ≥ 3:1. Touch targets ≥ 44 px. Verified by an axe scan (0 serious or critical) and a keyboard-only UJ-1 walk.
 - NFR-3 (Responsive): every core flow is fully usable in a phone browser from 360 px, in a single column, with navigation collapsing at ≤ 640 px.
-- NFR-4 (Performance): for Fixture inputs, score and lists within 2 s; AI sections within 60 s in at least 4 of 5 timed runs. Two phases with a descriptive progress line. AI requests time out after 90 s and can be retried.
+- NFR-4 (Performance): for Fixture inputs with a saved Keyword list, score and lists within 2 s (a new Job ad waits for the Keyword request, FR-5b); AI sections within 60 s in at least 4 of 5 timed runs. Two phases with a descriptive progress line. AI requests time out after 90 s and can be retried.
 - NFR-5 (Stability): the 6-input wrong-input tour gives the expected inline error and keeps input. A double submit starts one Application and one set of AI requests. A refresh never shows a raw error or stack trace. Input is kept after any error. Errors are inline, Norwegian, field-level. A network or provider failure shows the UX error banner or inline error. If the AI part fails, times out, hits the cap or is unavailable, the score stays and only AI sections can be retried. Every state in EXPERIENCE.md is built and walked through.
-- NFR-6 (Determinism): identical inputs give identical Keyword lists, matches and scores across runs and machines. Dependency and Docker image versions are pinned.
+- NFR-6 (Determinism): identical inputs give identical Keyword lists, matches and scores across runs and machines, once a Job ad's list is saved (the Fixtures use saved lists, FR-5b). Dependency and Docker image versions are pinned.
 - NFR-7 (Security): secrets (AI key, encryption key, Access code) live only in environment variables, never in the repository. Locally, setup generates local secrets and an optional git-ignored `.env` adds a live key; on Hosted they live in Vercel's environment variables; `.env.example` documents each without values. HTTPS only on Hosted. Repository history checked for secrets before delivery. Every data access is authorised on the server, and all input is validated on the server. Uploaded files are never executed or served back.
-- NFR-8 (Cost): AI spend ≤ 200 NOK per month. At most 2 AI requests per Application plus new Letters. Daily cap, provider spending limit and token counts logged per request. Hosting at no cost. Tests and Test mode make no paid requests.
+- NFR-8 (Cost): AI spend ≤ 200 NOK per month. At most 3 AI requests per Application (Keywords for a new Job ad, Letter, Gap analysis and suggestions) plus new Letters. Daily cap, provider spending limit and token counts logged per request. Hosting at no cost. Tests and Test mode make no paid requests.
 - NFR-9 (Runnability): on a clean machine, the README alone gets the app running in Test mode within 15 minutes. Docker is the only prerequisite (version named). One Docker Compose command starts app and database; first start creates local secrets, prepares the database and seeds the test user. Commands are portable across Windows, macOS and Linux. One command runs all automated tests in Docker, and they pass on the delivery commit. No paid account, cloud service or API key is needed locally. The README covers purpose with screenshot, environment variables and live-key run, core flows (UJ-1, UJ-3) and test user, Hosted URL, folder overview, and links to brief, PRD §11, UX, architecture, epics, `docs/qa/` and logs.
 - NFR-10 (Traceability): every story cites its FR and NFR IDs; each story is built on its own branch and merged by a pull request naming those IDs; every commit cites a story or FR ID; every automated test is named after or tagged with its FR or NFR; planning documents are updated in a commit naming changed IDs when a requirement changes.
 - NFR-11 (Maintainability): a linter and formatter pass on the delivery commit; folder and module structure matches the architecture; no dead code, duplicated files or commented-out remains of AI attempts.
@@ -177,7 +177,7 @@ Requirement IDs are the PRD's own (FR-1 to FR-31, FR-5b, NFR-1 to NFR-11) and ar
 - `gaps/server` order: exactly one Gap per Missing keyword (extra AI items dropped, skipped ones become template Real gaps) → FR-15 → FR-17 → when `features.rewording` is off, every suggestion is `null` and FR-17 is skipped. Downgrades and discards logged as counts only. `checkTone` runs only in tests and `scripts/qa-compare.ts`.
 
 **Fixtures and Cached responses (AD-15)**
-- `data/fixtures/<id>/`: `cv.txt`, `cv.pdf` where it exists, `ad.txt`, `meta.json`, `answer-key.json`, `cached/` (`letter-formell.json`, `letter-personlig.json`, `letter-direkte.json`, `gaps.json`, plus `keywords.json` only if FR-5b applies).
+- `data/fixtures/<id>/`: `cv.txt`, `cv.pdf` where it exists, `ad.txt`, `meta.json`, `answer-key.json`, `cached/` (`letter-formell.json`, `letter-personlig.json`, `letter-direkte.json`, `gaps.json`, plus `keywords.json`, because FR-5b applies).
 - Cached files hold exactly `AiOutput<T>` (raw adapter output before guards), written only by `scripts/record-cached.ts`. Planted bad outputs live in `data/fixtures/_planted/`, read only by tests and never traced.
 - Runtime reads of `data/` only through `shared/server/data-files.ts`; `next.config.ts` `outputFileTracingIncludes` covers vocabulary and the Example pair folder.
 - `cv.txt` is generated by a script from `unpdf` extraction of `cv.pdf` where one exists.
@@ -210,7 +210,7 @@ Requirement IDs are the PRD's own (FR-1 to FR-31, FR-5b, NFR-1 to NFR-11) and ar
 
 **Deferred decisions with dates**
 - AI provider and model: bake-off at the start of S3 (18 Nov) between `@ai-sdk/anthropic` and `@ai-sdk/openai`, after a DPF check; uses a rough Gap prompt that S4 replaces; losing package removed afterwards.
-- FR-5b on or off: 17 Nov, against SM-2 on every Fixture plus a held-out one.
+- FR-5b on or off: decided 17 Nov 2026, against SM-2 on every Fixture plus a held-out one. Outcome: FR-5b applies (`docs/qa/fr-5b-decision.md`).
 - Vocabulary contents: tuned against the Answer keys in Epic 2.
 - Login rate limiting: only if an Epic 6 story needs it.
 
@@ -291,7 +291,7 @@ Requirement IDs are the PRD's own (FR-1 to FR-31, FR-5b, NFR-1 to NFR-11) and ar
 | FR-3 | 1, 6 | Review and confirm on Søknad (1); edit in Profil (6) |
 | FR-4 | 1, 2 | Length and required-field rules (1); fewer than 3 Keywords → no score (2) |
 | FR-5 | 2 | Code-only Keyword extraction |
-| FR-5b | 2, 3 | Decision on 17 Nov at the end of Epic 2; built in Epic 3 only if it applies (needs the AI pipeline) |
+| FR-5b | 2, 3 | Decided 17 Nov at the end of Epic 2: it applies, so it is built in Epic 3 (Story 3.11; needs the AI pipeline) |
 | FR-6 | 2 | Matching with inflections, compounds, aliases and negative cases |
 | FR-7 | 2 | Match score and Verdict |
 | FR-8 | 2, 4 | Score explanation, Evidence, Missing lines, disclaimer (2); «Se gapanalysen» link (4) |
@@ -349,7 +349,7 @@ The Student submits the inputs and sees «71 % samsvar – 5 av 7 nøkkelord» w
 
 The Student picks a Tone and gets a bokmål draft Letter built on their own CV, with any claim the CV doesn't support flagged. They can copy it, download it as .docx or ask for a new draft. They are told before any text leaves the app, and AI use is capped. The Examiner runs the whole flow in Test mode with no key. Ends with the core-flow checkpoint on 24 Nov.
 
-**FRs covered:** FR-5b (only if it applies), FR-9, FR-10, FR-11 (all Missing keywords flagged), FR-12, FR-23 (content-free logs), FR-24 (per browser session), FR-25 (per installation), FR-26, FR-27
+**FRs covered:** FR-5b, FR-9, FR-10, FR-11 (all Missing keywords flagged), FR-12, FR-23 (content-free logs), FR-24 (per browser session), FR-25 (per installation), FR-26, FR-27
 **NFR focus:** NFR-4 (two phases, 90 s timeout), NFR-5, NFR-8
 **Slices:** `ai`, `letter`, `integrity` (Letter checks, Tone checks, word lists); `application` phase-2 routes
 **Shared parts introduced:** dialog, copy button, Test-mode banner, progress line, AI placeholder
@@ -1180,6 +1180,10 @@ So that the FR-5b decision rests on evidence, and the requirements are written i
 **When** the decision is recorded
 **Then** the FR-5b table is written into FR-8, NFR-4, P6, NFR-8, FR-24, FR-25, FR-27 and NFR-6, the change from the brief is logged in PRD §11, and the FR-5b story in Epic 3 is kept
 
+**Given** the held-out accounting Fixture failed SM-2 (outcome of 2026-11-17, `docs/qa/fr-5b-decision.md`)
+**When** the decision is recorded
+**Then** the Fail branch above was taken: FR-5b applies (its values are also written into SM-7 and UJ-3, which the same table names), D24 is logged in PRD §11 and Story 3.11 is kept
+
 **Given** either outcome
 **When** the planning documents are changed
 **Then** the commit message names the changed IDs, and the PRD `.memlog.md` gets an entry
@@ -1527,11 +1531,11 @@ So that I don't send a letter that claims something I can't defend in an intervi
 **When** the FR-11 tests run
 **Then** a Letter containing a Real-gap Keyword, the job title and an Upgrade word gets exactly the expected flags
 
-### Story 3.11: Let AI propose Keywords when code alone falls short (only if FR-5b applies)
+### Story 3.11: Let AI propose Keywords when code alone falls short (FR-5b applies)
 
 As a Student,
 I want a reliable Keyword list even for ads the vocabulary handles badly,
-So that my score reflects the ad (kept only if Story 2.11 decides that FR-5b applies; dropped otherwise).
+So that my score reflects the ad (kept: Story 2.11 decided on 2026-11-17 that FR-5b applies).
 
 **Covers:** FR-5b, and the rewritten FR-8, NFR-4, NFR-8, FR-24, FR-25, FR-27, NFR-6; AD-5, AD-9 (`keyword_lists`), AD-13
 **Code:** creates `src/modules/keywords/server/schema.ts` (`keyword_lists`) and its migration, the FR-5b path in `KeywordSource.resolve`, a keywords prompt with `PROMPT_VERSION`, `cached/keywords.json` for every Fixture; switches the `keywordFallback` default on

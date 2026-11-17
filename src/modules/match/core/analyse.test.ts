@@ -38,6 +38,11 @@ function run(id: string, cv = read(id, "cv.txt")) {
 
 const lower = (words: string[]) => words.map(normalise);
 
+// FR-5b (docs/qa/fr-5b-decision.md): code alone fails SM-2 on the held-out
+// Fixture, so its score and lists test is pinned as an expected failure, as in
+// `keywords/core/sm2.test.ts`. Remove the entry when the lists agree.
+const expectedToFail = new Set(["held-out-regnskap-kvale"]);
+
 describe("FR-7 analyse over the Fixtures", () => {
   it("has Fixtures to test", () => {
     expect(ids.length).toBeGreaterThanOrEqual(3);
@@ -48,7 +53,8 @@ describe("FR-7 analyse over the Fixtures", () => {
       JSON.parse(read(id, "answer-key.json")),
     );
 
-    it(`gives the Answer key's score and lists for ${id}`, () => {
+    const listTest = expectedToFail.has(id) ? it.fails : it;
+    listTest(`gives the Answer key's score and lists for ${id}`, () => {
       const result = run(id);
       expect(result.score).toBe(key.score);
       expect(lower(result.matched.map((k) => k.term)).sort()).toEqual(

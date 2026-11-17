@@ -1,0 +1,42 @@
+{
+  "keywords": {
+    "matched": [
+      "utdanning innen regnskap",
+      "Altinn",
+      "mva-oppgjør",
+      "Visma",
+      "Excel",
+      "norskkunnskaper",
+      "årsavslutning og skatteoppgjør for aksjeselskaper",
+      "lønnskjøring",
+      "regnskapsmedarbeider",
+      "avstemming av bank og reskontro"
+    ],
+    "missing": ["Power BI", "automatisering av rutiner", "bokføring"]
+  },
+  "score": 77,
+  "mustNotMatch": [
+    {
+      "term": "regnskapsfører",
+      "reason": "Refererer til annen person i teamet, ikke søkeren selv"
+    },
+    {
+      "term": "med",
+      "reason": "småord, ikke ferdighet"
+    },
+    {
+      "term": "regnskapssystemet",
+      "reason": "Visma er et regnskapssystem, det blir dobbel match for samme ferdighet"
+    }
+  ],
+  "gaps": {
+    "rewordable": [
+      {
+        "keyword": "bokføring",
+        "evidence": "Førte løpende regnskap for omtrent 40 kunder"
+      }
+    ],
+    "real": ["Power BI", "automatisering av rutiner"]
+  },
+  "mustNeverSuggest": []
+}

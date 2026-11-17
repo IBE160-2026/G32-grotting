@@ -35,7 +35,7 @@ It builds on these documents and does not repeat them:
 - Each FR and NFR ends with a **Verify** line: *Auto* (automated test), *Manual* (a manual check), or both. The Verify lines are authoritative; §9 says how the checks run and where the results are recorded.
 - Decisions A1a to A4a are the product owner's answers of 2026-10-31. Each is stated in one sentence at the start of §11.
 - `[ASSUMPTION]` marks something inferred but not yet confirmed. §14 lists every assumption; as of 2026-11-08, none is open.
-- **Planned decisions.** The PRD is final with Open questions 2, 3, 5 and 8 (§13) still open. Each is a planned decision with an owner and a date. Requirements are written in one form only. The one exception is FR-5b, the Keyword fallback: it stays *pending* until Open question 2 is decided on 17 November 2026. If FR-5b applies, its table replaces the values it names in other requirements.
+- **Planned decisions.** The PRD is final with Open questions 3, 5 and 8 (§13) still open. Each is a planned decision with an owner and a date. Requirements are written in one form only. Open question 2 was decided on 17 November 2026: code-only extraction failed SM-2 on the held-out Fixture, so FR-5b applies and its values are written into the requirements it named (D24).
 
 ## 1. Vision
 
@@ -108,7 +108,7 @@ The student gets an application letter that captures their skills and strengths 
   4. She runs the test suite with one command.
 - **Climax:** she sees the whole core flow with no key and no cost: the Match score from code, and the Gaps, Rewording suggestions and Letter from Cached responses.
 - **Resolution:** she moves on to the planning documents and the code, which cite FR IDs. With the Access code handed in with the submission, she can also try the Hosted version with live AI (FR-30, FR-31).
-- **Edge case:** she pastes her own Job ad in Test mode. The Match score still works, because it is calculated locally. The AI sections say they are not available in Test mode.
+- **Edge case:** she pastes her own Job ad in Test mode. The Match score still works, because it is calculated locally, with code-only Keywords marked as less precise (FR-5b). The AI sections say they are not available in Test mode.
 
 ## 3. Glossary
 
@@ -119,7 +119,7 @@ The student gets an application letter that captures their skills and strengths 
 - **CV entry**: one item in the CV text, such as a course, project, job, volunteer role or skills line. In code, the entry around an Evidence citation is the block of lines, bounded by blank lines, that contains it.
 - **Job ad**: the pasted text of a job advertisement, together with the job title and employer that the Student types in.
 - **Application**: one analysis of one Job ad against the CV text. It holds the resulting Match score, Gaps, Rewording suggestions and Letter. Once accounts exist (S6), it is saved in History.
-- **Keyword**: a skill, tool, method, qualification or domain term named in the Job ad, as extracted by the Keyword engine (or proposed by AI, if FR-5b applies).
+- **Keyword**: a skill, tool, method, qualification or domain term named in the Job ad, as extracted by the Keyword engine, or, for a Job ad whose list isn't saved yet, proposed by AI and kept only if the Keyword engine finds it in the ad (FR-5b).
 - **Keyword engine**: the code, with no AI involved, that extracts Keywords from a Job ad and finds them in a text. The Match score and the Integrity guards both use it.
 - **Matched keyword**: a Keyword found in the CV text. Its **Evidence** is the excerpt of the CV text where it was found. Evidence is found by code and belongs to a Matched keyword; it is not the same as an Evidence citation, which an AI output relies on.
 - **Missing keyword**: a Keyword not found in the CV text.
@@ -160,7 +160,7 @@ These principles turn the brief's values (honesty, transparency, student agency)
   - AI-written text is labelled: the Letter as a draft (FR-9), and the Gap explanations and Rewording suggestions as written by AI (FR-14).
   - The Student is told before any text leaves the app (FR-24).
 - **P5. Plain, warm Norwegian.** Bokmål, addressing the user as «du», stating the fact first and then the reason. No cheerleading, exclamation marks or emoji. This follows the UX tone of voice (NFR-1).
-- **P6. Spend little, store little.** At most two AI requests per Application, plus any new Letters the Student asks for. Only what the app needs is stored, and personal content is encrypted (NFR-8, FR-22, FR-23).
+- **P6. Spend little, store little.** At most three AI requests per Application (one to propose the Keyword list for a new Job ad, one for the Letter, one for Gap analysis and Rewording suggestions), plus any new Letters the Student asks for. Only what the app needs is stored, and personal content is encrypted (NFR-8, FR-22, FR-23).
 
 ## 5. MVP scope, build order and cut line
 
@@ -285,36 +285,26 @@ The Student pastes the Job ad text and types the job title and employer.
 
 ### 6.2 Match score and keyword explanation (brief S2)
 
-**Description:** The Keyword engine extracts Keywords from the Job ad and looks for each one in the CV text. It is ordinary code with no AI, apart from the approved fallback in FR-5b. The same inputs therefore always give the same result, and the score appears at once, free of charge, before any AI request. The same code writes the explanation from fixed sentence templates (D7). Realises UJ-1 and UJ-3.
+**Description:** The Keyword engine extracts Keywords from the Job ad and looks for each one in the CV text. Matching, scoring and the explanation are ordinary code. For a Job ad whose Keyword list isn't saved yet, AI proposes the list (FR-5b), and the Keyword engine keeps only what it finds in the ad. The list is then saved, so the same Job ad always gives the same result, and the score of a saved list appears at once, free of charge, before any AI request. The same code writes the explanation from fixed sentence templates (D7). Realises UJ-1 and UJ-3.
 
 #### FR-5: Extract Keywords from the Job ad
 The system extracts a list of Keywords from the Job ad text.
 - Keywords are the skills, tools, technologies, methods, qualifications and domain terms named in the ad. Ads can come from any field, not only IT (brief): «sårvurdering» in a nursing ad is a Keyword just as «React» is in a developer ad. Keywords include English terms common in Norwegian ads, such as «Agile» and «stakeholder».
 - Stop words and generic boilerplate (company description, benefits) are not Keywords.
 - Duplicates and inflected forms of one Keyword count once.
-- Code extracts the Keywords with no AI, so the same Job ad text always gives the same list (SC2). If code-only extraction fails the test in FR-5b, FR-5b applies.
+- For a new Job ad, AI proposes the list and code checks it against the ad (FR-5b). The code-only extraction stays as the fallback and as the check. A saved list is reused, so the same Job ad text always gives the same list (SC2).
 
 **Verify:** Auto (Fixtures).
 
-#### FR-5b: AI-proposed Keywords (approved fallback, pending)
-**Status: pending.** This is decided on 17 November 2026, at the end of S2 (Open question 2, §5.2). If code-only extraction passes the test below, FR-5b is deleted. If it fails, FR-5b applies: the table below is written into the requirements it names, and FR-5b keeps only its rules.
+#### FR-5b: AI-proposed Keywords (applies)
+**Status: decided 2026-11-17 (Open question 2, D24).** Code-only extraction passed SM-2 on the three Fixtures the vocabulary was tuned against and failed on the held-out accounting Fixture (`docs/qa/fr-5b-decision.md`). FR-5b therefore applies, and the values it changes are written into FR-8, NFR-4, SM-7, P6, NFR-8, FR-24, FR-25, FR-27, UJ-3 and NFR-6.
 
-If code alone can't extract Keywords well enough, AI may propose the Keyword list instead, once per Job ad (approved by the product owner on 2026-10-31).
-- "Well enough" means that code-only extraction passes SM-2 on every Fixture, including one held-out Fixture written after the vocabulary is tuned.
+For a new Job ad, one whose Keyword list isn't saved yet, AI proposes the Keyword list, once per Job ad (approved by the product owner on 2026-10-31).
 - The Keyword engine must find each AI-proposed Keyword in the Job ad text; any it can't find are dropped.
 - The list is saved and reused, keyed by a hash of the Job ad text, so the same Job ad always gets the same list and score. This store holds no data about a Student, so it may exist before S7. Matching and scoring stay in code (P2).
-- Using the fallback must be recorded in §11 as a change to the brief's promise that the score "does not require sending data out".
-
-**What changes if FR-5b applies** (for a new Job ad, one whose Keyword list isn't saved yet):
-
-| Affected requirement | As written | With FR-5b |
-|---|---|---|
-| FR-8, NFR-4, SM-7 | The score appears without waiting for AI output, within 2 seconds | The score waits for the Keyword AI request; the 2-second target applies only to Job ads with a saved list |
-| P6, NFR-8 | At most 2 AI requests per Application, plus new Letters | At most 3 |
-| FR-24 | The notice names the CV text and the Job ad as sent for the Letter, Gaps and suggestions | It also says that the Job ad, never the CV, is sent to extract Keywords |
-| FR-25 | Once the Daily cap is reached, the Match score still works | New Job ads are scored with code-only Keywords, marked as less precise |
-| FR-27, UJ-3 | In Test mode, the Match score works for any input | New Job ads are scored with code-only Keywords, marked as less precise |
-| NFR-6 | Identical inputs give identical Keyword lists | This holds once a Job ad's list is saved. The Fixtures use saved lists, so the tests stay deterministic |
+- Only the Job ad is sent for this request, never the CV (FR-24).
+- If the notice isn't accepted, Test mode is on, the Daily cap is reached or the request fails, the code-only list is used and the score is marked as less precise (FR-25, FR-27).
+- The use of the fallback is recorded in §11 as D24, a change to the brief's promise that the score "does not require sending data out".
 
 **Verify:** Auto (a planted Cached response with a Keyword the ad doesn't contain; the same Job ad gets the same saved list).
 
@@ -340,7 +330,7 @@ The Reflection Note shows how the score was reached.
 - Every Matched keyword shows its Evidence (SC1).
 - Every Missing keyword is listed with a one-line explanation written by code from a template, such as «Annonsen ber om «Kubernetes». CV-en din viser det ikke ennå.» The line in the Job ad where the Keyword appears is quoted below it (SC1; final wording in the UX). Once S4 exists, each one links to its Gap.
 - A short note says the Match score estimates keyword coverage and is neither the result of a real ATS nor a prediction of interview chances.
-- The score and the keyword lists appear without waiting for any AI output (NFR-4).
+- For a Job ad whose list is saved, the score and the keyword lists appear without waiting for any AI output. For a new Job ad, they wait for the Keyword request (FR-5b, NFR-4).
 
 **Verify:** Auto + Manual.
 
@@ -494,8 +484,8 @@ The Reflection Note shows how the score was reached.
 
 #### FR-24: Tell the Student before text leaves the app
 - Before a Student's first AI request, a notice in plain Norwegian says:
-  - that the CV text and the Job ad are sent to the named AI provider to write the Letter, the Gaps and the suggestions;
-  - that the Match score is calculated locally;
+  - that the CV text and the Job ad are sent to the named AI provider to write the Letter, the Gaps and the suggestions, and that the Job ad, never the CV, is also sent to extract the Keywords;
+  - that the Match score is calculated locally, from a Keyword list that AI proposes from the Job ad (never from the CV) for a new Job ad (FR-5b);
   - that the provider does not train on the text, and how long the provider keeps it (from the provider's terms);
   - that the Student should leave out sensitive information such as health details or *fødselsnummer*.
 - The Student must accept the notice to continue. It is shown once per account, or once per browser session before S6. It is not shown in Test mode, where no text leaves the app.
@@ -505,7 +495,7 @@ The Reflection Note shows how the score was reached.
 
 #### FR-25: Limit AI use per Student (Daily cap)
 - A Student can make at most 30 AI requests per day. Before accounts exist, and after the first cut, the cap counts for the whole installation. It resets at local midnight.
-- When the cap is reached, the Match score still works. The AI sections say that the daily limit is reached and when it resets.
+- When the cap is reached, the Match score still works: a Job ad with a saved list is scored as before, and a new Job ad is scored with code-only Keywords, marked as less precise (FR-5b). The AI sections say that the daily limit is reached and when it resets.
 - A monthly spending limit set with the AI provider backs up the cap (NFR-8).
 
 **Verify:** Auto.
@@ -524,7 +514,7 @@ The Reflection Note shows how the score was reached.
 - The Example pair runs the full core flow using Cached responses (SC8). A «Bruk eksempelet» control on Søknad fills in both texts, with or without login. The Example pair is also in the repository as files (the CV as PDF and TXT, the ad as text). Uploading or pasting them reaches the same Cached responses.
 - The Cached responses include one Letter per Tone. In Test mode, «Lag nytt utkast» shows the cached Letter for the chosen Tone again.
 - The Example pair's Cached responses are recorded from a live run of the final prompts, and labelled with the provider, the model, the prompt version and the date.
-- The Match score works for any input. For inputs other than the Example pair and the Fixtures, the AI sections say they are not available in Test mode.
+- The Match score works for any input. A new Job ad is scored with code-only Keywords, marked as less precise (FR-5b); the Fixtures use saved lists. For inputs other than the Example pair and the Fixtures, the AI sections say they are not available in Test mode.
 - Automated tests always use Test mode or a mock and never make paid AI requests.
 
 **Verify:** Auto.
@@ -601,7 +591,7 @@ The Reflection Note shows how the score was reached.
 
 ### NFR-4: Performance
 - For Fixture inputs:
-  - the Match score and keyword lists appear within 2 seconds of submitting;
+  - the Match score and keyword lists appear within 2 seconds of submitting, where the Job ad's Keyword list is saved (a new Job ad waits for the Keyword request, FR-5b);
   - the AI sections appear within 60 seconds in at least 4 of 5 timed runs per Fixture.
 - Results arrive in two phases: the score first, then the AI sections (D19). While the AI sections are being written, a descriptive progress line is shown.
 - AI requests time out after 90 seconds, and the Student can retry.
@@ -621,7 +611,7 @@ The Reflection Note shows how the score was reached.
 **Verify:** Auto + Manual.
 
 ### NFR-6: Determinism
-- Identical inputs give identical Keyword lists, matches and scores, across runs and across machines.
+- Identical inputs give identical Keyword lists, matches and scores, across runs and across machines. This holds once a Job ad's list is saved (FR-5b); the Fixtures use saved lists, so the tests stay deterministic.
 - Dependency versions and Docker image versions are pinned.
 
 **Verify:** Auto (Fixtures run twice).
@@ -639,7 +629,7 @@ The Reflection Note shows how the score was reached.
 
 ### NFR-8: Cost
 - Total AI spend stays at or below 200 NOK per month.
-- Each Application uses at most 2 AI requests (one for the Letter; one for Gap analysis and Rewording suggestions), plus any new Letters the Student asks for.
+- Each Application uses at most 3 AI requests (one to propose the Keyword list for a new Job ad, FR-5b; one for the Letter; one for Gap analysis and Rewording suggestions), plus any new Letters the Student asks for.
 - The Daily cap applies (FR-25), a monthly spending limit is set with the AI provider, and token counts are logged for each AI request.
 - Hosting adds no cost: Vercel's free Hobby plan and a free database tier (FR-30).
 - Tests and Test mode make no paid AI requests.
@@ -794,7 +784,7 @@ The lecturer's feedback asks the PRD to describe this checklist.
 
 ## 11. Changes from the brief and the UX specification
 
-The Examiner judges scope against the approved proposal (the brief), and changed or dropped items must be described and justified. By source: the brief, D6–D9, D12, D17, D18, D21 and D22; the UX only, D1–D5, D10, D11, D14–D16, D19 and D20; new, D13 and D23.
+The Examiner judges scope against the approved proposal (the brief), and changed or dropped items must be described and justified. By source: the brief, D6–D9, D12, D17, D18, D21 and D22; the UX only, D1–D5, D10, D11, D14–D16, D19 and D20; new, D13, D23 and D24.
 
 **Product-owner decisions** of 2026-10-31, cited by the rows below:
 - **A1a.** Help with the CV comes only as Rewording suggestions; v1 produces no generated or rewritten CV file (D1, §5.3).
@@ -826,6 +816,7 @@ The Examiner judges scope against the approved proposal (the brief), and changed
 | D20 | A version without accounts comes first, and stays if S6 + S7 are cut | UX: the main button routes to signup; no use without an account | The build order puts accounts last, and the core flow must work first (brief, lecturer; §5.1) |
 | D21 | How SC4, SC5 and SC7 are judged: SC4 by SM-2, G2 and SM-5; SC5 by zero L2 failures in 3 live runs per Fixture (SM-3), with FR-11 as the safety net; SC7's "without manual intervention" as no action outside the app's interface | Brief SC4 ("match the expected keywords and suggestions"), SC5 and SC7 | AI output varies between runs, so "match" needs a measurable reading (§12) |
 | D22 | S6 and S7 are cut together, not S7 first | Brief cut line (cut from the bottom) | Nothing about a Student is stored before encryption exists (§5.1) |
+| D24 | For a new Job ad, AI proposes the Keyword list and the Keyword engine keeps only what it finds in the ad (FR-5b). The list is saved by a hash of the Job ad. Code-only extraction is the fallback | Brief («does not require sending data out»; D7 keeps the explanation in code) | The held-out test of 17 November: code-only extraction passed SM-2 on the three Fixtures it was tuned on and failed on a held-out accounting Fixture (`docs/qa/fr-5b-decision.md`). The Job ad, never the CV, is sent; the score, the matching and the explanation stay in code (P2). The affected requirements are FR-8, NFR-4, SM-7, P6, NFR-8, FR-24, FR-25, FR-27, UJ-3 and NFR-6 |
 | D23 | v1 was to be deployed on Vercel as a Hosted version with live AI, closed with an Access code. **Not delivered as planned (2026-11-15):** the Hosted version stays a skeleton (Access code gate and app shell, no AI), and the README run (NFR-9) is the delivery | New; the brief doesn't mention hosting | The product owner's decision: the Examiner can try the live AI without a key, and the README run stays (FR-30, FR-31). Vercel's data processing agreement states that it covers the Enterprise and Pro plans, not Hobby (`docs/qa/hosted-deployment.md` §1; Vercel support was not asked), so §5.1 applies: the README run is the delivery. FR-30, FR-31, the last step of UJ-3 and the Examiner's live-AI trial are reduced to a README note and are to be matched in Story 7.5 |
 
 The UX documents were updated to match these changes on 2026-11-08 (addendum §4) and then replaced by the UX of 2026-11-09, which is built on this PRD (Open question 7, resolved).
@@ -877,7 +868,7 @@ The brief's success criteria SC1–SC9 remain the acceptance criteria. They map 
 
 **Secondary**
 - **SM-6. AI spend.** At or below 200 NOK in every month of development and demonstration. Validates NFR-8.
-- **SM-7. Response times.** On Fixtures: the score within 2 seconds, and the full result within 60 seconds in at least 4 of 5 timed runs. Validates NFR-4.
+- **SM-7. Response times.** On Fixtures (saved Keyword lists): the score within 2 seconds, and the full result within 60 seconds in at least 4 of 5 timed runs. Validates NFR-4.
 - **SM-8. Accessibility.** The axe scan of every screen finds 0 serious or critical issues, the contrast check passes, and UJ-1 can be completed using only the keyboard. Validates NFR-2.
 
 **Counter-metrics (do not optimise)**
@@ -896,7 +887,7 @@ User success remains directional and is not measured during the course (brief). 
 ## 13. Open questions
 
 1. **Deadline.** *Resolved 2026-11-08:* 15 December 2026; the last commit on `main` at the deadline counts (§5.2).
-2. **Keyword extraction.** Does code-only extraction pass the test in FR-5b? This is decided on 17 November 2026, at the end of S2. If it passes, FR-5b is deleted; if not, FR-5b applies and its table is written into the affected requirements. *Owner:* architecture, with Helene.
+2. **Keyword extraction.** *Resolved 2026-11-17:* code-only extraction failed SM-2 on the held-out Fixture, so FR-5b applies and its values are written into the affected requirements (D24; `docs/qa/fr-5b-decision.md`).
 3. **AI provider, model and hosted database.** *Partly resolved by the architecture (spine of 2026-11-13, AD-9):*
    - **Hosted database: decided.** A free-tier Postgres database in an EU region (Frankfurt). The local run uses the same Postgres version in a Docker container (NFR-9).
    - **AI provider and model: still open.** A bake-off at the start of S3 (18 November) decides between two contenders. They are scored on checklist items L1–L8, G1–G3 and R1 (§9.2) and on the Integrity guard results. The winner must also meet §8.1 and the 200 NOK monthly budget (NFR-8).
@@ -904,7 +895,7 @@ User success remains directional and is not measured during the course (brief). 
    - *Owner:* Helene, on 18 November.
 4. **Real CVs in testing.** *Resolved 2026-11-08:* only fictional CVs are used in testing (§8.1).
 5. **AI access for the Examiner.** The plan is Test mode for the README run and live AI on the Hosted version, with the README also describing how to run with a key of one's own. Is that acceptable? *Owner:* Helene, to ask the lecturer.
-6. **Keyword vocabulary.** Where do the Keywords and aliases come from: for example, the Norwegian skill labels in ESCO (the EU's classification of skills and occupations), a custom list, or both? The vocabulary must cover job ads from any field, not only technology (FR-5). *Direction resolved 2026-11-08 by the architecture (now spine of 2026-11-13, AD-5):* a curated core list, with selected Norwegian ESCO labels as backup, stored as versioned data. Helene's nursing terms seed the list. Its final shape is settled together with the FR-5b decision on 17 November, and its contents are tuned against the Answer keys in Epic 2. *Owner:* Helene.
+6. **Keyword vocabulary.** Where do the Keywords and aliases come from: for example, the Norwegian skill labels in ESCO (the EU's classification of skills and occupations), a custom list, or both? The vocabulary must cover job ads from any field, not only technology (FR-5). *Direction resolved 2026-11-08 by the architecture (now spine of 2026-11-13, AD-5):* a curated core list, with selected Norwegian ESCO labels as backup, stored as versioned data. Helene's nursing terms seed the list. The FR-5b decision was taken on 17 November (Open question 2): the vocabulary stays as the code-only fallback and as the check on AI-proposed Keywords, and its contents are tuned against the Answer keys in Epic 2. *Owner:* Helene.
 7. **UX updates.** *Resolved 2026-11-08:* EXPERIENCE.md, DESIGN.md and the mockups were updated to match §11 (addendum §4), so the UX and the PRD point to the same v1 items, as the lecturer asked. The UX of 2026-11-09 («Signal, varm») replaced them and is built on this PRD.
 8. **Mocked AI in tests.** Is mocking the AI in automated tests acceptable, with the manual checklist (§9.2) covering the quality of AI-written text? *Owner:* Helene, to ask the lecturer.
 
