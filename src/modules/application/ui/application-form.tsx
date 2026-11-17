@@ -5,6 +5,7 @@ import {
   type FormEvent,
   type RefObject,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -18,7 +19,12 @@ import {
 import { CvInput } from "@/modules/cv/ui";
 import { splitParagraphs } from "@/modules/keywords/core";
 import type { AnalysisResult } from "@/modules/match/contracts";
-import { KeywordList, phaseOneLine, ScoreBlock } from "@/modules/match/ui";
+import {
+  KeywordList,
+  PulsePlot,
+  phaseOneLine,
+  ScoreBlock,
+} from "@/modules/match/ui";
 import { formatCount } from "@/shared/core/format-count";
 import { announce } from "@/shared/ui/announce";
 import { callApi } from "@/shared/ui/api-client";
@@ -45,6 +51,7 @@ type JobField = Exclude<InputField, "cvText">;
 type JobValues = Omit<AnalysisInputs, "cvText">;
 
 const EMPTY: JobValues = { jobTitle: "", employer: "", jobAd: "" };
+const NONE: readonly never[] = [];
 const EMPTY_CV: CvState = { draft: "", confirmed: false };
 
 // What the result view shows, kept as it was submitted: the form can change
@@ -131,6 +138,12 @@ export function ApplicationForm() {
   useEffect(() => {
     if (headingFocus > 0) headingRef.current?.focus();
   }, [headingFocus]);
+
+  // The flat plot draws the ad as typed, one line per paragraph.
+  const livePlotParagraphs = useMemo(
+    () => splitParagraphs(values.jobAd),
+    [values.jobAd],
+  );
 
   function errorText(field: InputField): string | undefined {
     const code = errors[field];
@@ -294,31 +307,43 @@ export function ApplicationForm() {
     const { result } = outcome;
     return (
       <>
-        <CatalogueHeading ref={headingRef} employer>
-          {outcome.employer}
-        </CatalogueHeading>
-        <div className="mt-6 flex flex-col gap-8">
-          <CreditsList
-            items={[
-              {
-                term: messages.result.credits.position,
-                value: outcome.jobTitle,
-              },
-              { term: messages.result.credits.date, value: outcome.date },
-              {
-                term: messages.result.credits.ad,
-                value: messages.result.adSummary(
-                  formatCount(result.adParagraphs),
-                  formatCount(result.totalCount),
-                ),
-              },
-            ]}
-          />
-          <div>
-            <Button variant="secondary" onClick={backToForm}>
-              {messages.result.editAd}
-            </Button>
+        <div className="max-w-measure">
+          <CatalogueHeading ref={headingRef} employer>
+            {outcome.employer}
+          </CatalogueHeading>
+          <div className="mt-6 flex flex-col gap-8">
+            <CreditsList
+              items={[
+                {
+                  term: messages.result.credits.position,
+                  value: outcome.jobTitle,
+                },
+                { term: messages.result.credits.date, value: outcome.date },
+                {
+                  term: messages.result.credits.ad,
+                  value: messages.result.adSummary(
+                    formatCount(result.adParagraphs),
+                    formatCount(result.totalCount),
+                  ),
+                },
+              ]}
+            />
+            <div>
+              <Button variant="secondary" onClick={backToForm}>
+                {messages.result.editAd}
+              </Button>
+            </div>
           </div>
+        </div>
+        <div className="mt-8">
+          <PulsePlot
+            placement="result"
+            paragraphs={outcome.adParagraphs}
+            matched={result.matched}
+            missing={result.missing}
+          />
+        </div>
+        <div className="mt-8 flex max-w-measure flex-col gap-8">
           <ScoreBlock result={result} />
           <KeywordList
             kind="matched"
@@ -336,7 +361,7 @@ export function ApplicationForm() {
   }
 
   return (
-    <>
+    <div className="max-w-measure">
       <CatalogueHeading ref={headingRef}>
         {messages.application.heading}
       </CatalogueHeading>
@@ -394,6 +419,14 @@ export function ApplicationForm() {
           </Button>
         </div>
       </form>
-    </>
+      <div className="mt-8">
+        <PulsePlot
+          placement="flat"
+          paragraphs={livePlotParagraphs}
+          matched={NONE}
+          missing={NONE}
+        />
+      </div>
+    </div>
   );
 }

@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { splitParagraphs } from "@/modules/keywords/core";
+import { normalise, splitParagraphs } from "@/modules/keywords/core";
 import { vocabularySchema } from "@/shared/core/vocabulary";
 import { analyseResponseSchema } from "../contracts";
 import { fingerprintOf } from "../core/fingerprint";
-import { analyseInputs } from "./analyse";
+import { analyseExample, analyseInputs } from "./analyse";
 
 const vocabulary = vocabularySchema.parse(
   JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
@@ -66,5 +66,37 @@ describe("phase 1 analyseInputs", () => {
       ok: false,
       error: "TOO_FEW_KEYWORDS",
     });
+  });
+});
+
+describe("FR-8 analyseExample for the Hjem plot", () => {
+  it("gives the ad's paragraphs and the Matched and Missing terms of the Example pair", async () => {
+    const example = await analyseExample();
+    const analysed = analyseInputs(inputs, vocabulary);
+    if (!analysed.ok) throw new Error(analysed.error);
+    const { matched, missing } = analysed.value.result;
+    expect(example.paragraphs).toEqual(splitParagraphs(inputs.jobAd));
+    expect(example.matched).toEqual(
+      matched.map(({ term, positions }) => ({ term, positions })),
+    );
+    expect(example.missing).toEqual(
+      missing.map(({ term, positions }) => ({ term, positions })),
+    );
+  });
+
+  it("lists the same terms as the Answer key", async () => {
+    const example = await analyseExample();
+    const norm = (terms: string[]) => terms.map(normalise).sort();
+    expect(norm(example.matched.map((k) => k.term))).toEqual(
+      norm(answerKey.keywords.matched),
+    );
+    expect(norm(example.missing.map((k) => k.term))).toEqual(
+      norm(answerKey.keywords.missing),
+    );
+  });
+
+  it("is plain data: it survives a JSON round trip", async () => {
+    const example = await analyseExample();
+    expect(JSON.parse(JSON.stringify(example))).toEqual(example);
   });
 });

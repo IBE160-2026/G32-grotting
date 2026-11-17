@@ -8,11 +8,8 @@ export const metadata: Metadata = {
 };
 
 // Søknad before accounts: the heading is the text alone, with no entry number
-// (UX-DR18). The form owns the `h1`, since the result takes its place.
+// (UX-DR18). The form owns the `h1`, since the result takes its place, and the
+// reading measure, since the pulse plot on the result is wider than it.
 export default function SoknadPage() {
-  return (
-    <div className="max-w-measure">
-      <ApplicationForm />
-    </div>
-  );
+  return <ApplicationForm />;
 }

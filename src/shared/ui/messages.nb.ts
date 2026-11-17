@@ -114,6 +114,36 @@ export const messages = {
       source: (paragraph: string) => `Fra annonsen · avsnitt ${paragraph}`,
     },
   },
+  // The pulse plot (FR-8, UX-DR22). The state words are written in capitals
+  // because the plot measures them as drawn.
+  plot: {
+    state: { matched: "FUNNET", missing: "MANGLER" },
+    // «14 avsnitt i annonsen tegnet som puls. Funnet i CV-en: A, B. Mangler: C.»
+    // Compact: «6 av 14 avsnitt i annonsen …». An empty list has no sentence.
+    label: (
+      total: number,
+      shown: number | undefined,
+      matched: readonly string[],
+      missing: readonly string[],
+    ) =>
+      [
+        `${shown === undefined ? total : `${shown} av ${total}`} avsnitt i annonsen tegnet som puls.`,
+        matched.length > 0 ? `Funnet i CV-en: ${matched.join(", ")}.` : "",
+        missing.length > 0 ? `Mangler: ${missing.join(", ")}.` : "",
+      ]
+        .filter((sentence) => sentence !== "")
+        .join(" "),
+    // «Viser de 6 av 14 avsnittene som har nøkkelord. Tallet til venstre er avsnittet.»
+    compactCaption: (shown: number, total: number) =>
+      `Viser de ${shown} av ${total} avsnittene som har nøkkelord. Tallet til venstre er avsnittet.`,
+    legend: {
+      thin: "Tynn linje: ett avsnitt i annonsen",
+      matched: "Tykk linje: nøkkelord funnet i CV-en",
+      missing: "Stiplet linje: nøkkelord som mangler",
+    },
+    homeIntro:
+      "Eksempelannonsen tegnet som puls. Hver linje er ett avsnitt, og hvert nøkkelord får linjen til å hoppe.",
+  },
   home: {
     headline: "Se hvilke av annonsens ord CV-en din dekker.",
     lede: "Lim inn CV-en din og en stillingsannonse. Du får et samsvar du kan etterprøve, en ærlig gjennomgang av det som mangler, og et utkast til søknadsbrev som bare bygger på det CV-en din viser.",
