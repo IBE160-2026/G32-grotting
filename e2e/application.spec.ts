@@ -193,7 +193,7 @@ test.describe("UX-DR36 Søknad form", () => {
     expect(pickerBox?.y ?? 0).toBeLessThan(adBox?.y ?? 0);
   });
 
-  test("follows the focus order file, CV, confirm, title, employer, ad, submit", async ({
+  test("follows the focus order file, CV, confirm, title, employer, example, ad, submit", async ({
     page,
   }) => {
     await openForm(page);
@@ -206,6 +206,10 @@ test.describe("UX-DR36 Søknad form", () => {
     await expect(page.getByLabel("Stillingstittel")).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByLabel("Arbeidsgiver")).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(
+      page.getByRole("button", { name: "Bruk eksempelet" }),
+    ).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByLabel("Stillingsannonse")).toBeFocused();
     await page.keyboard.press("Tab");
@@ -1431,4 +1435,193 @@ test.describe("FR-8 UX-DR22 pulse plot on Søknad", () => {
     const flat = await box(page.locator("main div[aria-hidden=true] > svg"));
     expect(flat.y).toBeGreaterThan(submit.y + submit.height);
   });
+});
+
+test.describe("FR-27 «Bruk eksempelet» fills in the Example pair", () => {
+  const USE_EXAMPLE = "Bruk eksempelet";
+  const exampleButton = (page: Page) =>
+    page.getByRole("button", { name: USE_EXAMPLE });
+
+  test("sits between Arbeidsgiver and Stillingsannonse in the focus order", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await expect(exampleButton(page)).toHaveAttribute("type", "button");
+    await page.getByLabel("Arbeidsgiver").focus();
+    await page.keyboard.press("Tab");
+    await expect(exampleButton(page)).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByLabel("Stillingsannonse")).toBeFocused();
+  });
+
+  test("fills the four fields, confirms the CV, moves focus to the submit button and speaks", async ({
+    page,
+  }) => {
+    const calls = trackApiCalls(page);
+    await openForm(page);
+    await exampleButton(page).click();
+
+    await expect(page.getByLabel("Stillingstittel")).toHaveValue(
+      EXAMPLE_META.jobTitle,
+    );
+    await expect(page.getByLabel("Arbeidsgiver")).toHaveValue(
+      EXAMPLE_META.employer,
+    );
+    await expect(page.getByLabel("Stillingsannonse")).toHaveValue(
+      EXAMPLE_AD.replace(/\r\n?/g, "\n"),
+    );
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · .+ tegn$/),
+    ).toBeVisible();
+    await expect(cvField(page)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: SUBMIT })).toBeFocused();
+    await expect(page.locator("#live-action")).toHaveText(
+      "Eksempelet er fylt inn.",
+    );
+    const stored = (await session(page)).inputs;
+    expect(stored.cvText).toBe(exampleFile("cv.txt").replace(/\r\n?/g, "\n"));
+    expect(stored.cvDraft).toBe(stored.cvText);
+    expect((await session(page)).applicationId).toBeUndefined();
+    // The pair comes with the page: no request, no submit.
+    expect(calls).toEqual([]);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Ny søknad",
+    );
+  });
+
+  test("submitting after the fill gives the Answer key's score and lists", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await exampleButton(page).click();
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      EXAMPLE_META.employer,
+    );
+    await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText(
+      EXAMPLE_SENTENCE,
+    );
+    await expect(
+      page.getByRole("heading", { level: 3, name: /Funnet$/ }),
+    ).toHaveCount(EXAMPLE_MATCHED);
+    await expect(
+      page.getByRole("heading", { level: 3, name: /Mangler$/ }),
+    ).toHaveCount(EXAMPLE_MISSING);
+  });
+
+  test("replaces typed text and clears the errors, collapsing a reopened CV", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await confirmCv(page);
+    await page.getByRole("button", { name: "Endre CV-teksten" }).click();
+    await cvField(page).fill("for kort");
+    await page.getByLabel("Stillingstittel").fill("Noe jeg skrev");
+    await page.getByLabel("Stillingsannonse").fill("for kort");
+    // Enter, not a click: the errors move the button.
+    await page.getByRole("button", { name: SUBMIT }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("form").getByText(CV_ERROR)).toBeVisible();
+    await expect(page.locator("form").getByText(AD_ERROR)).toBeVisible();
+
+    await exampleButton(page).click();
+    await expect(page.locator("form").getByText(CV_ERROR)).toHaveCount(0);
+    await expect(page.locator("form").getByText(AD_ERROR)).toHaveCount(0);
+    await expect(
+      page.locator("form").getByText("Fyll inn arbeidsgiveren."),
+    ).toHaveCount(0);
+    await expect(page.getByLabel("Stillingstittel")).toHaveValue(
+      EXAMPLE_META.jobTitle,
+    );
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · /),
+    ).toBeVisible();
+    await expect(cvField(page)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: SUBMIT })).toBeFocused();
+  });
+
+  test("a file answer that lands after the fill does not touch the Example text", async ({
+    page,
+  }) => {
+    await openForm(page);
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/cv/extract", async (route) => {
+      await held;
+      await route.continue();
+    });
+    await picker(page).setInputFiles(TEXT_PDF);
+    await exampleButton(page).click();
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · /),
+    ).toBeVisible();
+
+    const answered = page.waitForResponse("**/api/cv/extract");
+    release();
+    await answered;
+    await page.waitForTimeout(500);
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · /),
+    ).toBeVisible();
+    await expect(cvField(page)).toHaveCount(0);
+    expect((await session(page)).inputs.cvText).toBe(
+      exampleFile("cv.txt").replace(/\r\n?/g, "\n"),
+    );
+  });
+
+  test("an edit of the CV afterwards drops the confirmation", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await exampleButton(page).click();
+    await page.getByRole("button", { name: "Endre CV-teksten" }).click();
+    await cvField(page).press("Control+End");
+    await page.keyboard.type("!");
+    await expect(page.getByRole("button", { name: CONFIRM })).toBeVisible();
+    expect((await session(page)).inputs.cvText).toBeUndefined();
+  });
+
+  test("a refresh restores the values and the confirmed CV", async ({
+    page,
+  }) => {
+    await openForm(page);
+    await exampleButton(page).click();
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByLabel("Stillingstittel")).toHaveValue(
+      EXAMPLE_META.jobTitle,
+    );
+    await expect(page.getByLabel("Arbeidsgiver")).toHaveValue(
+      EXAMPLE_META.employer,
+    );
+    await expect(
+      page.locator("form").getByText(/^CV-tekst bekreftet · /),
+    ).toBeVisible();
+  });
+
+  for (const [name, size] of [
+    ["1280 px", WIDE],
+    ["360 px", PHONE],
+  ] as const) {
+    test(`has no serious axe findings before and after the fill at ${name}, and no horizontal scroll`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(size);
+      await openForm(page);
+      expect(await seriousFindings(page)).toEqual([]);
+      const button = await box(exampleButton(page));
+      expect(button.height).toBeGreaterThanOrEqual(44);
+      await exampleButton(page).click();
+      await expect(page.getByRole("button", { name: SUBMIT })).toBeFocused();
+      expect(await seriousFindings(page)).toEqual([]);
+      const overflow = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
+  }
 });

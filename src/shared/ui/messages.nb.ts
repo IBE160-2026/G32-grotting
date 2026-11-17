@@ -57,6 +57,9 @@ export const messages = {
     jobAd: "Stillingsannonse",
     jobAdHint: "Lim inn hele annonseteksten, minst 200 tegn.",
     submit: "Analyser og skriv utkast",
+    // Fills the form with the Example pair (FR-27).
+    useExample: "Bruk eksempelet",
+    exampleFilled: "Eksempelet er fylt inn.",
     // The server judged the ad to hold too few Keywords (FR-4).
     adUnclear:
       "Annonsen er for kort eller uklar til å analyseres. Lim inn hele stillingsannonsen, også kravene.",
