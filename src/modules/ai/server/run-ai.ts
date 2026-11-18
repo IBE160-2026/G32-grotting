@@ -136,6 +136,7 @@ export async function runAi<T>(
       options.adapter ??
       createAdapter(getConfig().ai.adapter, {
         isTestRun: getConfig().isTestRun,
+        live: getConfig().ai,
       });
     provider = adapter.provider;
     model = adapter.model;

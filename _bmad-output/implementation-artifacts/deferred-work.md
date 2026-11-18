@@ -99,3 +99,11 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-2-enforce-the-daily-cap-and-the-ai-notice-on-the-server.md`
   summary: The Daily-cap reservation and the "exactly 30 of 35 concurrent" test run only on PGlite, so the guarded `UPDATE … RETURNING` and the postgres-js branch of `rowCount` are unverified on real Postgres.
   evidence: Verification Gap and Blind Hunter (would be medium, unverified). PGlite has one connection and serialises statements. Settle it by running the 35-request race once against the Docker Postgres (or the first live run in Story 3.12) and confirming the result array shape.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-3-pick-the-ai-provider-in-a-bake-off.md`
+  summary: An `AI_PROVIDER` other than `anthropic` or `openai` (typo, capitals) leaves Test mode off, burns a non-refunded Daily-cap slot on every request, and only then throws from the live adapter.
+  evidence: Edge Case Hunter (would be medium). `parseConfig` accepts any string; `createLiveAdapter` rejects it after `reserveRequest`. Settle with a startup check in `config.ts` (without importing from the `ai` slice) when `AI_PROVIDER` is first set in Story 3.12, or by checking the adapter before the reservation if the AD-13 order is renegotiated.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-3-pick-the-ai-provider-in-a-bake-off.md`
+  summary: The Bake-off's live path (`defaultAdapterFor(false)`) and its non-zero exit on a missing setting are not covered by a test that checks each contender gets its own provider, model and key.
+  evidence: Verification Gap (would be medium, unverified). `bake-off.test.ts` uses `--dry` or an injected `adapterFor`. A small test with a stubbed `ModelFactory` would settle it; Helene's first paid run is the manual check.

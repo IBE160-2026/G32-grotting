@@ -1,0 +1,139 @@
+import { describe, expect, it } from "vitest";
+import {
+  estimateCost,
+  formatUsd,
+  GAP_ITEMS,
+  LETTER_ITEMS,
+  type RequestRecord,
+  renderResults,
+} from "./results";
+
+describe("PRD 8.2 Bake-off cost", () => {
+  it("prices tokens per million, per contender", () => {
+    expect(
+      estimateCost(
+        { inputTokens: 2000, outputTokens: 500 },
+        { inPerMillion: 3, outPerMillion: 15 },
+      ),
+    ).toBeCloseTo(0.0135, 10);
+  });
+
+  it("gives no estimate without a price or without token counts", () => {
+    expect(
+      estimateCost({ inputTokens: 1, outputTokens: 1 }, undefined),
+    ).toBeNull();
+    expect(
+      estimateCost(
+        { inputTokens: null, outputTokens: 1 },
+        { inPerMillion: 1, outPerMillion: 1 },
+      ),
+    ).toBeNull();
+    expect(formatUsd(null)).toBe("n/a");
+    expect(formatUsd(0.0135)).toBe("$0.0135");
+  });
+});
+
+const meta = {
+  date: "2026-11-18",
+  dry: false,
+  contenders: [
+    {
+      provider: "anthropic",
+      model: "m1",
+      price: { inPerMillion: 3, outPerMillion: 15 },
+    },
+    { provider: "openai", model: "m2", price: undefined },
+  ],
+};
+
+const base = {
+  fixture: "fx",
+  model: "m1",
+  durationMs: 10,
+} as const;
+
+const records: RequestRecord[] = [
+  {
+    ...base,
+    provider: "anthropic",
+    task: "letter",
+    status: "ok",
+    file: "anthropic/fx.letter.txt",
+    words: 310,
+    inputTokens: 1000,
+    outputTokens: 400,
+  },
+  {
+    ...base,
+    provider: "anthropic",
+    task: "gap",
+    status: "ok",
+    file: "anthropic/fx.gap.json",
+    inputTokens: 1000,
+    outputTokens: 200,
+  },
+  {
+    ...base,
+    provider: "openai",
+    task: "letter",
+    status: "failed",
+    errorCode: "HTTP_429",
+    inputTokens: null,
+    outputTokens: null,
+  },
+  {
+    ...base,
+    provider: "openai",
+    task: "gap",
+    status: "ok",
+    file: "openai/fx.gap.json",
+    inputTokens: 900,
+    outputTokens: 100,
+  },
+];
+
+describe("PRD 8.2 results.md", () => {
+  const text = renderResults(meta, records);
+
+  it("lists every Fixture with both contenders", () => {
+    expect(text).toContain("### anthropic: Letter");
+    expect(text).toContain("### anthropic: Gap analysis");
+    expect(text).toContain("### openai: Letter");
+    expect(text).toContain("### openai: Gap analysis");
+    expect(text).toContain("| fx | anthropic | 2000 | 600 | $0.0150 |");
+  });
+
+  it("has blank pass/fail cells for L1-L8, G1-G3 and R1", () => {
+    for (const [id] of [...LETTER_ITEMS, ...GAP_ITEMS]) {
+      expect(text).toMatch(new RegExp(`\\| ${id} \\|[^|]+\\| \\|`));
+    }
+    expect(LETTER_ITEMS.map(([id]) => id)).toEqual([
+      "L1",
+      "L2",
+      "L3",
+      "L4",
+      "L5",
+      "L6",
+      "L7",
+      "L8",
+    ]);
+    expect(GAP_ITEMS.map(([id]) => id)).toEqual(["G1", "G2", "G3", "R1"]);
+  });
+
+  it("records a failed request by its error code, with no scoring table", () => {
+    const failed = text.slice(text.indexOf("### openai: Letter"));
+    const section = failed.slice(0, failed.indexOf("### openai: Gap analysis"));
+    expect(section).toContain("`HTTP_429`");
+    expect(section).not.toContain("| L1 |");
+    expect(text).toContain(
+      "| fx | openai | n/a | n/a | n/a (a request failed) |",
+    );
+  });
+
+  it("says so when the run was dry", () => {
+    expect(renderResults({ ...meta, dry: true }, records)).toContain(
+      "**Dry run:**",
+    );
+    expect(text).not.toContain("**Dry run:**");
+  });
+});

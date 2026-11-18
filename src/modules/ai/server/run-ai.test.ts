@@ -18,6 +18,14 @@ vi.mock("@/shared/server/db", async (importOriginal) => {
   return { ...actual, getDb: vi.fn(actual.getDb) };
 });
 
+// Wrapped, so a test can see what `runAi` hands the factory.
+vi.mock("./adapters/factory", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./adapters/factory")>();
+  return { ...actual, createAdapter: vi.fn(actual.createAdapter) };
+});
+
+import { createAdapter } from "./adapters/factory";
+import { AiProviderError } from "./adapters/live";
 import { createMockAdapter } from "./adapters/mock";
 import { DAILY_CAP } from "./daily-cap";
 import { type AiRequest, runAi } from "./run-ai";
@@ -588,6 +596,75 @@ describe("FR-24 the production default for Test mode", () => {
       vi.mocked(getConfig).mockReset();
     }
     expect(await usage()).toEqual([]);
+  });
+});
+
+describe("AD-3 runAi builds the live adapter from the config", () => {
+  beforeEach(clearUsage);
+
+  const liveConfig = () => {
+    const base = getConfig();
+    return {
+      ...base,
+      testMode: false,
+      isTestRun: false,
+      ai: {
+        adapter: "live" as const,
+        provider: "anthropic",
+        model: "claude-test",
+        apiKey: "SENTINEL-KEY-hemmelig",
+      },
+    };
+  };
+
+  it("hands the factory the config's AI settings when no adapter is passed", async () => {
+    const config = liveConfig();
+    vi.mocked(getConfig).mockReturnValue(config);
+    vi.mocked(createAdapter).mockReturnValueOnce(
+      createMockAdapter({ respond: () => ({ text: "x" }) }),
+    );
+    try {
+      const result = await runAi(
+        request(),
+        {
+          studentId: null,
+          consent: { noticeVersion: config.aiNotice.version },
+        },
+        { now: fixedNow },
+      );
+      expect(result.ok).toBe(true);
+    } finally {
+      vi.mocked(getConfig).mockReset();
+    }
+    expect(createAdapter).toHaveBeenLastCalledWith("live", {
+      isTestRun: false,
+      live: config.ai,
+    });
+  });
+
+  it("maps a live adapter failure to AI_PROVIDER_ERROR without its content", async () => {
+    const config = liveConfig();
+    vi.mocked(getConfig).mockReturnValue(config);
+    vi.mocked(createAdapter).mockReturnValueOnce(
+      createMockAdapter({ error: new AiProviderError("HTTP_500") }),
+    );
+    try {
+      const result = await runAi(
+        request(),
+        {
+          studentId: null,
+          consent: { noticeVersion: config.aiNotice.version },
+        },
+        { now: fixedNow },
+      );
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "AI_PROVIDER_ERROR", retryable: true },
+      });
+    } finally {
+      vi.mocked(getConfig).mockReset();
+    }
+    expect(JSON.stringify(loggedEvents())).not.toContain("SENTINEL-KEY");
   });
 });
 
