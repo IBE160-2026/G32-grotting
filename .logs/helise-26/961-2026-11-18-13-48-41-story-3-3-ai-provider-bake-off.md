@@ -104,3 +104,23 @@ Sjekke OpenRouters vilkår og Anthropics vilkår mot primærkilder, og oppdatere
 - DPF-søk for OpenRouter og Anthropic; PRD §8.1 må sannsynligvis godta SCC.
 - Hele underleverandørlisten (Trust Portal) og EU-alternativet (DPA Exhibit A).
 - Dashbordinnstillinger (månedlig grense, «ZDR only») er fortsatt ubekreftet.
+
+## 2026-11-18 kl. 17:05 — Helise-26
+
+### Oppgave
+Helene søkte selv på DPF-lista: Anthropic og OpenAI står ikke der. Endre PRD §8.1 til å godta Standard Contractual Clauses.
+
+### Plan
+- Gjøre endringen som arkitektur- og PRD-notatene 2026-11-08 og 2026-11-14 hadde planlagt, og føre den i PRD-ets memlog (U25).
+- Holde det smalt: §8.1, Open question 3, frontmatter og de to dokumentene som gjentar teksten.
+
+### Resultat
+- `prd.md`: §8.1-punktet om overføring godtar nå DPF-liste eller SCC i leverandørens DPA, for alle selskaper som mottar teksten (ruter og vert); Open question 3 har nytt avsnitt «Transfer basis, 2026-11-18»; `updated: 2026-11-18`. `.memlog.md`: U25. `docs/architecture.md` seksjon 4 og `docs/qa/ai-provider-terms.md` (DPF-radene for Anthropic, OpenAI og OpenRouter, og «What is left») justert.
+- §8.1 er fortsatt **ikke** påstått oppfylt: verten og dens vilkår er ikke verifisert. OpenRouters SCC er lest på primærkilde; DPF-søk for OpenRouter ble ikke gjort.
+- Ingen D-rad i §11: briefen nevnte aldri DPF, så ingenting avviker fra den.
+- Endringene (PRD, memlog, architecture.md, terms-dokumentet) er **ukommitterte**; bare loggfila og `issues.md` er committet.
+
+### Åpne punkter
+- Les PRD-endringen og godkjenn teksten.
+- Søk «OpenRouter» og verten på DPF-lista (ikke blokkerende).
+- Verten og dens vilkår, hele underleverandørlisten og dashbordinnstillingene gjenstår som før.
