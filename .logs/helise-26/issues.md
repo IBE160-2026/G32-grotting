@@ -179,3 +179,7 @@
 - [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — hvis OpenRouter vinner: varselteksten (3.6) må navngi OpenRouter og modell-leverandøren, og PRD §8.1 må avklares
 - [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — OpenRouter: les vilkårene selv (DPA, oppbevaring, DPF, underleverandører) og sjekk at modellen har et ZDR-endepunkt (ellers HTTP_404)
 - [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — velg OpenAI-modellen på openrouter.ai/models og kjør bake-offen med `BAKE_OFF_OPENROUTER_MODELS` (se runbook)
+- [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — sett `AI_PROVIDER=openrouter`, `AI_MODEL=anthropic/claude-sonnet-5.5`, `AI_API_KEY` i `.env`; `AI_RETENTION_DAYS` først når oppbevaring er verifisert
+- [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — bekreft månedlig grense og «ZDR only» i OpenRouter-dashbordet
+- [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — verifiser OpenRouters vilkår og hvilken vert som svarte (aktivitetslogg) før Story 3.12 / 24. november; vurder `provider.only`
+- [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — les Pass/Fail-utkastet i `results.md` selv, særlig naturlig bokmål (L1, R3)
