@@ -8,6 +8,8 @@ describe("AD-4 toRunMode", () => {
       DATABASE_URL: "pglite://memory",
       FEATURE_GAPS: "true",
       FEATURE_KEYWORD_FALLBACK: "true",
+      AI_PROVIDER: "acme",
+      AI_RETENTION_DAYS: "30",
     });
     expect(toRunMode(config)).toEqual({
       testMode: true,
@@ -17,6 +19,11 @@ describe("AD-4 toRunMode", () => {
         gaps: true,
         rewording: false,
         keywordFallback: true,
+      },
+      aiNotice: {
+        version: config.aiNotice.version,
+        providerName: "acme",
+        retentionDays: 30,
       },
     });
   });
@@ -31,7 +38,17 @@ describe("AD-4 toRunMode", () => {
         AI_API_KEY: "key-value",
       }),
     );
-    expect(Object.keys(run).sort()).toEqual(["features", "hosted", "testMode"]);
+    expect(Object.keys(run).sort()).toEqual([
+      "aiNotice",
+      "features",
+      "hosted",
+      "testMode",
+    ]);
+    expect(Object.keys(run.aiNotice).sort()).toEqual([
+      "providerName",
+      "retentionDays",
+      "version",
+    ]);
     expect(JSON.stringify(run)).not.toMatch(/postgres|key-value|access-code/);
     expect(run.hosted).toBe(true);
     expect(run.testMode).toBe(false);

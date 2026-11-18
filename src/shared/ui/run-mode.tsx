@@ -13,6 +13,12 @@ export type RunMode = {
     readonly rewording: boolean;
     readonly keywordFallback: boolean;
   };
+  // What the AI notice shows (FR-24). Names and numbers only: no key, no URL.
+  readonly aiNotice: {
+    readonly version: string;
+    readonly providerName: string;
+    readonly retentionDays: number | null;
+  };
 };
 
 const RunModeContext = createContext<RunMode | null>(null);

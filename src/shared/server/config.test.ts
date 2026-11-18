@@ -102,6 +102,45 @@ describe("FR-27 mode detection", () => {
   });
 });
 
+describe("FR-24 AI notice config (AD-4)", () => {
+  it("names no provider and no retention when nothing is set", () => {
+    expect(parseConfig({}).aiNotice).toMatchObject({
+      providerName: "none",
+      retentionDays: null,
+    });
+  });
+
+  it("reads the provider and the retention period", () => {
+    expect(
+      parseConfig({ AI_PROVIDER: "acme", AI_RETENTION_DAYS: "30" }).aiNotice,
+    ).toMatchObject({ providerName: "acme", retentionDays: 30 });
+  });
+
+  it("fails on a retention period that is not a whole number", () => {
+    expect(() => parseConfig({ AI_RETENTION_DAYS: "soon" })).toThrow(
+      /AI_RETENTION_DAYS/,
+    );
+    expect(() => parseConfig({ AI_RETENTION_DAYS: "-1" })).toThrow(
+      /AI_RETENTION_DAYS/,
+    );
+  });
+
+  it("changes the version when the provider, the retention or the keyword fallback changes", () => {
+    const base = { AI_PROVIDER: "acme", AI_RETENTION_DAYS: "30" };
+    const version = (env: Record<string, string>) =>
+      parseConfig(env).aiNotice.version;
+    const versions = [
+      version(base),
+      version({ ...base, AI_PROVIDER: "other" }),
+      version({ ...base, AI_RETENTION_DAYS: "7" }),
+      version({ ...base, FEATURE_KEYWORD_FALLBACK: "true" }),
+      version({ AI_PROVIDER: "acme" }),
+    ];
+    expect(new Set(versions).size).toBe(versions.length);
+    expect(version(base)).toBe(version({ ...base }));
+  });
+});
+
 describe("NFR-7 startup fails on bad Hosted config (AD-3)", () => {
   it("fails on Vercel when APP_ENV is not hosted", () => {
     expect(() => parseConfig({ VERCEL: "1" })).toThrow(/APP_ENV/);
