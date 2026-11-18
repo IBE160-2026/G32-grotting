@@ -92,3 +92,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-2-9-see-the-job-ad-drawn-as-a-pulse-plot.md`
   summary: The pulse plot's first render is the full variant on server and client; on a phone it swaps to compact after mount, and the container width (not the viewport) picks the mode, so a layout jump and a mode that differs from the CSS breakpoint near 640–670 px are possible.
   evidence: Edge Case and Blind Hunter, low. The spec prescribes first-render-full. Look at it in the keyboard and phone walk of Story 7.2; if the jump shows, reserve the height or render after measuring.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-1-send-every-ai-request-through-one-pipeline.md`
+  summary: `config.ai.adapter` only ever resolves to `cached` or `live`, so `mock` (AD-3: "tests may run adapter = mock with testMode = false") is reachable only through `runAi`'s test seam; Story 3.2 needs a way to select it for the notice and cap tests.
+  evidence: Edge Case Hunter, low. `parseConfig` has no input that gives `mock`; Story 3.1 tests inject the adapter, so nothing is blocked yet. Settle it in 3.2 when the notice and cap tests are written.

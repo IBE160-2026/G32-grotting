@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-18-2026 12:40
+last_updated: 11-18-2026 14:00
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -63,8 +63,8 @@ development_status:
   2-11-decide-whether-code-alone-extracts-keywords-well-enough-fr-5: done
   epic-2-retrospective: done
 
-  epic-3: backlog
-  3-1-send-every-ai-request-through-one-pipeline: backlog
+  epic-3: in-progress
+  3-1-send-every-ai-request-through-one-pipeline: review
   3-2-enforce-the-daily-cap-and-the-ai-notice-on-the-server: backlog
   3-3-pick-the-ai-provider-in-a-bake-off: backlog
   3-4-write-the-letter-on-the-server: backlog
