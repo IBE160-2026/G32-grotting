@@ -38,7 +38,7 @@ Slices: `cv`, `keywords`, `match`, `letter`, `gaps`, `integrity`, `ai`, `applica
 | `index.ts` | the server API (`import 'server-only'`) | routes and other slices' `server/` |
 | `contracts.ts` | zod schemas and types, isomorphic | anyone |
 | `ui/index.ts` | client components and hooks | routes (pages) and other slices' `ui/` |
-| `core/index.ts` | pure functions, only for `keywords` and `integrity` | other slices' `core/` and `server/` |
+| `core/index.ts` | pure functions, only for `keywords` and `integrity` | other slices' `core/`, `server/` and `ui/` (the form splits the ad into paragraphs as it is typed, with the same function as the server) |
 
 **Allowed server imports between slices** (A → B means A may import B's `index.ts`):
 

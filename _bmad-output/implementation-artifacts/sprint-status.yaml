@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-17-2026 10:00
+last_updated: 11-18-2026 12:40
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -61,7 +61,7 @@ development_status:
   2-9-see-the-job-ad-drawn-as-a-pulse-plot: done
   2-10-try-the-app-with-the-example: done
   2-11-decide-whether-code-alone-extracts-keywords-well-enough-fr-5: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   epic-3: backlog
   3-1-send-every-ai-request-through-one-pipeline: backlog
@@ -116,3 +116,52 @@ development_status:
   7-4-clean-the-repository-and-scan-for-secrets: backlog
   7-5-match-every-planning-document-to-the-delivered-app: backlog
   epic-7-retrospective: optional
+action_items:
+  - id: "epic-2-retro-item-1-run-fr-3-rows-1-5-and-fr-8-matched-rows"
+    epic: 2
+    action: "Run FR-3 rows 1-5 and FR-8 Matched rows 1-9 in docs/qa/example-pair-manual-checks.md
+      and write what was observed (closes AC 3 and 4 of Story 2.10)"
+    owner: "Helene"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-11-18.md"
+  - id: "epic-2-retro-item-2-add-the-held-out-answer-key-change-a5180"
+    epic: 2
+    action: "Add the held-out Answer key change (a518058: fixed mistakes, score 77
+      to 50) and the engine re-check to docs/qa/fr-5b-decision.md; FR-5b still applies"
+    owner: "Helene / dev loop"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-11-18.md"
+  - id: "epic-2-retro-item-3-read-data-vocabulary-nb-json-terms-alias"
+    epic: 2
+    action: "Read data/vocabulary/nb.json (terms, aliases, ambiguous words) before
+      Story 3.11 builds on it"
+    owner: "Helene"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-11-18.md"
+  - id: "epic-2-retro-item-4-decide-whether-a-new-held-out-fixture-is"
+    epic: 2
+    action: "Decide whether a new held-out Fixture is written before Story 3.11 removes
+      the it.fails markers"
+    owner: "Helene"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-11-18.md"
+  - id: "epic-2-retro-item-5-run-docker-compose-run-rm-build-test-onc"
+    epic: 2
+    action: "Run docker compose run --rm --build test once and add it to the done
+      criteria for Epic 3 stories that change Dockerfile, dependencies or data/"
+    owner: "dev loop"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-11-18.md"
+  - id: "epic-2-retro-item-6-split-e2e-application-spec-ts-by-flow-be"
+    epic: 2
+    action: "Split e2e/application.spec.ts by flow before Epic 3 UI stories"
+    owner: "dev loop"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-11-18.md"
+  - id: "epic-2-retro-item-7-tighten-the-biome-rule-or-reconcile-the"
+    epic: 2
+    action: "Tighten the Biome rule or reconcile the spine for ui importing keywords/core
+      (application-form.tsx:20)"
+    owner: "dev loop"
+    status: done
+    ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-11-18.md"
