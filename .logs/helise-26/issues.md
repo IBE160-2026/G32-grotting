@@ -176,3 +176,5 @@
 - [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — bekreft `docs/qa/ai-provider-terms.md` selv (DPF-listen og OpenAI-DPA er «not verified»)
 - [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — ugyldig `AI_PROVIDER` (skrivefeil) brenner en cap-plass per forespørsel; oppstartssjekk i `config.ts` senest i Story 3.12
 - [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — test bake-offens live-sti (riktig nøkkel og modell per kandidat, exit-kode)
+- [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — hvis OpenRouter vinner: varselteksten (3.6) må navngi OpenRouter og modell-leverandøren, og PRD §8.1 må avklares
+- [ ] 2026-11-18 [story-3-3-ai-provider-bake-off](961-2026-11-18-13-48-41-story-3-3-ai-provider-bake-off.md) — OpenRouter: les vilkårene selv (DPA, oppbevaring, DPF, underleverandører) og sjekk at modellen har et ZDR-endepunkt (ellers HTTP_404)

@@ -1,5 +1,6 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import {
   APICallError,
   generateText,
@@ -10,7 +11,7 @@ import {
 } from "ai";
 import type { AiAdapterPort } from "./factory";
 
-export const LIVE_PROVIDERS = ["anthropic", "openai"] as const;
+export const LIVE_PROVIDERS = ["anthropic", "openai", "openrouter"] as const;
 export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
 
 // The settings a live adapter is built from (`config.ai`). The key never leaves
@@ -29,14 +30,43 @@ export type ModelFactory = (settings: {
   readonly apiKey: string;
 }) => LanguageModel;
 
+// What every OpenRouter request tells OpenRouter about the Student's text:
+// route only to providers that do not collect or train on it (`data_collection`)
+// and only to Zero Data Retention endpoints (`zdr`). Both are fields of the
+// request's `provider` object in OpenRouter's provider routing docs and in the
+// package's `OpenRouterChatSettings`.
+export const OPENROUTER_PRIVACY = {
+  data_collection: "deny",
+  zdr: true,
+} as const;
+
+// OpenRouter is a router: the text reaches OpenRouter and the model vendor.
+// `fetch` is a test seam; production uses the global one.
+export function openRouterModel(settings: {
+  readonly model: string;
+  readonly apiKey: string;
+  readonly fetch?: typeof fetch;
+}): LanguageModel {
+  return createOpenRouter({
+    apiKey: settings.apiKey,
+    ...(settings.fetch === undefined ? {} : { fetch: settings.fetch }),
+  })(settings.model, { provider: OPENROUTER_PRIVACY });
+}
+
 export const defaultModelFactory: ModelFactory = ({
   provider,
   model,
   apiKey,
-}) =>
-  provider === "anthropic"
-    ? createAnthropic({ apiKey })(model)
-    : createOpenAI({ apiKey })(model);
+}) => {
+  switch (provider) {
+    case "anthropic":
+      return createAnthropic({ apiKey })(model);
+    case "openai":
+      return createOpenAI({ apiKey })(model);
+    case "openrouter":
+      return openRouterModel({ model, apiKey });
+  }
+};
 
 // A failed provider call. The message is fixed text: the SDK's own message can
 // hold the prompt, the response or the key, so it is never copied. `code` says
@@ -69,7 +99,7 @@ const isLiveProvider = (value: string): value is LiveProvider =>
   (LIVE_PROVIDERS as readonly string[]).includes(value);
 
 // Selects the provider by name, so one setting (`AI_PROVIDER`) switches between
-// the two Bake-off contenders (AD-3). Throws a plain error naming the field.
+// the Bake-off contenders (AD-3). Throws a plain error naming the field.
 export function createLiveAdapter(
   settings: LiveSettings,
   modelFactory: ModelFactory = defaultModelFactory,

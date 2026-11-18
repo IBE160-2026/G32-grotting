@@ -28,12 +28,12 @@ import {
   type Task,
 } from "./bake-off/results";
 
-// The provider Bake-off (Story 3.3, PRD §8.2). It asks both contenders for a
+// The provider Bake-off (Story 3.3, PRD §8.2). It asks every contender for a
 // Letter and a Gap analysis on every Fixture and saves the outputs, token
 // counts and cost for hand scoring. It is run by Helene with her own keys; no
 // test ever runs it live. Usage: see docs/qa/bake-off-runbook.md.
 
-const PROVIDERS = ["anthropic", "openai"] as const;
+const PROVIDERS = ["anthropic", "openai", "openrouter"] as const;
 type Provider = (typeof PROVIDERS)[number];
 
 const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-5-5";
@@ -73,7 +73,7 @@ function parsePrice(
     number < 0
   ) {
     throw new BakeOffUsageError(
-      `${flag} takes <anthropic|openai>=<USD per million tokens>`,
+      `${flag} takes <anthropic|openai|openrouter>=<USD per million tokens>`,
     );
   }
   into[name] = number;
@@ -115,13 +115,30 @@ export function resolveContenders(args: BakeOffArgs, env: Env): Contender[] {
   const anthropicModel =
     read("BAKE_OFF_ANTHROPIC_MODEL") ?? DEFAULT_ANTHROPIC_MODEL;
   const openaiModel = read("BAKE_OFF_OPENAI_MODEL");
+  const openrouterKey = read("BAKE_OFF_OPENROUTER_KEY");
+  const openrouterModel = read("BAKE_OFF_OPENROUTER_MODEL");
+  // OpenRouter is optional: it joins when its key is set (or in a dry run).
+  // With the key set, its model is required, as for OpenAI.
+  const withOpenRouter = args.dry || openrouterKey !== undefined;
+  // A model or a price without the key is a typo or a forgotten key, not a
+  // choice: a paid run must not look like a three-way comparison and be two.
+  const openrouterAsked =
+    openrouterModel !== undefined ||
+    args.priceIn.openrouter !== undefined ||
+    args.priceOut.openrouter !== undefined;
   if (!args.dry) {
     const missing = [
       read("BAKE_OFF_ANTHROPIC_KEY") === undefined
         ? "BAKE_OFF_ANTHROPIC_KEY"
         : null,
       read("BAKE_OFF_OPENAI_KEY") === undefined ? "BAKE_OFF_OPENAI_KEY" : null,
+      openrouterAsked && openrouterKey === undefined
+        ? "BAKE_OFF_OPENROUTER_KEY"
+        : null,
       openaiModel === undefined ? "BAKE_OFF_OPENAI_MODEL" : null,
+      openrouterKey !== undefined && openrouterModel === undefined
+        ? "BAKE_OFF_OPENROUTER_MODEL"
+        : null,
     ].filter((name) => name !== null);
     if (missing.length > 0) {
       throw new BakeOffUsageError(`Missing setting: ${missing.join(", ")}`);
@@ -134,7 +151,7 @@ export function resolveContenders(args: BakeOffArgs, env: Env): Contender[] {
       ? undefined
       : { inPerMillion, outPerMillion };
   };
-  return [
+  const contenders: Contender[] = [
     {
       provider: "anthropic",
       model: anthropicModel,
@@ -148,6 +165,15 @@ export function resolveContenders(args: BakeOffArgs, env: Env): Contender[] {
       price: price("openai"),
     },
   ];
+  if (withOpenRouter) {
+    contenders.push({
+      provider: "openrouter",
+      model: openrouterModel ?? "mock-1",
+      apiKey: openrouterKey,
+      price: price("openrouter"),
+    });
+  }
+  return contenders;
 }
 
 type Fixture = {

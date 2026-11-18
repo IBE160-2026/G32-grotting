@@ -25,3 +25,23 @@ Bygge Story 3.3 («Pick the AI provider in a bake-off») med anbefalt spec, suba
 - Ugyldig `AI_PROVIDER` (skrivefeil) gir Testmodus av og en brent cap-plass per forespørsel; legg inn oppstartssjekk senest i Story 3.12.
 - Bake-offens live-sti (riktig nøkkel/modell per kandidat, exit-kode) mangler test.
 - Story 3.4 skriver de ekte prompene under `PROMPT_VERSION`; Gap-prompten kommer med Gap-storyen.
+
+## 2026-11-18 kl. 14:20 — Helise-26
+
+### Oppgave
+Legge til OpenRouter som tredje live-leverandør (og som tredje kandidat i bake-offen), slik at én OpenRouter-nøkkel kan brukes. Merge når ferdig.
+
+### Plan
+- Spec: `_bmad-output/implementation-artifacts/spec-3-3b-add-openrouter-as-a-third-live-provider.md`, branch `story/3.3b-openrouter-third-provider`.
+- Subagent bygde; tre reviewere; tre patcher.
+
+### Resultat
+- Commit c966872. `@openrouter/ai-sdk-provider@3.1.0` (festet, ingen egne avhengigheter). `AI_PROVIDER=openrouter` i `live.ts`; hver forespørsel sender `provider: { data_collection: "deny", zdr: true }`, testet mot forespørselskroppen via standardoppkoblingen (en mutasjon som fjerner feltene feiler testen).
+- `scripts/bake-off.ts`: tredje kandidat bare når `BAKE_OFF_OPENROUTER_KEY` er satt (modell eller pris uten nøkkel er brukerfeil); uten OpenRouter-innstillinger er det som før (16 forespørsler, ellers 24).
+- Vilkårsfil og runbook utvidet (OpenRouter er en ruter, så modell-leverandøren er en ekstra databehandler; modell uten ZDR-endepunkt gir `HTTP_404`; ikke slå på `AI_PROVIDER=openrouter` før varselet navngir begge).
+- Verifisert: biome, typecheck, vitest (63 filer, 710 bestått, 2 forventet feil), `db:check`, `--dry`.
+
+### Åpne punkter
+- Om OpenRouter vinner: varselteksten (Story 3.6) må navngi både OpenRouter og modell-leverandøren, og PRD §8.1 må avklares (står i `deferred-work.md`).
+- Det er ikke bevist at OpenRouter godtar `data_collection` + `zdr` for modellen du velger; det vises først ved første betalte kjøring.
+- OpenRouters vilkår (DPA, oppbevaring, DPF, underleverandører) er «not verified» i `docs/qa/ai-provider-terms.md`.
