@@ -30,4 +30,4 @@ A copy of the app runs on Vercel (Frankfurt) with a Supabase database, closed wi
 
 ### Live AI (optional)
 
-Copy `.env.example` to `.env` and set `AI_PROVIDER`, `AI_MODEL` and `AI_API_KEY`. Never commit `.env`.
+Copy `.env.example` to `.env` and set `AI_PROVIDER`, `AI_MODEL` and `AI_API_KEY`. The only valid `AI_PROVIDER` is `openrouter`, `AI_API_KEY` must be an OpenRouter key and `AI_MODEL` an OpenRouter model id such as `anthropic/claude-sonnet-5.5`; any other provider fails after a Daily-cap slot is used. Never commit `.env`.

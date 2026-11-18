@@ -35,7 +35,7 @@ It builds on these documents and does not repeat them:
 - Each FR and NFR ends with a **Verify** line: *Auto* (automated test), *Manual* (a manual check), or both. The Verify lines are authoritative; §9 says how the checks run and where the results are recorded.
 - Decisions A1a to A4a are the product owner's answers of 2026-10-31. Each is stated in one sentence at the start of §11.
 - `[ASSUMPTION]` marks something inferred but not yet confirmed. §14 lists every assumption; as of 2026-11-08, none is open.
-- **Planned decisions.** The PRD is final with Open questions 3, 5 and 8 (§13) still open. Each is a planned decision with an owner and a date. Requirements are written in one form only. Open question 2 was decided on 17 November 2026: code-only extraction failed SM-2 on the held-out Fixture, so FR-5b applies and its values are written into the requirements it named (D24).
+- **Planned decisions.** The PRD is final with Open questions 5 and 8 (§13) still open, and one open item under Open question 3 (the data-handling condition for OpenRouter and Anthropic). Each is a planned decision with an owner and a date. Requirements are written in one form only. Open question 3 was resolved on 18 November 2026 (model and route chosen; data handling still to be verified). Open question 2 was decided on 17 November 2026: code-only extraction failed SM-2 on the held-out Fixture, so FR-5b applies and its values are written into the requirements it named (D24).
 
 ## 1. Vision
 
@@ -690,7 +690,7 @@ How session logs, review notes and AI-steering examples are kept as process evid
 - **Requirements for the host:** the host is Vercel. Its functions and the database run in an EU region, and Vercel's data processing agreement and transfer basis must cover the data. The architecture checks this (FR-30).
 
 ### 8.2 Cost
-- The AI budget is about 200 NOK per month (NFR-8). A bake-off at the start of S3 (18 November) chooses the provider and model (Open question 3), with a cost estimate per Application based on prices at that time.
+- The AI budget is about 200 NOK per month (NFR-8). A bake-off on 18 November chose the provider and model (Open question 3, resolved 2026-11-18); it measured about 0.048 USD per Application on average for the chosen model (`docs/architecture.md` section 4).
 - Hosting uses Vercel's free Hobby plan, which is meant for non-commercial projects, and the hosted database must fit a free tier too (FR-30).
 
 ### 8.3 Team and timeline
@@ -888,11 +888,11 @@ User success remains directional and is not measured during the course (brief). 
 
 1. **Deadline.** *Resolved 2026-11-08:* 15 December 2026; the last commit on `main` at the deadline counts (§5.2).
 2. **Keyword extraction.** *Resolved 2026-11-17:* code-only extraction failed SM-2 on the held-out Fixture, so FR-5b applies and its values are written into the affected requirements (D24; `docs/qa/fr-5b-decision.md`).
-3. **AI provider, model and hosted database.** *Partly resolved by the architecture (spine of 2026-11-13, AD-9):*
+3. **AI provider, model and hosted database.** *Resolved 2026-11-18* (hosted database by the architecture, spine of 2026-11-13, AD-9; AI provider and model by the bake-off):
    - **Hosted database: decided.** A free-tier Postgres database in an EU region (Frankfurt). The local run uses the same Postgres version in a Docker container (NFR-9).
-   - **AI provider and model: still open.** A bake-off at the start of S3 (18 November) decides between two contenders. They are scored on checklist items L1–L8, G1–G3 and R1 (§9.2) and on the Integrity guard results. The winner must also meet §8.1 and the 200 NOK monthly budget (NFR-8).
-   - Before the bake-off, both contenders are checked against the EU–US Data Privacy Framework list. If the winner isn't listed, §8.1 is amended to also accept Standard Contractual Clauses in the provider's data processing agreement.
-   - *Owner:* Helene, on 18 November.
+   - **AI provider and model: resolved 2026-11-18** (owner Helene). A bake-off on 18 November chose Claude Sonnet 5.5 (`anthropic/claude-sonnet-5.5`) used **through OpenRouter, not directly**; the runner-up was `openai/gpt-5.6-terra`. The reasons, the cost and the data rules are in `docs/architecture.md` section 4; the outputs and scoring tables are in `docs/qa/bake-off/2026-11-18/`. The evidence is one run per model per Fixture (12 against 11 expected gaps found), so the margin is small and its variance was not measured. The Pass and fail cells are Claude's draft; Claude's reading that Sonnet wrote more natural Norwegian is unverified (Sonnet is a Claude model), and Helene did not review L1 and R3 cell by cell. She chose the model on those results.
+   - **Open item: data handling is not verified, and §8.1 is not claimed met.** The Student's text reaches OpenRouter and the model's host, expected to be Anthropic; OpenRouter may route to another host, and the host that served the 16 bake-off requests was not recorded. Every request sends `data_collection: deny` and `zdr: true`; these are settings the app sends, and the retention that results from that routing is not verified. Also not verified: OpenRouter's data processing agreement, retention, EU–US Data Privacy Framework status and sub-processors. Verifying them is a condition for Story 3.12 (live on the Hosted version) and for the FR-24 AI notice (Story 3.6), which must name OpenRouter and the host. If the DPF status is missing, §8.1 is amended to accept Standard Contractual Clauses in the data processing agreement, and the change is logged.
+   - *Owner:* Helene, before Story 3.12 and the 24 November core-flow checkpoint.
 4. **Real CVs in testing.** *Resolved 2026-11-08:* only fictional CVs are used in testing (§8.1).
 5. **AI access for the Examiner.** The plan is Test mode for the README run and live AI on the Hosted version, with the README also describing how to run with a key of one's own. Is that acceptable? *Owner:* Helene, to ask the lecturer.
 6. **Keyword vocabulary.** Where do the Keywords and aliases come from: for example, the Norwegian skill labels in ESCO (the EU's classification of skills and occupations), a custom list, or both? The vocabulary must cover job ads from any field, not only technology (FR-5). *Direction resolved 2026-11-08 by the architecture (now spine of 2026-11-13, AD-5):* a curated core list, with selected Norwegian ESCO labels as backup, stored as versioned data. Helene's nursing terms seed the list. The FR-5b decision was taken on 17 November (Open question 2): the vocabulary stays as the code-only fallback and as the check on AI-proposed Keywords, and its contents are tuned against the Answer keys in Epic 2. *Owner:* Helene.

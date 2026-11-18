@@ -62,3 +62,24 @@ Gjøre bake-off-scriptet i stand til å sammenligne flere modeller (Sonnet 5.5 o
 ### Åpne punkter
 - Velg OpenAI-modellen på openrouter.ai/models (f.eks. `openai/gpt-5.6-terra` ligger nærmest Sonnet i pris) og kjør bake-offen etter runbooken.
 - Det er fortsatt ikke bevist at OpenRouter godtar `zdr` + `data_collection: deny` for de valgte modellene; `HTTP_404` betyr da at modellen mangler ZDR-endepunkt (eller feil id).
+
+## 2026-11-18 kl. 15:47 — Helise-26
+
+### Oppgave
+Kjøre bake-offen (Sonnet 5.5 og gpt-5.6 terra gjennom OpenRouter), få utkast til poengsetting, velge Sonnet og registrere valget. Merge når ferdig.
+
+### Plan
+- Bake-offen kjørte Helene selv (16 forespørsler, alle gikk gjennom). Claude gjorde mekaniske sjekker og et utkast til Pass/Fail i `docs/qa/bake-off/2026-11-18/results.md` (merket DRAFT).
+- Valg: Sonnet 5.5 **gjennom OpenRouter** (ikke direkte). Spec: `spec-3-3d-record-the-provider-decision-and-drop-the-losing-packages.md`, branch `story/3.3d-record-the-provider-decision`; subagent bygde, tre reviewere, patcher.
+
+### Resultat
+- Commit på branchen: «3.3: Record Sonnet 5.5 through OpenRouter…». Beslutningen står i `docs/architecture.md`, PRD Open question 3 (løst 2026-11-18) og i `results.md`; tekstene sier hva som ikke er verifisert.
+- `@ai-sdk/anthropic` og `@ai-sdk/openai` fjernet; `LIVE_PROVIDERS = ["openrouter"]`; bake-off-scriptet bare OpenRouter. README og `.env.example` sier at bare `AI_PROVIDER=openrouter` gjelder.
+- Verifisert: biome, typecheck, vitest (714 bestått, 2 forventet feil), `db:check`, `--dry`.
+
+### Åpne punkter
+- Sett i `.env`: `AI_PROVIDER=openrouter`, `AI_MODEL=anthropic/claude-sonnet-5.5`, `AI_API_KEY`. `AI_RETENTION_DAYS` venter til oppbevaringen er verifisert (ikke gjett et tall).
+- Bekreft i OpenRouter-dashbordet: månedlig grense (ca. 200 NOK) og «ZDR only».
+- Verifiser OpenRouters vilkår (DPA, oppbevaring, DPF, underleverandører), hvilken vert som faktisk svarte (aktivitetsloggen), og vurder å låse oppstrøms med `provider.only`/`allow_fallbacks: false` — før Story 3.12 og sjekkpunktet 24. november. PRD §8.1 er ikke endret og ikke påstått oppfylt.
+- Varselteksten (3.6) må navngi OpenRouter og verten; PRD FR-24 og §8.1 sier fortsatt «leverandøren» i entall.
+- Pass/Fail-cellene i `results.md` er Claudes utkast, ikke gjennomgått celle for celle av Helene; naturlighet (L1, R3) er ikke bekreftet av en morsmålsbruker.

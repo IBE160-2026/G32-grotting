@@ -38,11 +38,11 @@ const meta = {
   dry: false,
   contenders: [
     {
-      provider: "anthropic",
+      provider: "openrouter:a/x",
       model: "m1",
       price: { inPerMillion: 3, outPerMillion: 15 },
     },
-    { provider: "openai", model: "m2", price: undefined },
+    { provider: "openrouter:b/y", model: "m2", price: undefined },
   ],
 };
 
@@ -55,26 +55,26 @@ const base = {
 const records: RequestRecord[] = [
   {
     ...base,
-    provider: "anthropic",
+    provider: "openrouter:a/x",
     task: "letter",
     status: "ok",
-    file: "anthropic/fx.letter.txt",
+    file: "openrouter-a-x/fx.letter.txt",
     words: 310,
     inputTokens: 1000,
     outputTokens: 400,
   },
   {
     ...base,
-    provider: "anthropic",
+    provider: "openrouter:a/x",
     task: "gap",
     status: "ok",
-    file: "anthropic/fx.gap.json",
+    file: "openrouter-a-x/fx.gap.json",
     inputTokens: 1000,
     outputTokens: 200,
   },
   {
     ...base,
-    provider: "openai",
+    provider: "openrouter:b/y",
     task: "letter",
     status: "failed",
     errorCode: "HTTP_429",
@@ -83,10 +83,10 @@ const records: RequestRecord[] = [
   },
   {
     ...base,
-    provider: "openai",
+    provider: "openrouter:b/y",
     task: "gap",
     status: "ok",
-    file: "openai/fx.gap.json",
+    file: "openrouter-b-y/fx.gap.json",
     inputTokens: 900,
     outputTokens: 100,
   },
@@ -96,11 +96,11 @@ describe("PRD 8.2 results.md", () => {
   const text = renderResults(meta, records);
 
   it("lists every Fixture with both contenders", () => {
-    expect(text).toContain("### anthropic: Letter");
-    expect(text).toContain("### anthropic: Gap analysis");
-    expect(text).toContain("### openai: Letter");
-    expect(text).toContain("### openai: Gap analysis");
-    expect(text).toContain("| fx | anthropic | 2000 | 600 | $0.0150 |");
+    expect(text).toContain("### openrouter:a/x: Letter");
+    expect(text).toContain("### openrouter:a/x: Gap analysis");
+    expect(text).toContain("### openrouter:b/y: Letter");
+    expect(text).toContain("### openrouter:b/y: Gap analysis");
+    expect(text).toContain("| fx | openrouter:a/x | 2000 | 600 | $0.0150 |");
   });
 
   it("has blank pass/fail cells for L1-L8, G1-G3 and R1", () => {
@@ -121,17 +121,25 @@ describe("PRD 8.2 results.md", () => {
   });
 
   it("records a failed request by its error code, with no scoring table", () => {
-    const failed = text.slice(text.indexOf("### openai: Letter"));
-    const section = failed.slice(0, failed.indexOf("### openai: Gap analysis"));
+    const failed = text.slice(text.indexOf("### openrouter:b/y: Letter"));
+    const section = failed.slice(
+      0,
+      failed.indexOf("### openrouter:b/y: Gap analysis"),
+    );
     expect(section).toContain("`HTTP_429`");
     expect(section).not.toContain("| L1 |");
     expect(text).toContain(
-      "| fx | openai | n/a | n/a | n/a (a request failed) |",
+      "| fx | openrouter:b/y | n/a | n/a | n/a (a request failed) |",
     );
   });
 
   it("keeps working for any number of contenders, labelled by id", () => {
-    const ids = ["openrouter:a/x", "openrouter:b/y", "openai", "anthropic"];
+    const ids = [
+      "openrouter:a/x",
+      "openrouter:b/y",
+      "openrouter:c/z",
+      "openrouter:d/w",
+    ];
     const many = renderResults(
       {
         date: "2026-11-18",

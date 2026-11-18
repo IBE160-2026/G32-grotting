@@ -20,7 +20,11 @@ const PROMPT = "SENTINEL-PROMPT-instruks med CV-tekst";
 const RESPONSE = "SENTINEL-RESPONSE-svar fra modellen";
 
 const schema = z.object({ text: z.string() });
-const settings = { provider: "anthropic", model: "claude-test", apiKey: KEY };
+const settings = {
+  provider: "openrouter",
+  model: "vendor/model",
+  apiKey: KEY,
+};
 
 type Generate = NonNullable<
   ConstructorParameters<typeof MockLanguageModelV4>[0]
@@ -73,34 +77,21 @@ describe("AD-3 createAdapter for live", () => {
     });
     expect(adapter).toMatchObject({
       kind: "live",
-      provider: "anthropic",
-      model: "claude-test",
-    });
-    expect(
-      createAdapter("live", {
-        isTestRun: false,
-        live: { ...settings, provider: "openai" },
-      }).provider,
-    ).toBe("openai");
-    expect(
-      createAdapter("live", {
-        isTestRun: false,
-        live: { ...settings, provider: "openrouter", model: "vendor/model" },
-      }),
-    ).toMatchObject({
-      kind: "live",
       provider: "openrouter",
       model: "vendor/model",
     });
   });
 
-  it("throws in a test run for openrouter too", () => {
-    expect(() =>
-      createAdapter("live", {
-        isTestRun: true,
-        live: { ...settings, provider: "openrouter", model: "vendor/model" },
-      }),
-    ).toThrow(/test run/);
+  it("rejects the removed direct providers with the plain error", () => {
+    for (const provider of ["anthropic", "openai"]) {
+      const run = () =>
+        createAdapter("live", {
+          isTestRun: false,
+          live: { ...settings, provider },
+        });
+      expect(run).toThrow(`does not support the provider «${provider}»`);
+      expect(run).not.toThrow(KEY);
+    }
   });
 
   it("throws a plain error naming the missing field, never the key", () => {
@@ -389,8 +380,8 @@ describe("AD-13 live adapter through runAi", () => {
       expect(ok.value.data).toEqual({ text: "Hei" });
       expect(ok.value.meta).toMatchObject({
         source: "live",
-        provider: "anthropic",
-        model: "claude-test",
+        provider: "openrouter",
+        model: "vendor/model",
       });
     }
 

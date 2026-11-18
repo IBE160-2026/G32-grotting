@@ -1,5 +1,3 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import {
   APICallError,
@@ -11,7 +9,7 @@ import {
 } from "ai";
 import type { AiAdapterPort } from "./factory";
 
-export const LIVE_PROVIDERS = ["anthropic", "openai", "openrouter"] as const;
+export const LIVE_PROVIDERS = ["openrouter"] as const;
 export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
 
 // The settings a live adapter is built from (`config.ai`). The key never leaves
@@ -53,20 +51,8 @@ export function openRouterModel(settings: {
   })(settings.model, { provider: OPENROUTER_PRIVACY });
 }
 
-export const defaultModelFactory: ModelFactory = ({
-  provider,
-  model,
-  apiKey,
-}) => {
-  switch (provider) {
-    case "anthropic":
-      return createAnthropic({ apiKey })(model);
-    case "openai":
-      return createOpenAI({ apiKey })(model);
-    case "openrouter":
-      return openRouterModel({ model, apiKey });
-  }
-};
+export const defaultModelFactory: ModelFactory = ({ model, apiKey }) =>
+  openRouterModel({ model, apiKey });
 
 // A failed provider call. The message is fixed text: the SDK's own message can
 // hold the prompt, the response or the key, so it is never copied. `code` says
@@ -98,8 +84,8 @@ function codeOf(error: unknown, signal: AbortSignal): string {
 const isLiveProvider = (value: string): value is LiveProvider =>
   (LIVE_PROVIDERS as readonly string[]).includes(value);
 
-// Selects the provider by name, so one setting (`AI_PROVIDER`) switches between
-// the Bake-off contenders (AD-3). Throws a plain error naming the field.
+// OpenRouter is the only live provider (decided 2026-11-18); any other name is
+// refused. Throws a plain error naming the field.
 export function createLiveAdapter(
   settings: LiveSettings,
   modelFactory: ModelFactory = defaultModelFactory,
