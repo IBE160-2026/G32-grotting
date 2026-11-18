@@ -1,0 +1,18 @@
+Til Fjord Analytics
+
+Søknad på stillingen som junior produktanalytiker
+
+Jeg søker med dette på stillingen som junior produktanalytiker hos dere. Jeg er nyutdannet bachelorstudent i økonomi og analyse ved Vestfjord høgskole, og jeg ønsker å bruke utdanningen til å hjelpe kunder med å forstå tallene sine.
+
+I semesterprosjektet våren 2026 analyserte vi fire studenter salgstallene til et lokalt kaffebrenneri. Jeg skrev SQL-spørringene som hentet ut dataene, og jeg laget dashbordene i Power BI. Gruppen delte oppgavene mellom seg og hadde faste møter hver uke. Til slutt leverte vi en rapport og presenterte funnene for faglærer og et annet kull. Prosjektet ga meg praktisk erfaring med å gå fra rådata til en ferdig leveranse som andre kan bruke.
+
+I emnene Statistikk 1 og 2 arbeidet jeg med regresjon, hypotesetesting og tolkning av resultater. I emnet Data analyse utforsket jeg reelle datasett i Excel og R. Dette har gitt meg et godt grunnlag for å trekke konklusjoner fra tall og for å vurdere hvor godt resultatene holder.
+
+I emnet Databaser arbeidet jeg med SQL og datamodellene bak en nettbutikk. Jeg forstår derfor hvorfor oppbyggingen av dataene har stor betydning for hvilke analyser som er mulige. Dette mener jeg er relevant for arbeidet med nettbutikker og apper.
+
+Gjennom deltidsarbeid ved Bergen Bokhandel fra 2022 til 2025 har jeg dessuten lært å lytte til kunder og å forklare ting enkelt. Jeg tar med meg denne erfaringen når jeg skal skrive rapporter og legge frem funn.
+
+Jeg setter stor pris på om jeg får anledning til å presentere meg nærmere i et intervju. Takk for at dere vurderer søknaden min.
+
+Med vennlig hilsen
+{{SIGNATUR}}

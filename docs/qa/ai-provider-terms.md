@@ -1,10 +1,14 @@
 # AI provider terms: the Bake-off contenders
 
-Story 3.3 (PRD §8.1, Open question 3); the contenders are now chosen by which keys are set, and several OpenRouter models can be compared through one key (Story 3.3c). Checked on **2026-11-18** from the providers' own public pages, by Claude while building the story. **Helene has not confirmed any row yet.** A fact that was not read on a primary source says «not verified»; look at those yourself before the decision (step 2 in `docs/qa/bake-off-runbook.md`).
+Story 3.3 (PRD §8.1, Open question 3); the contenders were Anthropic and OpenAI directly, then OpenRouter (Stories 3.3b and 3.3c); the decision is in the Decision section below (Story 3.3d). Checked on **2026-11-18** from the providers' own public pages, by Claude while building the story. **Helene has not confirmed any row yet.** A fact that was not read on a primary source says «not verified»; look at those yourself (step 2 in `docs/qa/bake-off-runbook.md`, now a condition for Story 3.12).
 
 PRD §8.1 asks for: a paid or commercial API tier only, a written promise of no training on inputs, a documented retention period (named in the AI notice), a data processing agreement, and processing in the EEA or a provider on the EU–US Data Privacy Framework (DPF) list.
 
-## Anthropic (`@ai-sdk/anthropic`)
+## Decision
+
+**Decided 2026-11-18 (Helene, Story 3.3d):** Claude Sonnet 5.5 (`anthropic/claude-sonnet-5.5`) used through OpenRouter, not directly. See `docs/architecture.md` section 4 and PRD Open question 3. The Student's text therefore reaches OpenRouter and the model's host, expected to be Anthropic (OpenRouter may route elsewhere; the host that served the bake-off requests was not recorded). The OpenRouter rows below, and the host's retention under the `zdr` routing the app asks for, are **not verified** and are a condition for Story 3.12 and the AI notice (Story 3.6). The Anthropic and OpenAI tables below are kept as the record of what was compared; the direct packages are removed from the code.
+
+## Anthropic (direct; package removed in Story 3.3d)
 
 | Requirement | What the source says | Source | Checked |
 | --- | --- | --- | --- |
@@ -15,7 +19,7 @@ PRD §8.1 asks for: a paid or commercial API tier only, a written promise of no 
 | Transfer basis | Standard Contractual Clauses (modules two and three), with UK and Swiss addenda. The DPA does not mention the DPF. | same DPA page | 2026-11-18 |
 | On the DPF list | **Not verified.** The official list (<https://www.dataprivacyframework.gov/list>) could not be searched from here. A third-party site says Anthropic is listed as active; that is not a primary source. | <https://www.dataprivacyframework.gov/list> | 2026-11-18 |
 
-## OpenAI (`@ai-sdk/openai`)
+## OpenAI (direct; package removed in Story 3.3d)
 
 | Requirement | What the source says | Source | Checked |
 | --- | --- | --- | --- |
@@ -45,11 +49,13 @@ What the adapter asks for on every request (the `provider` object of the request
 | On the DPF list | **Not verified** for OpenRouter and for the model vendor. | <https://www.dataprivacyframework.gov/list> | 2026-11-18 |
 | Sub-processors | Not verified. The list of model vendors that OpenRouter may route to, and where they process, was not read. | not verified | 2026-11-18 |
 
-**AI notice (Story 3.6):** if OpenRouter wins, the notice must name **both** OpenRouter and the model vendor, and the retention period must cover both. The notice text and the PRD §8.1 data rules need a decision then (see `deferred-work.md`); this file records no decision.
+**AI notice (Story 3.6):** OpenRouter won (see Decision), so the notice must name **both** OpenRouter and the host (Anthropic, if confirmed), and the retention period must cover both. The notice wording and the PRD §8.1 data rules are still to be settled (see `deferred-work.md`).
 
 ## What is left for Helene
 
-- Search «Anthropic», «OpenAI» and «OpenRouter» (and the vendor of each OpenRouter model you compare) on the DPF list and write the result and the date here. If the winner is not on the list, amend PRD §8.1 to accept Standard Contractual Clauses (runbook step 7).
+The winner is Claude Sonnet 5.5 through OpenRouter (see Decision), so the items about OpenRouter and Anthropic matter; the OpenAI items are kept for the record.
+
+- Search «Anthropic», «OpenAI» and «OpenRouter» (and the vendor of each OpenRouter model you compare) on the DPF list and write the result and the date here. If the winner is not on the list, amend PRD §8.1 to accept Standard Contractual Clauses.
 - Read the OpenAI DPA in a browser and note how to accept it (account settings or by request).
 - Confirm in each dashboard that a monthly spending limit exists (runbook step 1). On OpenRouter also set **ZDR only** in the privacy settings and leave prompt logging and «use of inputs/outputs» off.
 - OpenRouter: read the DPA, retention and sub-processor terms on a primary source and write the URL and date in the rows above.

@@ -1,0 +1,53 @@
+{
+  "gaps": [
+    {
+      "keyword": "Power BI",
+      "kind": "real",
+      "explanation": "Stillingsannonsen nevner Power BI som ønskelig til rapportering. CV-en viser Excel med pivottabeller, men nevner ikke erfaring med Power BI.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "automatisering av rutiner",
+      "kind": "real",
+      "explanation": "Annonsen sier at erfaring med automatisering av rutiner er et pluss. CV-en beskriver faste rutiner og arbeid i Visma, men viser ikke at du har automatisert noen rutiner.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "bokføring",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om erfaring med bokføring. Erfaringen din dekker trolig dette, men ordet «bokføring» står ikke direkte i CV-en.",
+      "evidence": "Førte løpende regnskap for omtrent 40 kunder i regnskapssystemet Visma.",
+      "suggestion": "Har erfaring med løpende bokføring for omtrent 40 kunder i Visma."
+    },
+    {
+      "keyword": "utdanning innen regnskap",
+      "kind": "rewordable",
+      "explanation": "Annonsen krever utdanning innen regnskap, for eksempel fagskole. CV-en oppgir en fagskoleutdanning i regnskap og økonomi, så dette dekker trolig kravet.",
+      "evidence": "Fagskole i regnskap og økonomi, Rogaland fagskole (fiktiv), 2021–2023",
+      "suggestion": "Har fagskoleutdanning i regnskap og økonomi."
+    },
+    {
+      "keyword": "norskkunnskaper",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om gode norskkunnskaper muntlig og skriftlig. CV-en oppgir norsk som morsmål, noe som trolig dekker dette, men du kan gjøre det tydeligere.",
+      "evidence": "Norsk (morsmål), engelsk (godt)",
+      "suggestion": "Norsk som morsmål."
+    },
+    {
+      "keyword": "årsavslutning",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om kjennskap til årsavslutning for aksjeselskaper. CV-en viser relevant undervisning i årsregnskap, som trolig er relevant, men den nevner ikke praktisk erfaring med årsavslutning.",
+      "evidence": "- Årsregnskap: Resultat, balanse og noter for aksjeselskaper.",
+      "suggestion": "Har relevant utdanning i årsregnskap, inkludert resultat, balanse og noter for aksjeselskaper."
+    },
+    {
+      "keyword": "skatteoppgjør",
+      "kind": "real",
+      "explanation": "Annonsen ber om kjennskap til skatteoppgjør for aksjeselskaper. CV-en nevner ikke skatteoppgjør eller arbeid med skatt for aksjeselskaper.",
+      "evidence": null,
+      "suggestion": null
+    }
+  ]
+}

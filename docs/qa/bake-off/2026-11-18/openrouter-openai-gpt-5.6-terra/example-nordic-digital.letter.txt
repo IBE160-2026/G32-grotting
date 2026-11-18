@@ -1,0 +1,15 @@
+Til Nordic Digital
+
+Jeg ønsker å søke stillingen som «Junior frontendutvikler» hos Nordic Digital. Jeg er bachelorstudent i informatikk ved Høgskolen i Oslo og fullfører utdanningen i perioden 2023–2026. Stillingen er særlig relevant for meg fordi den kombinerer utvikling av brukervennlige nettløsninger, samarbeid i team og arbeid med React.
+
+I et semesterprosjekt høsten 2025 utviklet jeg sammen med tre medstudenter en nettside for en lokal frivillig organisasjon. Målet var å gjøre påmelding til arrangementer enklere. Jeg hadde ansvar for brukergrensesnittet og skrev komponenter i React. Prosjektet ga meg praktisk erfaring med å strukturere et grensesnitt med komponenter, skjemaer og tilstand, og med å vurdere løsninger ut fra behovene til dem som skulle bruke nettsiden.
+
+Samarbeidet i prosjektet er også relevant for arbeidet hos Nordic Digital. Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen. Jeg skrev dessuten enkle tester for skjemaene våre. Gruppen arbeidet med møter annenhver uke med organisasjonen, der jeg viste frem og forklarte løsningen vi hadde utviklet. Dette har gitt meg erfaring med å presentere teknisk arbeid på en forståelig måte og å ta hensyn til tilbakemeldinger underveis.
+
+Gjennom emnene Webutvikling 1 og Brukeropplevelse har jeg arbeidet med HTML, CSS, JavaScript, responsive nettsider og universell utforming. I Webutvikling 1 bygde jeg en nettside som tilpasser seg mobilskjermer. I emnet Brukeropplevelse arbeidet jeg med prototyper i Figma og universell utforming av nettsider. Jeg har også erfaring med arbeidsformen i smidige utviklingsprosesser fra emnet Programvareutvikling, med to ukers sprinter og retrospektiv.
+
+Jeg mener min faglige bakgrunn og erfaring fra gruppeprosjektet gir et godt grunnlag for å bidra i frontend-teamet hos Nordic Digital. Jeg ser frem til muligheten til å utdype hvordan jeg kan bidra i stillingen.
+
+Med vennlig hilsen
+
+{{SIGNATUR}}

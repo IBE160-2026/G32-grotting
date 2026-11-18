@@ -610,8 +610,8 @@ describe("AD-3 runAi builds the live adapter from the config", () => {
       isTestRun: false,
       ai: {
         adapter: "live" as const,
-        provider: "anthropic",
-        model: "claude-test",
+        provider: "openrouter",
+        model: "vendor/model",
         apiKey: "SENTINEL-KEY-hemmelig",
       },
     };

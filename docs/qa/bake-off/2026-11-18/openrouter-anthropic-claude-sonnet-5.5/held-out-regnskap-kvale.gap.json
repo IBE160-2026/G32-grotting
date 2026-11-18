@@ -1,0 +1,53 @@
+{
+  "gaps": [
+    {
+      "keyword": "Power BI",
+      "kind": "real",
+      "explanation": "Annonsen sier at du gjerne har brukt Power BI til rapportering. CV-en nevner Excel og pivottabeller, men ingenting om Power BI. Har du brukt verktøyet i et kurs eller en jobb som ikke står i CV-en, kan du tenke over om det er verdt å ta med.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "automatisering av rutiner",
+      "kind": "real",
+      "explanation": "Annonsen nevner automatisering av rutiner som et pluss, ikke et krav. CV-en viser ikke noe som tyder på at du har automatisert arbeid. Du kan tenke over om du har gjort noe slikt som ikke står der ennå.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "bokføring",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om erfaring med bokføring. Erfaringen din fra Sola Revisjon og Regnskap dekker trolig dette – vurder å bruke arbeidsgiverens ord.",
+      "evidence": "Førte løpende regnskap for omtrent 40 kunder i regnskapssystemet Visma.",
+      "suggestion": "Førte løpende bokføring for omtrent 40 kunder i regnskapssystemet Visma."
+    },
+    {
+      "keyword": "utdanning innen regnskap",
+      "kind": "rewordable",
+      "explanation": "Annonsen krever utdanning innen regnskap og nevner fagskole som eksempel. Fagskoleutdanningen din dekker trolig dette – vurder å gjøre det tydelig.",
+      "evidence": "Fagskole i regnskap og økonomi, Rogaland fagskole (fiktiv), 2021–2023",
+      "suggestion": "Utdanning innen regnskap: Fagskole i regnskap og økonomi, Rogaland fagskole, 2021–2023"
+    },
+    {
+      "keyword": "norskkunnskaper",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om gode norskkunnskaper. Ferdighetslisten din oppgir norsk som morsmål, så dette dekkes trolig – vurder å bruke ordet norskkunnskaper.",
+      "evidence": "Norsk (morsmål), engelsk (godt)",
+      "suggestion": "Norskkunnskaper: norsk som morsmål"
+    },
+    {
+      "keyword": "årsavslutning",
+      "kind": "rewordable",
+      "explanation": "Annonsen ønsker kjennskap til årsavslutning for aksjeselskaper. Et emne fra fagskolen dekker trolig deler av dette – vurder å ta det med, men det er skolekunnskap og ikke arbeidserfaring.",
+      "evidence": "Årsregnskap: Resultat, balanse og noter for aksjeselskaper.",
+      "suggestion": "Kjennskap til årsregnskap for aksjeselskaper fra fagskolen: resultat, balanse og noter."
+    },
+    {
+      "keyword": "skatteoppgjør",
+      "kind": "real",
+      "explanation": "Annonsen ønsker kjennskap til skatteoppgjør for aksjeselskaper. CV-en viser mva-oppgjør og årsregnskap, men ingenting om skatteoppgjør. Har du jobbet med dette uten at det står i CV-en, kan du tenke over det.",
+      "evidence": null,
+      "suggestion": null
+    }
+  ]
+}

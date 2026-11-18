@@ -1,0 +1,67 @@
+{
+  "gaps": [
+    {
+      "keyword": "legemiddelhåndtering",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om erfaring med legemiddelhåndtering og dobbeltkontroll. Praksisen på sykehus dekker trolig dette – vurder å ta det med i annonsens ord.",
+      "evidence": "Fulgte med på legemidlene som ble gitt, og lærte å dobbeltsjekke sammen med en annen sykepleier.",
+      "suggestion": "Fulgte med på legemiddelhåndteringen i sykehuspraksis og lærte dobbeltkontroll sammen med en annen sykepleier."
+    },
+    {
+      "keyword": "smertelindring",
+      "kind": "real",
+      "explanation": "Annonsen ber om kunnskap om smertelindring hos eldre. CV-en nevner smertekartlegging, men ikke hva som ble gjort for å lindre smerte, så dette er ikke dekket. Tenk gjennom om du har erfaring med smertelindring som ikke står i CV-en ennå.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "tverrfaglig samarbeid",
+      "kind": "rewordable",
+      "explanation": "Annonsen sier at du skal delta i tverrfaglig samarbeid med lege, fysioterapeut og ergoterapeut. Møtedeltakelsen i sykehjemspraksisen dekker trolig dette – vurder å bruke annonsens ord.",
+      "evidence": "Deltok på møter der legen og fysioterapeuten gikk gjennom de nye planene.",
+      "suggestion": "Deltok i tverrfaglige møter med lege og fysioterapeut der de nye planene for beboerne ble gjennomgått."
+    },
+    {
+      "keyword": "erfaring med demens",
+      "kind": "rewordable",
+      "explanation": "Demens er et pluss i annonsen, ikke et krav. CV-en viser demens bare som tema i et studieemne, ikke som erfaring fra praksis, så du kan bare vise til kunnskap fra studiet.",
+      "evidence": "Eldre og kronisk sykdom: Diabetes, demens og hjertesvikt.",
+      "suggestion": "Har lært om demens i emnet Eldre og kronisk sykdom på bachelorstudiet i sykepleie."
+    },
+    {
+      "keyword": "sårvurdering",
+      "kind": "real",
+      "explanation": "Annonsen ber om kompetanse i sårvurdering. CV-en viser sårstell og valg av bandasjer sammen med veileder, men ikke at du vurderte sår, så dette mangler. Tenk gjennom om du har vært med på å vurdere sår i praksis uten at det står i CV-en.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "erfaring med forskning",
+      "kind": "real",
+      "explanation": "Annonsen ber om erfaring med forskning og om å bruke ny kunnskap til å forbedre rutiner. CV-en har ingen forskningserfaring, og en eksamensoppgave regnes ikke som forskning. Tenk gjennom om du har vært med på noe som ikke står i CV-en ennå.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "norskkunnskaper",
+      "kind": "rewordable",
+      "explanation": "Annonsen krever gode norskkunnskaper, både muntlig og skriftlig. CV-en oppgir norsk som morsmål, og det dekker trolig kravet – vurder å gjøre det tydelig i søknaden.",
+      "evidence": "Språk: norsk (morsmål), engelsk (godt)",
+      "suggestion": "Norsk er morsmålet mitt."
+    },
+    {
+      "keyword": "behandling av trykksår og diabetessår",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om at du kjenner til behandling av trykksår og diabetessår. Eksamensoppgaven og sårstellet i praksis dekker trolig dette – vurder å ta det med.",
+      "evidence": "Skrev eksamensoppgave om diabetiske fotsår vs trykksår (likheter og forskjeller)",
+      "suggestion": "Har skrevet eksamensoppgave om diabetiske fotsår og trykksår, og har deltatt i sårstell på sykehjem sammen med veileder."
+    },
+    {
+      "keyword": "infeksjonsforebygging",
+      "kind": "real",
+      "explanation": "Annonsen ber om at du følger opp rutiner for infeksjonsforebygging. CV-en nevner hygiene som emne og ferdighet, men sier ingenting om infeksjonsforebygging, så dette mangler. Tenk gjennom om du har arbeidet med slike rutiner i praksis uten at det står i CV-en ennå.",
+      "evidence": null,
+      "suggestion": null
+    }
+  ]
+}

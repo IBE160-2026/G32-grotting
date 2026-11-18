@@ -25,8 +25,6 @@
     "fixtures:extract": "tsx scripts/extract-fixture-cv.ts"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "4.0.106",
-    "@ai-sdk/openai": "4.0.121",
     "@electric-sql/pglite": "0.4.6",
     "@openrouter/ai-sdk-provider": "3.1.0",
     "@orama/stemmers": "3.1.18",

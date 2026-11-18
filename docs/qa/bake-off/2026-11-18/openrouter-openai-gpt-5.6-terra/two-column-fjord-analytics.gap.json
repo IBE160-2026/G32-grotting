@@ -1,0 +1,25 @@
+{
+  "gaps": [
+    {
+      "keyword": "prosjektledelse",
+      "kind": "real",
+      "explanation": "Annonsen ber om erfaring med prosjektledelse, også fra studieprosjekter, fordi stillingen innebærer ansvar for fremdrift og frister. CV-en viser at du deltok i et gruppeprosjekt, men ikke at du ledet eller koordinerte prosjektet.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "skriver rapporter",
+      "kind": "rewordable",
+      "explanation": "Annonsen trenger noen som skriver korte og tydelige rapporter. CV-en dekker trolig noe av dette gjennom rapporten fra semesterprosjektet – vurder å ta det med tydeligere.",
+      "evidence": "- Vi leverte rapporten og presenterte funnene for faglærer og et\nannet kull.",
+      "suggestion": "Bidro til å levere en rapport om funnene fra analysen og presenterte funnene for faglærer og et annet kull."
+    },
+    {
+      "keyword": "Python",
+      "kind": "real",
+      "explanation": "Python er oppført som et pluss i annonsen. CV-en nevner ikke erfaring med Python; vurder om du har relevant erfaring som ikke står i CV-en ennå.",
+      "evidence": null,
+      "suggestion": null
+    }
+  ]
+}

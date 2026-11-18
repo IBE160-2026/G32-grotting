@@ -1,0 +1,39 @@
+{
+  "gaps": [
+    {
+      "keyword": "TypeScript",
+      "kind": "real",
+      "explanation": "Annonsen sier at du bruker TypeScript sammen med React. CV-en nevner bare JavaScript og React, så ingenting viser at du har brukt TypeScript. Har du erfaring med det som ikke står i CV-en ennå, kan du tenke over om det er noe du bør ta med.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "REST-API",
+      "kind": "real",
+      "explanation": "Annonsen ber om at du kan jobbe med REST API-er. CV-en nevner SQL og datamodellering, men ingenting om å hente eller sende data via et API. Tenk gjerne over om du har jobbet med dette i studier eller prosjekter uten at det står i CV-en.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "pull requests",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om erfaring med Git og samarbeid i pull requests. Prosjektet ditt dekker trolig dette – vurder å ta det med i annonsens ord.",
+      "evidence": "Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen.",
+      "suggestion": "Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen (code review i pull requests)."
+    },
+    {
+      "keyword": "testing",
+      "kind": "rewordable",
+      "explanation": "Annonsen ber om erfaring med testing av frontend-kode. Semesterprosjektet ditt dekker trolig dette – vurder å ta det med tydeligere.",
+      "evidence": "Jeg skrev enkle tester for skjemaene våre.",
+      "suggestion": "Jeg skrev enkle tester av frontend-kode for skjemaene i semesterprosjektet vårt."
+    },
+    {
+      "keyword": "responsive nettsider",
+      "kind": "rewordable",
+      "explanation": "Annonsen vil ha responsive nettsider som fungerer godt på mobil. Emnet Webutvikling 1 dekker trolig dette – vurder å bruke annonsens ord.",
+      "evidence": "Webutvikling 1: HTML, CSS og JavaScript. Bygde en nettside som tilpasser seg mobilskjermer.",
+      "suggestion": "Webutvikling 1: HTML, CSS og JavaScript. Bygde en responsiv nettside som tilpasser seg mobilskjermer."
+    }
+  ]
+}

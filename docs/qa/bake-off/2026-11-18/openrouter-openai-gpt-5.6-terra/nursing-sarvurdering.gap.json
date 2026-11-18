@@ -1,0 +1,67 @@
+{
+  "gaps": [
+    {
+      "keyword": "legemiddelhåndtering",
+      "kind": "rewordable",
+      "explanation": "Stillingen ber om erfaring med legemiddelhåndtering og dobbeltkontroll. Praksiserfaringen din dekker trolig dette på studentnivå, så vurder å ta det med i ordlyden fra annonsen.",
+      "evidence": "Fulgte med på legemidlene som ble gitt, og lærte å dobbeltsjekke sammen med en annen sykepleier.",
+      "suggestion": "Har praksiserfaring med legemiddelhåndtering ved å følge med på legemidler som ble gitt og lære dobbeltkontroll sammen med en annen sykepleier."
+    },
+    {
+      "keyword": "smertelindring",
+      "kind": "real",
+      "explanation": "Annonsen ber om kunnskap om smertelindring hos eldre. CV-en nevner smertekartlegging og at du meldte fra til sykepleier, men dokumenterer ikke kunnskap om eller deltakelse i smertelindring.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "tverrfaglig samarbeid",
+      "kind": "rewordable",
+      "explanation": "Annonsen legger vekt på samarbeid med blant annet lege og fysioterapeut. Deltakelsen din i slike møter dekker trolig dette, så vurder å beskrive det som tverrfaglig samarbeid.",
+      "evidence": "Deltok på møter der legen og fysioterapeuten gikk gjennom de nye planene.",
+      "suggestion": "Deltok i tverrfaglig samarbeid i møter med lege og fysioterapeut om nye planer."
+    },
+    {
+      "keyword": "erfaring med demens",
+      "kind": "real",
+      "explanation": "Erfaring med demens er et pluss i annonsen. CV-en viser at demens var et tema i utdanningen, men ikke at du har arbeidet med eller hatt praksis knyttet til personer med demens.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "sårvurdering",
+      "kind": "real",
+      "explanation": "Stillingen ber om kompetanse i sårvurdering. CV-en viser sårstell og opplæring i valg av bandasjer under veiledning, men ikke at du har vurdert sår.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "erfaring med forskning",
+      "kind": "real",
+      "explanation": "Annonsen ber om erfaring med forskning og bruk av ny kunnskap til å forbedre rutiner. En eksamensoppgave om sår er ikke det samme som forskningserfaring, og CV-en beskriver ikke annet forskningsarbeid.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "norskkunnskaper",
+      "kind": "rewordable",
+      "explanation": "Annonsen krever gode norskkunnskaper muntlig og skriftlig. At norsk er oppført som morsmål dekker trolig dette, så vurder å gjøre det tydelig i språkseksjonen.",
+      "evidence": "Språk: norsk (morsmål), engelsk (godt)",
+      "suggestion": "Norsk: morsmål, med gode muntlige og skriftlige norskkunnskaper."
+    },
+    {
+      "keyword": "behandling av trykksår og diabetessår",
+      "kind": "real",
+      "explanation": "Annonsen ber om kjennskap til behandling av trykksår og diabetessår. CV-en viser en eksamensoppgave om likheter og forskjeller mellom sårene, men ikke behandling av dem.",
+      "evidence": null,
+      "suggestion": null
+    },
+    {
+      "keyword": "infeksjonsforebygging",
+      "kind": "real",
+      "explanation": "Stillingen ber om at du følger rutiner for infeksjonsforebygging. CV-en nevner hygiene som ferdighet, men beskriver ikke arbeid med eller oppfølging av slike rutiner.",
+      "evidence": null,
+      "suggestion": null
+    }
+  ]
+}
