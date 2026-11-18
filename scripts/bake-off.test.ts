@@ -13,6 +13,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createMockAdapter } from "@/modules/ai/server/adapters/mock";
 import {
   BakeOffUsageError,
+  folderName,
   loadFixtures,
   parseArgs,
   resolveContenders,
@@ -39,7 +40,7 @@ const fullEnv = {
 };
 
 describe("PRD 8.2 Bake-off arguments", () => {
-  it("reads --dry, --out and a price per contender", () => {
+  it("reads --dry, --out and a price per contender id", () => {
     expect(
       parseArgs([
         "--dry",
@@ -60,17 +61,17 @@ describe("PRD 8.2 Bake-off arguments", () => {
     });
   });
 
-  it("reads a price for openrouter", () => {
+  it("reads a price for one OpenRouter model, splitting on the last =", () => {
     expect(
       parseArgs([
         "--price-in",
-        "openrouter=1.5",
+        "openrouter:anthropic/claude-sonnet-5.5=1.5",
         "--price-out",
-        "openrouter=6",
+        "openrouter:odd=name=6",
       ]),
     ).toMatchObject({
-      priceIn: { openrouter: 1.5 },
-      priceOut: { openrouter: 6 },
+      priceIn: { "openrouter:anthropic/claude-sonnet-5.5": 1.5 },
+      priceOut: { "openrouter:odd=name": 6 },
     });
   });
 
@@ -78,28 +79,111 @@ describe("PRD 8.2 Bake-off arguments", () => {
     expect(() => parseArgs(["--wat"])).toThrow(BakeOffUsageError);
     expect(() => parseArgs(["--price-in", "3"])).toThrow(/price-in/);
     expect(() => parseArgs(["--price-out", "foo=3"])).toThrow(/price-out/);
+    expect(() => parseArgs(["--price-in", "openrouter=3"])).toThrow(/price-in/);
+    expect(() => parseArgs(["--price-in", "openrouter:=3"])).toThrow(
+      /price-in/,
+    );
+    expect(() => parseArgs(["--price-in", "openai=-1"])).toThrow(/price-in/);
     expect(() => parseArgs(["--out"])).toThrow(/--out/);
   });
 });
 
 describe("PRD 8.2 Bake-off settings", () => {
-  it("names every missing setting and never a value", () => {
+  it("names the settings when nothing is configured, and writes nothing", async () => {
     expect(() => resolveContenders(noPrices, {})).toThrow(
-      "Missing setting: BAKE_OFF_ANTHROPIC_KEY, BAKE_OFF_OPENAI_KEY, BAKE_OFF_OPENAI_MODEL",
+      /No contender configured.*BAKE_OFF_ANTHROPIC_KEY.*BAKE_OFF_OPENAI_KEY.*BAKE_OFF_OPENROUTER_KEY/,
+    );
+    const out = join(await tempDir(), "never");
+    await expect(
+      runBakeOff({ args: { ...noPrices, out }, env: {} }),
+    ).rejects.toThrow(/No contender configured/);
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it("plans only the contenders that have a key", () => {
+    expect(
+      resolveContenders(noPrices, { BAKE_OFF_ANTHROPIC_KEY: "k" }).map(
+        (c) => c.id,
+      ),
+    ).toEqual(["anthropic"]);
+    expect(resolveContenders(noPrices, fullEnv).map((c) => c.id)).toEqual([
+      "anthropic",
+      "openai",
+    ]);
+    expect(
+      resolveContenders(noPrices, {
+        BAKE_OFF_OPENAI_KEY: "k",
+        BAKE_OFF_OPENAI_MODEL: "gpt-test",
+      }).map((c) => c.id),
+    ).toEqual(["openai"]);
+  });
+
+  it("needs the OpenAI model when the OpenAI key is set", async () => {
+    const env = { BAKE_OFF_OPENAI_KEY: "SENTINEL-KEY-o" };
+    expect(() => resolveContenders(noPrices, env)).toThrow(
+      "Missing setting: BAKE_OFF_OPENAI_MODEL",
     );
     expect(() =>
-      resolveContenders(noPrices, { ...fullEnv, BAKE_OFF_OPENAI_MODEL: "" }),
+      resolveContenders(noPrices, { ...env, BAKE_OFF_OPENAI_MODEL: "" }),
     ).toThrow(/BAKE_OFF_OPENAI_MODEL$/);
+    const out = join(await tempDir(), "never");
+    await expect(
+      runBakeOff({ args: { ...noPrices, out }, env }),
+    ).rejects.toThrow(/BAKE_OFF_OPENAI_MODEL/);
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it("refuses a direct model without its key, joined with other missing settings, and writes nothing", async () => {
+    expect(() =>
+      resolveContenders(noPrices, {
+        BAKE_OFF_OPENAI_KEY: "k",
+        BAKE_OFF_OPENAI_MODEL: "gpt-test",
+        BAKE_OFF_ANTHROPIC_MODEL: "claude-test",
+      }),
+    ).toThrow("Missing setting: BAKE_OFF_ANTHROPIC_KEY");
+    expect(() =>
+      resolveContenders(noPrices, {
+        BAKE_OFF_ANTHROPIC_KEY: "k",
+        BAKE_OFF_OPENAI_MODEL: "gpt-test",
+      }),
+    ).toThrow("Missing setting: BAKE_OFF_OPENAI_KEY");
+    const env = {
+      BAKE_OFF_ANTHROPIC_MODEL: "claude-test",
+      BAKE_OFF_OPENAI_MODEL: "gpt-test",
+      BAKE_OFF_OPENROUTER_MODELS: "a/x",
+    };
+    expect(() => resolveContenders(noPrices, env)).toThrow(
+      "Missing setting: BAKE_OFF_ANTHROPIC_KEY, BAKE_OFF_OPENAI_KEY, BAKE_OFF_OPENROUTER_KEY",
+    );
+    const out = join(await tempDir(), "never");
+    await expect(
+      runBakeOff({ args: { ...noPrices, out }, env }),
+    ).rejects.toThrow(/BAKE_OFF_ANTHROPIC_KEY/);
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it("lets a dry run ignore a model without its key", () => {
+    expect(() =>
+      resolveContenders(
+        { ...noPrices, dry: true },
+        { BAKE_OFF_OPENAI_MODEL: "gpt-test", BAKE_OFF_ANTHROPIC_MODEL: "c" },
+      ),
+    ).not.toThrow();
   });
 
   it("defaults the Anthropic model and has no built-in price", () => {
     const [anthropic, openai] = resolveContenders(noPrices, fullEnv);
     expect(anthropic).toMatchObject({
+      id: "anthropic",
       provider: "anthropic",
       model: "claude-sonnet-5-5",
       price: undefined,
     });
-    expect(openai).toMatchObject({ provider: "openai", model: "gpt-test" });
+    expect(openai).toMatchObject({
+      id: "openai",
+      provider: "openai",
+      model: "gpt-test",
+    });
   });
 
   it("needs no key and no OpenAI model in a dry run", () => {
@@ -107,30 +191,101 @@ describe("PRD 8.2 Bake-off settings", () => {
       resolveContenders({ ...noPrices, dry: true }, {}),
     ).not.toThrow();
   });
-
-  it("writes nothing when a setting is missing", async () => {
-    const out = join(await tempDir(), "never");
-    await expect(
-      runBakeOff({ args: { ...noPrices, out }, env: {} }),
-    ).rejects.toThrow(/BAKE_OFF_OPENAI_MODEL/);
-    expect(existsSync(out)).toBe(false);
-  });
 });
 
-describe("PRD 8.2 Bake-off OpenRouter contender", () => {
-  const withOpenRouter = {
-    ...fullEnv,
+describe("PRD 8.2 Bake-off OpenRouter contenders", () => {
+  const orEnv = {
     BAKE_OFF_OPENROUTER_KEY: "SENTINEL-KEY-r",
-    BAKE_OFF_OPENROUTER_MODEL: "vendor/model",
+    BAKE_OFF_OPENROUTER_MODELS: "a/x,b/y",
   };
 
-  it("plans two contenders without an OpenRouter key", () => {
-    const contenders = resolveContenders(noPrices, fullEnv);
-    expect(contenders.map((c) => c.provider)).toEqual(["anthropic", "openai"]);
+  it("plans one contender per model, all on the one key", () => {
+    const contenders = resolveContenders(noPrices, orEnv);
+    expect(contenders.map((c) => c.id)).toEqual([
+      "openrouter:a/x",
+      "openrouter:b/y",
+    ]);
+    expect(contenders).toMatchObject([
+      { provider: "openrouter", model: "a/x", apiKey: "SENTINEL-KEY-r" },
+      { provider: "openrouter", model: "b/y", apiKey: "SENTINEL-KEY-r" },
+    ]);
   });
 
-  it("refuses an OpenRouter model without its key, and writes nothing", async () => {
-    const env = { ...fullEnv, BAKE_OFF_OPENROUTER_MODEL: "vendor/model" };
+  it("mixes a direct contender with the OpenRouter models", () => {
+    const contenders = resolveContenders(noPrices, {
+      ...orEnv,
+      BAKE_OFF_ANTHROPIC_KEY: "SENTINEL-KEY-a",
+    });
+    expect(contenders.map((c) => c.id)).toEqual([
+      "anthropic",
+      "openrouter:a/x",
+      "openrouter:b/y",
+    ]);
+  });
+
+  it("trims the list and drops empty items", () => {
+    const contenders = resolveContenders(noPrices, {
+      ...orEnv,
+      BAKE_OFF_OPENROUTER_MODELS: " a/x , ,b/y,",
+    });
+    expect(contenders.map((c) => c.model)).toEqual(["a/x", "b/y"]);
+  });
+
+  it("applies a price to that contender only", () => {
+    const contenders = resolveContenders(
+      {
+        ...noPrices,
+        priceIn: { "openrouter:a/x": 2 },
+        priceOut: { "openrouter:a/x": 8 },
+      },
+      orEnv,
+    );
+    expect(contenders[0]?.price).toEqual({ inPerMillion: 2, outPerMillion: 8 });
+    expect(contenders[1]?.price).toBeUndefined();
+  });
+
+  it("refuses a price for a contender that is not planned", () => {
+    const price = { "openrouter:c/z": 1 };
+    expect(() =>
+      resolveContenders({ ...noPrices, priceIn: price }, orEnv),
+    ).toThrow(/openrouter:c\/z.*BAKE_OFF_OPENROUTER_MODELS/);
+    expect(() =>
+      resolveContenders({ ...noPrices, priceOut: price }, fullEnv),
+    ).toThrow(/openrouter:c\/z.*BAKE_OFF_OPENROUTER_KEY/);
+    expect(() =>
+      resolveContenders(
+        { ...noPrices, priceIn: { anthropic: 1 } },
+        { BAKE_OFF_OPENROUTER_KEY: "k", BAKE_OFF_OPENROUTER_MODELS: "a/x" },
+      ),
+    ).toThrow(/anthropic.*BAKE_OFF_ANTHROPIC_KEY/);
+    expect(() =>
+      resolveContenders(
+        { ...noPrices, dry: true, priceIn: { "openrouter:c/z": 1 } },
+        {},
+      ),
+    ).toThrow(/openrouter:c\/z/);
+  });
+
+  it("names the models when the key is set without them, and writes nothing", async () => {
+    const env = { ...fullEnv, BAKE_OFF_OPENROUTER_KEY: "SENTINEL-KEY-r" };
+    expect(() => resolveContenders(noPrices, env)).toThrow(
+      "Missing setting: BAKE_OFF_OPENROUTER_MODELS",
+    );
+    expect(() =>
+      resolveContenders(noPrices, {
+        ...env,
+        BAKE_OFF_OPENROUTER_MODELS: " , ",
+      }),
+    ).toThrow(/BAKE_OFF_OPENROUTER_MODELS/);
+    const out = join(await tempDir(), "never");
+    await expect(
+      runBakeOff({ args: { ...noPrices, out }, env }),
+    ).rejects.toThrow(/BAKE_OFF_OPENROUTER_MODELS/);
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it("names the key when models are set without it, and writes nothing", async () => {
+    const env = { ...fullEnv, BAKE_OFF_OPENROUTER_MODELS: "a/x" };
     expect(() => resolveContenders(noPrices, env)).toThrow(
       "Missing setting: BAKE_OFF_OPENROUTER_KEY",
     );
@@ -141,71 +296,97 @@ describe("PRD 8.2 Bake-off OpenRouter contender", () => {
     expect(existsSync(out)).toBe(false);
   });
 
-  it("refuses an OpenRouter price without its key", () => {
-    expect(() =>
-      resolveContenders({ ...noPrices, priceIn: { openrouter: 1 } }, fullEnv),
-    ).toThrow(/BAKE_OFF_OPENROUTER_KEY/);
-    expect(() =>
-      resolveContenders({ ...noPrices, priceOut: { openrouter: 1 } }, fullEnv),
-    ).toThrow(/BAKE_OFF_OPENROUTER_KEY/);
+  it("refuses the same model twice", () => {
+    const env = { ...orEnv, BAKE_OFF_OPENROUTER_MODELS: "a/x, b/y ,a/x" };
+    expect(() => resolveContenders(noPrices, env)).toThrow(BakeOffUsageError);
+    expect(() => resolveContenders({ ...noPrices, dry: true }, env)).toThrow(
+      /twice/,
+    );
   });
 
-  it("adds it as the third contender when its key and model are set", () => {
-    const contenders = resolveContenders(
-      {
-        ...noPrices,
-        priceIn: { openrouter: 1 },
-        priceOut: { openrouter: 2 },
-      },
-      withOpenRouter,
-    );
-    expect(contenders).toHaveLength(3);
-    expect(contenders[2]).toMatchObject({
-      provider: "openrouter",
-      model: "vendor/model",
-      apiKey: "SENTINEL-KEY-r",
-      price: { inPerMillion: 1, outPerMillion: 2 },
+  it("gives every contender a folder with no path separator", () => {
+    expect(folderName("openrouter:a/x")).toBe("openrouter-a-x");
+    expect(folderName("anthropic")).toBe("anthropic");
+    const [first] = resolveContenders(noPrices, {
+      ...orEnv,
+      BAKE_OFF_OPENROUTER_MODELS: "anthropic/claude-sonnet-5.5",
     });
+    expect(first?.folder).toBe("openrouter-anthropic-claude-sonnet-5.5");
+    expect(first?.folder).not.toMatch(/[/\\:]/);
   });
 
-  it("names the model when the key is set without it, and writes nothing", async () => {
-    const env = { ...fullEnv, BAKE_OFF_OPENROUTER_KEY: "SENTINEL-KEY-r" };
-    expect(() => resolveContenders(noPrices, env)).toThrow(
-      "Missing setting: BAKE_OFF_OPENROUTER_MODEL",
-    );
-    const out = join(await tempDir(), "never");
-    await expect(
-      runBakeOff({ args: { ...noPrices, out }, env }),
-    ).rejects.toThrow(/BAKE_OFF_OPENROUTER_MODEL/);
-    expect(existsSync(out)).toBe(false);
+  it("refuses two models that would share a folder", () => {
+    expect(() =>
+      resolveContenders(noPrices, {
+        ...orEnv,
+        BAKE_OFF_OPENROUTER_MODELS: "a/x,a-x",
+      }),
+    ).toThrow(/same folder/);
   });
 
-  it("is in a dry run with no settings", () => {
+  it("refuses two models whose folders differ only by case", () => {
+    expect(() =>
+      resolveContenders(noPrices, {
+        ...orEnv,
+        BAKE_OFF_OPENROUTER_MODELS: "a/X,a/x",
+      }),
+    ).toThrow(/same folder/);
+  });
+
+  it("plans anthropic, openai and one OpenRouter contender in a dry run", () => {
     expect(
-      resolveContenders({ ...noPrices, dry: true }, {}).map((c) => c.provider),
-    ).toEqual(["anthropic", "openai", "openrouter"]);
+      resolveContenders({ ...noPrices, dry: true }, {}).map((c) => c.id),
+    ).toEqual(["anthropic", "openai", "openrouter:mock-1"]);
+    expect(
+      resolveContenders({ ...noPrices, dry: true }, orEnv).map((c) => c.id),
+    ).toEqual(["anthropic", "openai", "openrouter:a/x", "openrouter:b/y"]);
   });
 
-  it("makes 24 requests with three contenders, each with its own key and model", async () => {
+  it("asks two requests per Fixture and contender, each with the right key and model", async () => {
     const out = await tempDir();
     const seen: string[] = [];
     await runBakeOff({
       args: { dry: false, out, priceIn: {}, priceOut: {} },
-      env: withOpenRouter,
+      env: { ...fullEnv, ...orEnv },
       adapterFor: (contender) => {
         seen.push(
-          `${contender.provider}|${contender.model}|${contender.apiKey}`,
+          `${contender.id}|${contender.provider}|${contender.model}|${contender.apiKey}`,
         );
         return createMockAdapter({
           respond: () => ({ text: "Hei", gaps: [] }),
         });
       },
     });
-    // 4 Fixtures x 2 tasks x 3 contenders.
-    expect(seen).toHaveLength(24);
-    expect(seen).toContain("openrouter|vendor/model|SENTINEL-KEY-r");
-    expect(seen).toContain("openai|gpt-test|SENTINEL-KEY-o");
-    expect(await readdir(join(out, "openrouter"))).not.toHaveLength(0);
+    // 4 Fixtures x 2 tasks x 4 contenders.
+    expect(seen).toHaveLength(32);
+    expect(seen).toContain("openrouter:a/x|openrouter|a/x|SENTINEL-KEY-r");
+    expect(seen).toContain("openrouter:b/y|openrouter|b/y|SENTINEL-KEY-r");
+    expect(seen).toContain("openai|openai|gpt-test|SENTINEL-KEY-o");
+    expect(await readdir(join(out, "openrouter-a-x"))).not.toHaveLength(0);
+    expect(await readdir(join(out, "openrouter-b-y"))).not.toHaveLength(0);
+    const results = await readFile(join(out, "results.md"), "utf8");
+    expect(results).toContain("| openrouter:a/x | a/x |");
+    expect(results).toContain("openrouter-b-y/");
+  });
+
+  it("makes OpenRouter-only runs with no direct key", async () => {
+    const out = await tempDir();
+    const seen: string[] = [];
+    await runBakeOff({
+      args: { dry: false, out, priceIn: {}, priceOut: {} },
+      env: orEnv,
+      adapterFor: (contender) => {
+        seen.push(contender.id);
+        return createMockAdapter({
+          respond: () => ({ text: "Hei", gaps: [] }),
+        });
+      },
+    });
+    expect(new Set(seen)).toEqual(
+      new Set(["openrouter:a/x", "openrouter:b/y"]),
+    );
+    expect(seen).toHaveLength(16);
+    expect(existsSync(join(out, "anthropic"))).toBe(false);
   });
 });
 
@@ -271,10 +452,10 @@ describe("PRD 8.2 Bake-off dry run", () => {
     expect(fixtures.length).toBeGreaterThanOrEqual(4);
     const results = await readFile(join(out, "results.md"), "utf8");
     for (const { id } of fixtures) {
-      for (const provider of ["anthropic", "openai", "openrouter"]) {
-        expect(results).toContain(`${provider}/${id}.letter.txt`);
-        expect(results).toContain(`${provider}/${id}.gap.json`);
-        expect(await readdir(join(out, provider))).toContain(`${id}.gap.json`);
+      for (const folder of ["anthropic", "openai", "openrouter-mock-1"]) {
+        expect(results).toContain(`${folder}/${id}.letter.txt`);
+        expect(results).toContain(`${folder}/${id}.gap.json`);
+        expect(await readdir(join(out, folder))).toContain(`${id}.gap.json`);
       }
     }
     expect(results).toMatch(/\| L1 \|[^|]+\| \|/);
@@ -354,7 +535,7 @@ describe("PRD 8.2 Bake-off requests", () => {
       env: {},
       fixturesDir,
       adapterFor: (contender, task) =>
-        contender.provider === "openai" && task === "letter"
+        contender.id === "openai" && task === "letter"
           ? createMockAdapter({ error: new Error(SECRET) })
           : createMockAdapter({
               respond: () =>

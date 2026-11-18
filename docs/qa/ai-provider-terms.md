@@ -1,6 +1,6 @@
 # AI provider terms: the Bake-off contenders
 
-Story 3.3 (PRD §8.1, Open question 3). Checked on **2026-11-18** from the providers' own public pages, by Claude while building the story. **Helene has not confirmed any row yet.** A fact that was not read on a primary source says «not verified»; look at those yourself before the decision (step 2 in `docs/qa/bake-off-runbook.md`).
+Story 3.3 (PRD §8.1, Open question 3); the contenders are now chosen by which keys are set, and several OpenRouter models can be compared through one key (Story 3.3c). Checked on **2026-11-18** from the providers' own public pages, by Claude while building the story. **Helene has not confirmed any row yet.** A fact that was not read on a primary source says «not verified»; look at those yourself before the decision (step 2 in `docs/qa/bake-off-runbook.md`).
 
 PRD §8.1 asks for: a paid or commercial API tier only, a written promise of no training on inputs, a documented retention period (named in the AI notice), a data processing agreement, and processing in the EEA or a provider on the EU–US Data Privacy Framework (DPF) list.
 
@@ -29,7 +29,7 @@ PRD §8.1 asks for: a paid or commercial API tier only, a written promise of no 
 
 ## OpenRouter (`@openrouter/ai-sdk-provider`)
 
-Added in Story 3.3b. Checked on **2026-11-18** from OpenRouter's public docs by Claude. **Helene has not confirmed any row.** OpenRouter is a **router**: one key and one API in front of many model vendors. The Student's text therefore reaches **two companies**: OpenRouter, and the vendor whose model answers (a second processor, with its own terms, retention and country). Every row below that is about the model vendor depends on which model and which endpoint OpenRouter picks, so it cannot be answered once for «OpenRouter».
+Added in Story 3.3b; 3.3c lets the run compare several models through the one key, each its own contender. Checked on **2026-11-18** from OpenRouter's public docs by Claude. **Helene has not confirmed any row.** OpenRouter is a **router**: one key and one API in front of many model vendors. The Student's text therefore reaches **two companies**: OpenRouter, and the vendor whose model answers (a second processor, with its own terms, retention and country). Every row below that is about the model vendor depends on which model and which endpoint OpenRouter picks, so it cannot be answered once for «OpenRouter».
 
 What the adapter asks for on every request (the `provider` object of the request body, see `OPENROUTER_PRIVACY` in `src/modules/ai/server/adapters/live.ts`): `data_collection: "deny"` (only providers that do not collect user data) and `zdr: true` (only Zero Data Retention endpoints). Both field names are in the package's types and in OpenRouter's provider routing docs.
 
@@ -49,7 +49,7 @@ What the adapter asks for on every request (the `provider` object of the request
 
 ## What is left for Helene
 
-- Search «Anthropic», «OpenAI» and «OpenRouter» (and the vendor of the chosen OpenRouter model) on the DPF list and write the result and the date here. If the winner is not on the list, amend PRD §8.1 to accept Standard Contractual Clauses (runbook step 7).
+- Search «Anthropic», «OpenAI» and «OpenRouter» (and the vendor of each OpenRouter model you compare) on the DPF list and write the result and the date here. If the winner is not on the list, amend PRD §8.1 to accept Standard Contractual Clauses (runbook step 7).
 - Read the OpenAI DPA in a browser and note how to accept it (account settings or by request).
 - Confirm in each dashboard that a monthly spending limit exists (runbook step 1). On OpenRouter also set **ZDR only** in the privacy settings and leave prompt logging and «use of inputs/outputs» off.
 - OpenRouter: read the DPA, retention and sub-processor terms on a primary source and write the URL and date in the rows above.
