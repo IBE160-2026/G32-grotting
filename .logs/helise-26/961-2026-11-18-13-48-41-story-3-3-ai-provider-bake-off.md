@@ -83,3 +83,74 @@ Kjøre bake-offen (Sonnet 5.5 og gpt-5.6 terra gjennom OpenRouter), få utkast t
 - Verifiser OpenRouters vilkår (DPA, oppbevaring, DPF, underleverandører), hvilken vert som faktisk svarte (aktivitetsloggen), og vurder å låse oppstrøms med `provider.only`/`allow_fallbacks: false` — før Story 3.12 og sjekkpunktet 24. november. PRD §8.1 er ikke endret og ikke påstått oppfylt.
 - Varselteksten (3.6) må navngi OpenRouter og verten; PRD FR-24 og §8.1 sier fortsatt «leverandøren» i entall.
 - Pass/Fail-cellene i `results.md` er Claudes utkast, ikke gjennomgått celle for celle av Helene; naturlighet (L1, R3) er ikke bekreftet av en morsmålsbruker.
+
+## 2026-11-18 kl. 16:35 — Helise-26
+
+### Oppgave
+Sjekke OpenRouters vilkår og Anthropics vilkår mot primærkilder, og oppdatere OpenRouter-radene i `docs/qa/ai-provider-terms.md`.
+
+### Plan
+- Lese OpenRouters Terms, Privacy, DPA, ZDR-dokumentasjon, datainnsamlingsside og Trust Portal; Anthropics Commercial Terms, DPA, personvernerklæring og oppbevaringsartikkel.
+- Fylle radene som kunne leses på primærkilde, og la resten stå som «not verified».
+
+### Resultat
+- `docs/qa/ai-provider-terms.md` oppdatert (ukommittert endring i selve dokumentet): OpenRouter-radene for oppbevaring, DPA (gjelder alle kunder, SCC Modul 2, ingen signatur), overføringsgrunnlag (SCC, DPF nevnes ikke), underleverandører (fem navn, modellverter unntatt fra varsling) og to nye rader: EU-only-alternativet og «Which host serves the request». Anthropic-raden «No training» fikk Commercial Terms §B som kilde. Rapport og «What is left for Helene» oppdatert.
+- Hovedfunn: OpenRouters ZDR-side sier at ZDR for Anthropic-gruppen «Removes first-party Anthropic endpoints (Bedrock and Vertex remain available)». Appen sender `zdr: true`, så teksten går trolig til Anthropic-modellen hostet av Amazon eller Google, ikke Anthropic selv. Det er en slutning fra dokumentasjonen, ikke observert i et svar.
+- Anthropic direkte: ingen nye fakta utover det som lå der (30 dagers sletting, SCC, DPA inkorporert i Commercial Terms, trening forbudt i Commercial Terms §B); DPF-status uverifisert (kun tredjepartskilde sier «Active»).
+- Ikke gjort: DPF-listen kunne ikke søkes herfra; dashbordinnstillinger (grense, «ZDR only») kan bare sjekkes av Helene.
+
+### Åpne punkter
+- Bekreft vert (Bedrock/Vertex/Anthropic) og les vertens vilkår; navngi den i varselet (3.6).
+- DPF-søk for OpenRouter og Anthropic; PRD §8.1 må sannsynligvis godta SCC.
+- Hele underleverandørlisten (Trust Portal) og EU-alternativet (DPA Exhibit A).
+- Dashbordinnstillinger (månedlig grense, «ZDR only») er fortsatt ubekreftet.
+
+## 2026-11-18 kl. 17:05 — Helise-26
+
+### Oppgave
+Helene søkte selv på DPF-lista: Anthropic og OpenAI står ikke der. Endre PRD §8.1 til å godta Standard Contractual Clauses.
+
+### Plan
+- Gjøre endringen som arkitektur- og PRD-notatene 2026-11-08 og 2026-11-14 hadde planlagt, og føre den i PRD-ets memlog (U25).
+- Holde det smalt: §8.1, Open question 3, frontmatter og de to dokumentene som gjentar teksten.
+
+### Resultat
+- `prd.md`: §8.1-punktet om overføring godtar nå DPF-liste eller SCC i leverandørens DPA, for alle selskaper som mottar teksten (ruter og vert); Open question 3 har nytt avsnitt «Transfer basis, 2026-11-18»; `updated: 2026-11-18`. `.memlog.md`: U25. `docs/architecture.md` seksjon 4 og `docs/qa/ai-provider-terms.md` (DPF-radene for Anthropic, OpenAI og OpenRouter, og «What is left») justert.
+- §8.1 er fortsatt **ikke** påstått oppfylt: verten og dens vilkår er ikke verifisert. OpenRouters SCC er lest på primærkilde; DPF-søk for OpenRouter ble ikke gjort.
+- Ingen D-rad i §11: briefen nevnte aldri DPF, så ingenting avviker fra den.
+- Endringene (PRD, memlog, architecture.md, terms-dokumentet) er **ukommitterte**; bare loggfila og `issues.md` er committet.
+
+### Åpne punkter
+- Les PRD-endringen og godkjenn teksten.
+- Søk «OpenRouter» og verten på DPF-lista (ikke blokkerende).
+- Verten og dens vilkår, hele underleverandørlisten og dashbordinnstillingene gjenstår som før.
+
+## 2026-11-18 kl. 17:20 — Helise-26
+
+### Oppgave
+Helene bekreftet i OpenRouter-dashbordet at månedlig grense er satt og at «ZDR only» er på. Oppdatere dokumentene.
+
+### Plan
+- Rette de fire stedene som sa «ikke bekreftet»: terms-dokumentet (Paid tier, ZDR, «What is left»), runbook steg 1, `docs/architecture.md` seksjon 4 (kostnad) og `issues.md`.
+
+### Resultat
+- Rader og tekster oppdatert med «Helene bekreftet i dashbordet 2026-11-18». Beløpet på grensen er ikke notert. Endringene er ukommitterte (som PRD-endringene fra tidligere i økten); bare loggfila og `issues.md` er committet.
+
+### Åpne punkter
+- Sjekk at prompt-logging og «use of inputs/outputs» er av i OpenRouter-dashbordet.
+
+## 2026-11-18 kl. 17:45 — Helise-26
+
+### Oppgave
+Finne hvilken vert som svarer på Sonnet 5.5 gjennom OpenRouter, og føre funnene i dokumentene.
+
+### Plan
+- Lese OpenRouters offentlige endepunktlister (modellens endepunkter og ZDR-lista); oppdatere terms-dokumentet, `docs/architecture.md`, PRD Open question 3 og `issues.md`.
+
+### Resultat
+- Fem verter serverer modellen; bare Google Vertex (`google-vertex/global`) og Amazon Bedrock står på ZDR-lista (begge uten Safety Retention, samme pris). Med `zdr: true` svarer altså Google eller Amazon, ikke Anthropic. Hvilken av dem som svarte på de 16 bake-off-forespørslene er ikke notert; regionen er ikke verifisert, så EØS-preferansen i §8.1 er ikke vist for denne ruta.
+- Dokumentene oppdatert (ukommitterte, som tidligere i økten); bare loggfila og `issues.md` er committet.
+
+### Åpne punkter
+- Les Google Vertex og Amazon Bedrock sine vilkår, SCC/DPF og region; navngi begge i varselet (3.6).
+- Sjekk Activity-siden i OpenRouter; vurder `provider.only`.
