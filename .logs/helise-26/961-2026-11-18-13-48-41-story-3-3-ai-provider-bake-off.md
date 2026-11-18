@@ -124,3 +124,17 @@ Helene søkte selv på DPF-lista: Anthropic og OpenAI står ikke der. Endre PRD 
 - Les PRD-endringen og godkjenn teksten.
 - Søk «OpenRouter» og verten på DPF-lista (ikke blokkerende).
 - Verten og dens vilkår, hele underleverandørlisten og dashbordinnstillingene gjenstår som før.
+
+## 2026-11-18 kl. 17:20 — Helise-26
+
+### Oppgave
+Helene bekreftet i OpenRouter-dashbordet at månedlig grense er satt og at «ZDR only» er på. Oppdatere dokumentene.
+
+### Plan
+- Rette de fire stedene som sa «ikke bekreftet»: terms-dokumentet (Paid tier, ZDR, «What is left»), runbook steg 1, `docs/architecture.md` seksjon 4 (kostnad) og `issues.md`.
+
+### Resultat
+- Rader og tekster oppdatert med «Helene bekreftet i dashbordet 2026-11-18». Beløpet på grensen er ikke notert. Endringene er ukommitterte (som PRD-endringene fra tidligere i økten); bare loggfila og `issues.md` er committet.
+
+### Åpne punkter
+- Sjekk at prompt-logging og «use of inputs/outputs» er av i OpenRouter-dashbordet.
