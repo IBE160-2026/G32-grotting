@@ -138,3 +138,19 @@ Helene bekreftet i OpenRouter-dashbordet at månedlig grense er satt og at «ZDR
 
 ### Åpne punkter
 - Sjekk at prompt-logging og «use of inputs/outputs» er av i OpenRouter-dashbordet.
+
+## 2026-11-18 kl. 17:45 — Helise-26
+
+### Oppgave
+Finne hvilken vert som svarer på Sonnet 5.5 gjennom OpenRouter, og føre funnene i dokumentene.
+
+### Plan
+- Lese OpenRouters offentlige endepunktlister (modellens endepunkter og ZDR-lista); oppdatere terms-dokumentet, `docs/architecture.md`, PRD Open question 3 og `issues.md`.
+
+### Resultat
+- Fem verter serverer modellen; bare Google Vertex (`google-vertex/global`) og Amazon Bedrock står på ZDR-lista (begge uten Safety Retention, samme pris). Med `zdr: true` svarer altså Google eller Amazon, ikke Anthropic. Hvilken av dem som svarte på de 16 bake-off-forespørslene er ikke notert; regionen er ikke verifisert, så EØS-preferansen i §8.1 er ikke vist for denne ruta.
+- Dokumentene oppdatert (ukommitterte, som tidligere i økten); bare loggfila og `issues.md` er committet.
+
+### Åpne punkter
+- Les Google Vertex og Amazon Bedrock sine vilkår, SCC/DPF og region; navngi begge i varselet (3.6).
+- Sjekk Activity-siden i OpenRouter; vurder `provider.only`.
