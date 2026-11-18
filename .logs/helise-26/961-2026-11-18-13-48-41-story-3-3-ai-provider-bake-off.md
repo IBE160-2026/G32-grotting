@@ -83,3 +83,24 @@ Kjøre bake-offen (Sonnet 5.5 og gpt-5.6 terra gjennom OpenRouter), få utkast t
 - Verifiser OpenRouters vilkår (DPA, oppbevaring, DPF, underleverandører), hvilken vert som faktisk svarte (aktivitetsloggen), og vurder å låse oppstrøms med `provider.only`/`allow_fallbacks: false` — før Story 3.12 og sjekkpunktet 24. november. PRD §8.1 er ikke endret og ikke påstått oppfylt.
 - Varselteksten (3.6) må navngi OpenRouter og verten; PRD FR-24 og §8.1 sier fortsatt «leverandøren» i entall.
 - Pass/Fail-cellene i `results.md` er Claudes utkast, ikke gjennomgått celle for celle av Helene; naturlighet (L1, R3) er ikke bekreftet av en morsmålsbruker.
+
+## 2026-11-18 kl. 16:35 — Helise-26
+
+### Oppgave
+Sjekke OpenRouters vilkår og Anthropics vilkår mot primærkilder, og oppdatere OpenRouter-radene i `docs/qa/ai-provider-terms.md`.
+
+### Plan
+- Lese OpenRouters Terms, Privacy, DPA, ZDR-dokumentasjon, datainnsamlingsside og Trust Portal; Anthropics Commercial Terms, DPA, personvernerklæring og oppbevaringsartikkel.
+- Fylle radene som kunne leses på primærkilde, og la resten stå som «not verified».
+
+### Resultat
+- `docs/qa/ai-provider-terms.md` oppdatert (ukommittert endring i selve dokumentet): OpenRouter-radene for oppbevaring, DPA (gjelder alle kunder, SCC Modul 2, ingen signatur), overføringsgrunnlag (SCC, DPF nevnes ikke), underleverandører (fem navn, modellverter unntatt fra varsling) og to nye rader: EU-only-alternativet og «Which host serves the request». Anthropic-raden «No training» fikk Commercial Terms §B som kilde. Rapport og «What is left for Helene» oppdatert.
+- Hovedfunn: OpenRouters ZDR-side sier at ZDR for Anthropic-gruppen «Removes first-party Anthropic endpoints (Bedrock and Vertex remain available)». Appen sender `zdr: true`, så teksten går trolig til Anthropic-modellen hostet av Amazon eller Google, ikke Anthropic selv. Det er en slutning fra dokumentasjonen, ikke observert i et svar.
+- Anthropic direkte: ingen nye fakta utover det som lå der (30 dagers sletting, SCC, DPA inkorporert i Commercial Terms, trening forbudt i Commercial Terms §B); DPF-status uverifisert (kun tredjepartskilde sier «Active»).
+- Ikke gjort: DPF-listen kunne ikke søkes herfra; dashbordinnstillinger (grense, «ZDR only») kan bare sjekkes av Helene.
+
+### Åpne punkter
+- Bekreft vert (Bedrock/Vertex/Anthropic) og les vertens vilkår; navngi den i varselet (3.6).
+- DPF-søk for OpenRouter og Anthropic; PRD §8.1 må sannsynligvis godta SCC.
+- Hele underleverandørlisten (Trust Portal) og EU-alternativet (DPA Exhibit A).
+- Dashbordinnstillinger (månedlig grense, «ZDR only») er fortsatt ubekreftet.
