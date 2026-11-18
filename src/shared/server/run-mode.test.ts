@@ -35,6 +35,7 @@ describe("AD-4 toRunMode", () => {
         ACCESS_CODE: "a-long-access-code-1234",
         DATABASE_URL: "postgres://u:p@db.example.com/x",
         AI_PROVIDER: "p",
+        AI_MODEL: "model-value",
         AI_API_KEY: "key-value",
       }),
     );
@@ -49,7 +50,9 @@ describe("AD-4 toRunMode", () => {
       "retentionDays",
       "version",
     ]);
-    expect(JSON.stringify(run)).not.toMatch(/postgres|key-value|access-code/);
+    expect(JSON.stringify(run)).not.toMatch(
+      /postgres|key-value|model-value|access-code/,
+    );
     expect(run.hosted).toBe(true);
     expect(run.testMode).toBe(false);
   });

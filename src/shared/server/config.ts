@@ -30,7 +30,14 @@ export type Config = {
   readonly isTestRun: boolean;
   // The Hosted Access code (AD-12). Never sent to the client or logged.
   readonly accessCode: string | undefined;
-  readonly ai: { readonly adapter: AiAdapter };
+  // The live settings are read as given; `RunMode` never carries them. In a
+  // test run the key is withheld, so nothing there can reach a provider.
+  readonly ai: {
+    readonly adapter: AiAdapter;
+    readonly provider: string | undefined;
+    readonly model: string | undefined;
+    readonly apiKey: string | undefined;
+  };
   readonly db: { readonly kind: DbKind; readonly url: string };
   readonly features: Features;
   readonly aiNotice: AiNotice;
@@ -50,6 +57,7 @@ const envSchema = z.object({
   APP_ENV: z.enum(["local", "hosted"]).default("local"),
   TEST_MODE: flag,
   AI_PROVIDER: z.string().optional(),
+  AI_MODEL: z.string().optional(),
   AI_RETENTION_DAYS: z
     .string()
     .regex(/^\d{1,4}$/)
@@ -125,8 +133,13 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
   }
 
   // A test run never sees an AI key, so it can never resolve to `live` (AD-3).
+  // Live needs the provider, the model and the key; with any missing the app
+  // stays in Test mode.
   const hasKey =
-    !isTestRun && e.AI_API_KEY !== undefined && e.AI_PROVIDER !== undefined;
+    !isTestRun &&
+    e.AI_API_KEY !== undefined &&
+    e.AI_PROVIDER !== undefined &&
+    e.AI_MODEL !== undefined;
   const testMode = e.TEST_MODE === true || !hasKey;
 
   const features: Features = {
@@ -144,7 +157,12 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     testMode,
     isTestRun,
     accessCode: e.ACCESS_CODE,
-    ai: { adapter: testMode ? "cached" : "live" },
+    ai: {
+      adapter: testMode ? "cached" : "live",
+      provider: e.AI_PROVIDER,
+      model: e.AI_MODEL,
+      apiKey: isTestRun ? undefined : e.AI_API_KEY,
+    },
     db: { kind, url },
     features,
     aiNotice: {

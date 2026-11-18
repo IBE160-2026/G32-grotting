@@ -10,9 +10,9 @@ describe("AD-3 createAdapter", () => {
     );
   });
 
-  it("says live is not built yet outside a test run", () => {
+  it("needs the live settings outside a test run", () => {
     expect(() => createAdapter("live", { isTestRun: false })).toThrow(
-      /not built yet/,
+      /provider/,
     );
   });
 

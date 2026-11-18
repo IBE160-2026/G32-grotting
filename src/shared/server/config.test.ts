@@ -29,9 +29,35 @@ describe("FR-27 mode detection", () => {
   });
 
   it("goes live when a key and a provider are set outside a test run", () => {
-    const config = parseConfig({ AI_API_KEY: "k", AI_PROVIDER: "p" });
+    const config = parseConfig({
+      AI_API_KEY: "k",
+      AI_PROVIDER: "p",
+      AI_MODEL: "m",
+    });
     expect(config.testMode).toBe(false);
-    expect(config.ai.adapter).toBe("live");
+    expect(config.ai).toEqual({
+      adapter: "live",
+      provider: "p",
+      model: "m",
+      apiKey: "k",
+    });
+  });
+
+  it("stays in Test mode when the provider, the model or the key is missing", () => {
+    const all = { AI_API_KEY: "k", AI_PROVIDER: "p", AI_MODEL: "m" };
+    for (const missing of Object.keys(all)) {
+      const env = { ...all, [missing]: "" };
+      const config = parseConfig(env);
+      expect(config.testMode).toBe(true);
+      expect(config.ai.adapter).toBe("cached");
+    }
+  });
+
+  it("does not let AI_MODEL change the notice version", () => {
+    const base = { AI_API_KEY: "k", AI_PROVIDER: "p", AI_RETENTION_DAYS: "30" };
+    expect(parseConfig({ ...base, AI_MODEL: "a" }).aiNotice.version).toBe(
+      parseConfig({ ...base, AI_MODEL: "b" }).aiNotice.version,
+    );
   });
 
   it("treats the AI key as absent in a test run", () => {
@@ -40,11 +66,13 @@ describe("FR-27 mode detection", () => {
         ...run,
         AI_API_KEY: "k",
         AI_PROVIDER: "p",
+        AI_MODEL: "m",
         DATABASE_URL: "pglite://memory",
       });
       expect(config.isTestRun).toBe(true);
       expect(config.testMode).toBe(true);
       expect(config.ai.adapter).toBe("cached");
+      expect(config.ai.apiKey).toBeUndefined();
     }
   });
 

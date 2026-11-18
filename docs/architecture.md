@@ -145,6 +145,6 @@ The stack began as a reference stack the developer already knew (a Next.js + Fas
 | `drizzle` | Database migrations |
 | `scripts` | Setup, migration and the checklist helper |
 | `e2e` | End-to-end and accessibility tests |
-| `docs/qa` | Manual checks, live AI outputs and bake-off results |
+| `docs/qa` | Manual checks, live AI outputs and bake-off results (provider steps: `docs/qa/bake-off-runbook.md`) |
 | `.github/workflows` | The pull-request checks and the twice-daily keep-alive job |
 | `Dockerfile`, `compose.yaml` | The local run |

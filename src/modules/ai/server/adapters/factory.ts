@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { AiSource } from "../../contracts";
+import { createLiveAdapter, type LiveSettings } from "./live";
 import { createMockAdapter } from "./mock";
 
 export type AiUsage = {
@@ -29,14 +30,20 @@ export type AiAdapterPort = {
 // A test run can never reach a paid provider: `live` throws (AD-3).
 export function createAdapter(
   kind: AiSource,
-  options: { isTestRun: boolean },
+  options: { isTestRun: boolean; live?: LiveSettings },
 ): AiAdapterPort {
   switch (kind) {
     case "live":
       if (options.isTestRun) {
         throw new Error("The live AI adapter is not available in a test run");
       }
-      throw new Error("The live AI adapter is not built yet (Story 3.3)");
+      return createLiveAdapter(
+        options.live ?? {
+          provider: undefined,
+          model: undefined,
+          apiKey: undefined,
+        },
+      );
     case "cached":
       throw new Error("The cached AI adapter is not built yet (Story 3.5)");
     case "mock":

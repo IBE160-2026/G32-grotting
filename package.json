@@ -25,9 +25,12 @@
     "fixtures:extract": "tsx scripts/extract-fixture-cv.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.106",
+    "@ai-sdk/openai": "4.0.121",
     "@electric-sql/pglite": "0.4.6",
     "@orama/stemmers": "3.1.18",
     "@tanstack/react-query": "5.107.1",
+    "ai": "7.0.176",
     "drizzle-orm": "0.45.4",
     "next": "16.4.6",
     "postgres": "3.4.9",
