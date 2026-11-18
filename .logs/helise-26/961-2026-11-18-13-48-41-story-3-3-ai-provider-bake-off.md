@@ -45,3 +45,20 @@ Legge til OpenRouter som tredje live-leverandør (og som tredje kandidat i bake-
 - Om OpenRouter vinner: varselteksten (Story 3.6) må navngi både OpenRouter og modell-leverandøren, og PRD §8.1 må avklares (står i `deferred-work.md`).
 - Det er ikke bevist at OpenRouter godtar `data_collection` + `zdr` for modellen du velger; det vises først ved første betalte kjøring.
 - OpenRouters vilkår (DPA, oppbevaring, DPF, underleverandører) er «not verified» i `docs/qa/ai-provider-terms.md`.
+
+## 2026-11-18 kl. 14:44 — Helise-26
+
+### Oppgave
+Gjøre bake-off-scriptet i stand til å sammenligne flere modeller (Sonnet 5.5 og en OpenAI-modell) gjennom én OpenRouter-nøkkel. Merge når ferdig.
+
+### Plan
+- Spec: `_bmad-output/implementation-artifacts/spec-3-3c-compare-several-models-through-one-openrouter-key.md`, branch `story/3.3c-bake-off-through-openrouter-models`. Subagent bygde, tre reviewere, tre patcher.
+
+### Resultat
+- Commit på branchen: «3.3: Compare several models through one OpenRouter key». Alle kandidater er valgfrie; `BAKE_OFF_OPENROUTER_MODELS` (kommaseparert) erstatter `BAKE_OFF_OPENROUTER_MODEL`; hver modell er egen kandidat (`openrouter:<modell>`) med egen mappe, resultat og pris (`--price-in openrouter:<modell>=<usd>`). Modell uten nøkkel, nøkkel uten modell og mappekollisjon (også store/små bokstaver) er brukerfeil.
+- Runbook har Bash- og PowerShell-eksempel for Sonnet 5.5 + én OpenAI-modell. `anthropic/claude-sonnet-5.5` er bekreftet i OpenRouters modellliste 2026-11-18.
+- Verifisert: biome, typecheck, vitest (721 bestått, 2 forventet feil), `db:check`, `--dry`.
+
+### Åpne punkter
+- Velg OpenAI-modellen på openrouter.ai/models (f.eks. `openai/gpt-5.6-terra` ligger nærmest Sonnet i pris) og kjør bake-offen etter runbooken.
+- Det er fortsatt ikke bevist at OpenRouter godtar `zdr` + `data_collection: deny` for de valgte modellene; `HTTP_404` betyr da at modellen mangler ZDR-endepunkt (eller feil id).

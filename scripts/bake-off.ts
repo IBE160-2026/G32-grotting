@@ -33,10 +33,12 @@ import {
 // counts and cost for hand scoring. It is run by Helene with her own keys; no
 // test ever runs it live. Usage: see docs/qa/bake-off-runbook.md.
 
-const PROVIDERS = ["anthropic", "openai", "openrouter"] as const;
-type Provider = (typeof PROVIDERS)[number];
+// A contender has an id: "anthropic", "openai" or "openrouter:<model>". The id
+// names its price flags, its label in results.md and its output folder.
+type Provider = "anthropic" | "openai" | "openrouter";
 
 const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-5-5";
+const OPENROUTER_PREFIX = "openrouter:";
 const REQUEST_TIMEOUT_MS = 90_000;
 const FIXTURES_DIR = fileURLToPath(
   new URL("../data/fixtures", import.meta.url),
@@ -49,31 +51,41 @@ const LIVE_OUT_ROOT = fileURLToPath(
 // never its value.
 export class BakeOffUsageError extends Error {}
 
+export type Prices = Readonly<Record<string, number>>;
+
 export type BakeOffArgs = {
   readonly dry: boolean;
   readonly out: string | undefined;
-  readonly priceIn: Partial<Record<Provider, number>>;
-  readonly priceOut: Partial<Record<Provider, number>>;
+  // USD per million tokens, by contender id.
+  readonly priceIn: Prices;
+  readonly priceOut: Prices;
 };
 
-const isProvider = (value: string): value is Provider =>
-  (PROVIDERS as readonly string[]).includes(value);
+const isContenderId = (value: string): boolean =>
+  value === "anthropic" ||
+  value === "openai" ||
+  (value.startsWith(OPENROUTER_PREFIX) &&
+    value.length > OPENROUTER_PREFIX.length);
 
+// The id splits on the last "=", so an id may hold one.
 function parsePrice(
   flag: string,
   value: string | undefined,
-  into: Partial<Record<Provider, number>>,
+  into: Record<string, number>,
 ): void {
-  const [name = "", amount = ""] = (value ?? "").split("=");
+  const text = value ?? "";
+  const at = text.lastIndexOf("=");
+  const name = at < 0 ? "" : text.slice(0, at);
+  const amount = at < 0 ? "" : text.slice(at + 1);
   const number = Number(amount);
   if (
-    !isProvider(name) ||
+    !isContenderId(name) ||
     amount === "" ||
     !Number.isFinite(number) ||
     number < 0
   ) {
     throw new BakeOffUsageError(
-      `${flag} takes <anthropic|openai|openrouter>=<USD per million tokens>`,
+      `${flag} takes <anthropic|openai|openrouter:<model>>=<USD per million tokens>`,
     );
   }
   into[name] = number;
@@ -82,8 +94,8 @@ function parsePrice(
 export function parseArgs(argv: readonly string[]): BakeOffArgs {
   let dry = false;
   let out: string | undefined;
-  const priceIn: Partial<Record<Provider, number>> = {};
-  const priceOut: Partial<Record<Provider, number>> = {};
+  const priceIn: Record<string, number> = {};
+  const priceOut: Record<string, number> = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--dry") dry = true;
@@ -99,79 +111,159 @@ export function parseArgs(argv: readonly string[]): BakeOffArgs {
   return { dry, out, priceIn, priceOut };
 }
 
-type Contender = {
+export type Contender = {
+  readonly id: string;
   readonly provider: Provider;
   readonly model: string;
   readonly apiKey: string | undefined;
   readonly price: Price | undefined;
+  // The output folder under the run's folder: the id without path separators.
+  readonly folder: string;
 };
 
 type Env = Readonly<Record<string, string | undefined>>;
+
+export const folderName = (id: string): string => id.replace(/[/\\:]/g, "-");
+
+// Comma-separated model ids: trimmed, empty items dropped, duplicates refused.
+function parseModels(value: string | undefined): string[] {
+  const models = (value ?? "")
+    .split(",")
+    .map((model) => model.trim())
+    .filter((model) => model !== "");
+  if (new Set(models).size !== models.length) {
+    throw new BakeOffUsageError(
+      "BAKE_OFF_OPENROUTER_MODELS lists the same model twice",
+    );
+  }
+  return models;
+}
 
 // Everything the run needs, checked before anything is written.
 export function resolveContenders(args: BakeOffArgs, env: Env): Contender[] {
   const read = (name: string) =>
     env[name] === undefined || env[name] === "" ? undefined : env[name];
-  const anthropicModel =
-    read("BAKE_OFF_ANTHROPIC_MODEL") ?? DEFAULT_ANTHROPIC_MODEL;
+  const anthropicKey = read("BAKE_OFF_ANTHROPIC_KEY");
+  const anthropicModel = read("BAKE_OFF_ANTHROPIC_MODEL");
+  const openaiKey = read("BAKE_OFF_OPENAI_KEY");
   const openaiModel = read("BAKE_OFF_OPENAI_MODEL");
   const openrouterKey = read("BAKE_OFF_OPENROUTER_KEY");
-  const openrouterModel = read("BAKE_OFF_OPENROUTER_MODEL");
-  // OpenRouter is optional: it joins when its key is set (or in a dry run).
-  // With the key set, its model is required, as for OpenAI.
-  const withOpenRouter = args.dry || openrouterKey !== undefined;
-  // A model or a price without the key is a typo or a forgotten key, not a
-  // choice: a paid run must not look like a three-way comparison and be two.
-  const openrouterAsked =
-    openrouterModel !== undefined ||
-    args.priceIn.openrouter !== undefined ||
-    args.priceOut.openrouter !== undefined;
+  const openrouterModels = parseModels(read("BAKE_OFF_OPENROUTER_MODELS"));
+
   if (!args.dry) {
+    // A key without its model, or a model without its key, is a typo or a
+    // forgotten setting: a paid run must not quietly be a smaller comparison.
     const missing = [
-      read("BAKE_OFF_ANTHROPIC_KEY") === undefined
+      anthropicKey === undefined && anthropicModel !== undefined
         ? "BAKE_OFF_ANTHROPIC_KEY"
         : null,
-      read("BAKE_OFF_OPENAI_KEY") === undefined ? "BAKE_OFF_OPENAI_KEY" : null,
-      openrouterAsked && openrouterKey === undefined
-        ? "BAKE_OFF_OPENROUTER_KEY"
+      openaiKey === undefined && openaiModel !== undefined
+        ? "BAKE_OFF_OPENAI_KEY"
         : null,
-      openaiModel === undefined ? "BAKE_OFF_OPENAI_MODEL" : null,
-      openrouterKey !== undefined && openrouterModel === undefined
-        ? "BAKE_OFF_OPENROUTER_MODEL"
+      openaiKey !== undefined && openaiModel === undefined
+        ? "BAKE_OFF_OPENAI_MODEL"
+        : null,
+      openrouterKey !== undefined && openrouterModels.length === 0
+        ? "BAKE_OFF_OPENROUTER_MODELS"
+        : null,
+      openrouterKey === undefined && openrouterModels.length > 0
+        ? "BAKE_OFF_OPENROUTER_KEY"
         : null,
     ].filter((name) => name !== null);
     if (missing.length > 0) {
       throw new BakeOffUsageError(`Missing setting: ${missing.join(", ")}`);
     }
+    if (
+      anthropicKey === undefined &&
+      openaiKey === undefined &&
+      openrouterKey === undefined
+    ) {
+      throw new BakeOffUsageError(
+        "No contender configured. Set BAKE_OFF_ANTHROPIC_KEY, or BAKE_OFF_OPENAI_KEY with BAKE_OFF_OPENAI_MODEL, or BAKE_OFF_OPENROUTER_KEY with BAKE_OFF_OPENROUTER_MODELS",
+      );
+    }
   }
-  const price = (provider: Provider): Price | undefined => {
-    const inPerMillion = args.priceIn[provider];
-    const outPerMillion = args.priceOut[provider];
+
+  const price = (id: string): Price | undefined => {
+    const inPerMillion = args.priceIn[id];
+    const outPerMillion = args.priceOut[id];
     return inPerMillion === undefined || outPerMillion === undefined
       ? undefined
       : { inPerMillion, outPerMillion };
   };
-  const contenders: Contender[] = [
-    {
-      provider: "anthropic",
-      model: anthropicModel,
-      apiKey: read("BAKE_OFF_ANTHROPIC_KEY"),
-      price: price("anthropic"),
-    },
-    {
-      provider: "openai",
-      model: openaiModel ?? "mock-1",
-      apiKey: read("BAKE_OFF_OPENAI_KEY"),
-      price: price("openai"),
-    },
-  ];
-  if (withOpenRouter) {
-    contenders.push({
-      provider: "openrouter",
-      model: openrouterModel ?? "mock-1",
-      apiKey: openrouterKey,
-      price: price("openrouter"),
-    });
+  const make = (
+    id: string,
+    provider: Provider,
+    model: string,
+    apiKey: string | undefined,
+  ): Contender => ({
+    id,
+    provider,
+    model,
+    apiKey,
+    price: price(id),
+    folder: folderName(id),
+  });
+
+  const contenders: Contender[] = [];
+  // A dry run plans all three kinds on the mock adapter; a live run plans what
+  // has a key.
+  if (args.dry || anthropicKey !== undefined) {
+    contenders.push(
+      make(
+        "anthropic",
+        "anthropic",
+        anthropicModel ?? DEFAULT_ANTHROPIC_MODEL,
+        anthropicKey,
+      ),
+    );
+  }
+  if (args.dry || openaiKey !== undefined) {
+    contenders.push(
+      make("openai", "openai", openaiModel ?? "mock-1", openaiKey),
+    );
+  }
+  if (args.dry || openrouterKey !== undefined) {
+    const models = openrouterModels.length > 0 ? openrouterModels : ["mock-1"];
+    for (const model of models) {
+      contenders.push(
+        make(
+          `${OPENROUTER_PREFIX}${model}`,
+          "openrouter",
+          model,
+          openrouterKey,
+        ),
+      );
+    }
+  }
+
+  // Folders must differ (openrouter:a/b and openrouter:a-b would share one).
+  // Compared lowercased: Windows and macOS treat a/X and a/x as one folder.
+  const folders = new Set(contenders.map((c) => c.folder.toLowerCase()));
+  if (folders.size !== contenders.length) {
+    throw new BakeOffUsageError(
+      "Two contenders would write to the same folder; rename or drop one model in BAKE_OFF_OPENROUTER_MODELS",
+    );
+  }
+  // A price for a contender that is not planned is a typo or a missing setting.
+  const planned = new Set(contenders.map((c) => c.id));
+  const priced = new Set([
+    ...Object.keys(args.priceIn),
+    ...Object.keys(args.priceOut),
+  ]);
+  for (const id of priced) {
+    if (planned.has(id)) continue;
+    const setting =
+      id === "anthropic"
+        ? "BAKE_OFF_ANTHROPIC_KEY"
+        : id === "openai"
+          ? "BAKE_OFF_OPENAI_KEY"
+          : openrouterKey === undefined
+            ? "BAKE_OFF_OPENROUTER_KEY"
+            : "BAKE_OFF_OPENROUTER_MODELS";
+    throw new BakeOffUsageError(
+      `A price was given for ${id}, which is not planned; check ${setting}`,
+    );
   }
   return contenders;
 }
@@ -340,11 +432,11 @@ export async function runBakeOff(options: BakeOffOptions): Promise<string> {
     // Contact details never go to a provider (FR-26).
     const cvText = stripContactDetails(fixture.cvText);
     for (const contender of contenders) {
-      const folder = join(outDir, contender.provider);
+      const folder = join(outDir, contender.folder);
       await mkdir(folder, { recursive: true });
       const base = {
         fixture: fixture.id,
-        provider: contender.provider,
+        provider: contender.id,
         model: contender.model,
       };
 
@@ -360,7 +452,7 @@ export async function runBakeOff(options: BakeOffOptions): Promise<string> {
         letterSchema,
       );
       if (letter.ok) {
-        const file = `${contender.provider}/${fixture.id}.letter.txt`;
+        const file = `${contender.folder}/${fixture.id}.letter.txt`;
         await writeFile(join(outDir, file), `${letter.data.text}\n`, "utf8");
         records.push({
           ...base,
@@ -394,7 +486,7 @@ export async function runBakeOff(options: BakeOffOptions): Promise<string> {
         gapSchema,
       );
       if (gap.ok) {
-        const file = `${contender.provider}/${fixture.id}.gap.json`;
+        const file = `${contender.folder}/${fixture.id}.gap.json`;
         await writeFile(
           join(outDir, file),
           `${JSON.stringify(gap.data, null, 2)}\n`,
@@ -431,7 +523,7 @@ export async function runBakeOff(options: BakeOffOptions): Promise<string> {
         date,
         dry: args.dry,
         contenders: contenders.map((c) => ({
-          provider: c.provider,
+          provider: c.id,
           model: c.model,
           price: c.price,
         })),

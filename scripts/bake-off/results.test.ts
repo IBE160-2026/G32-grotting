@@ -130,6 +130,49 @@ describe("PRD 8.2 results.md", () => {
     );
   });
 
+  it("keeps working for any number of contenders, labelled by id", () => {
+    const ids = ["openrouter:a/x", "openrouter:b/y", "openai", "anthropic"];
+    const many = renderResults(
+      {
+        date: "2026-11-18",
+        dry: false,
+        contenders: ids.map((provider, i) => ({
+          provider,
+          model: `m${i}`,
+          price: i === 0 ? { inPerMillion: 2, outPerMillion: 8 } : undefined,
+        })),
+      },
+      ids.flatMap((provider): RequestRecord[] => [
+        {
+          ...base,
+          provider,
+          task: "letter",
+          status: "ok",
+          file: "f/fx.letter.txt",
+          words: 300,
+          inputTokens: 1_000_000,
+          outputTokens: 0,
+        },
+        {
+          ...base,
+          provider,
+          task: "gap",
+          status: "ok",
+          file: "f/fx.gap.json",
+          inputTokens: 0,
+          outputTokens: 0,
+        },
+      ]),
+    );
+    for (const id of ids) {
+      expect(many).toContain(`### ${id}: Letter`);
+      expect(many).toContain(`### ${id}: Gap analysis`);
+    }
+    expect(many).toContain("| openrouter:a/x | m0 | 2 | 8 |");
+    expect(many).toContain("| fx | openrouter:a/x | 1000000 | 0 | $2.0000 |");
+    expect(many).toContain("| fx | openrouter:b/y | 1000000 | 0 | n/a |");
+  });
+
   it("says so when the run was dry", () => {
     expect(renderResults({ ...meta, dry: true }, records)).toContain(
       "**Dry run:**",
