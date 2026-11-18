@@ -14,5 +14,10 @@ export function toRunMode(config: Config): RunMode {
       rewording: config.features.rewording,
       keywordFallback: config.features.keywordFallback,
     },
+    aiNotice: {
+      version: config.aiNotice.version,
+      providerName: config.aiNotice.providerName,
+      retentionDays: config.aiNotice.retentionDays,
+    },
   };
 }

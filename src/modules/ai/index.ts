@@ -1,5 +1,6 @@
 import "server-only";
 
+export type { AiConsent } from "./contracts";
 export type {
   AiContext,
   AiFailure,

@@ -18,10 +18,10 @@
   evidence: Review finding EC. No local step exists yet. When Story 6.1 or 6.11 adds one, hold the lock in a transaction (`pg_advisory_xact_lock`) or check that `pg_advisory_unlock` returns true.
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-3-start-the-app-and-run-the-tests-with-one-docker-command-each.md`
   summary: No test shows that setup migrates before it runs local steps.
-  evidence: Review findings VG and EC. `drizzle/` is empty, so `applyMigrations` is a no-op. The first story that generates a migration (with the PGlite migration test already deferred from Story 1.2) adds an order assertion for `runSetup`.
+  evidence: Review findings VG and EC. `drizzle/` is empty, so `applyMigrations` is a no-op. The first story that generates a migration (with the PGlite migration test already deferred from Story 1.2) adds an order assertion for `runSetup`. Story 3.2 added the first migration but left this test out (spec Never list); still open.
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-4-check-every-pull-request-in-ci.md`
   summary: `db:check` has never run on a real migration history: its `drizzle-kit check` branch, the from-zero PGlite migration and both failure exits are untested.
-  evidence: Review findings VG and BH. `drizzle/` is empty, so only the "no history" branch runs. The first story that generates a migration adds a fixture test (consistent history exit 0, broken SQL exit 1, inconsistent snapshot exit 1) together with the PGlite migration test deferred from Story 1.2. A broken `_journal.json` was run by hand and exited 1.
+  evidence: Review findings VG and BH. `drizzle/` is empty, so only the "no history" branch runs. The first story that generates a migration adds a fixture test (consistent history exit 0, broken SQL exit 1, inconsistent snapshot exit 1) together with the PGlite migration test deferred from Story 1.2. A broken `_journal.json` was run by hand and exited 1. Story 3.2 ran `db:check` once on the real history (the success path passes) and left the failure-exit fixtures out; still open.
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-5-show-every-page-in-the-jobassistant-look-with-an-accessible.md`
   summary: `announce()` does not speak the same text twice in a row, because the region's text does not change.
   evidence: Review findings EC and BH. No caller exists yet. The first story that announces (copy, «Lagret.») clears the region and sets the text in the next frame, with a test.
@@ -95,4 +95,7 @@
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-1-send-every-ai-request-through-one-pipeline.md`
   summary: `config.ai.adapter` only ever resolves to `cached` or `live`, so `mock` (AD-3: "tests may run adapter = mock with testMode = false") is reachable only through `runAi`'s test seam; Story 3.2 needs a way to select it for the notice and cap tests.
-  evidence: Edge Case Hunter, low. `parseConfig` has no input that gives `mock`; Story 3.1 tests inject the adapter, so nothing is blocked yet. Settle it in 3.2 when the notice and cap tests are written.
+  evidence: Edge Case Hunter, low. `parseConfig` has no input that gives `mock`; Story 3.1 tests inject the adapter, so nothing is blocked yet. Settle it in 3.2 when the notice and cap tests are written. Settled in Story 3.2: `AiRunOptions.testMode` lets tests run `mock` with Test mode off; no config input selects `mock`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-2-enforce-the-daily-cap-and-the-ai-notice-on-the-server.md`
+  summary: The Daily-cap reservation and the "exactly 30 of 35 concurrent" test run only on PGlite, so the guarded `UPDATE … RETURNING` and the postgres-js branch of `rowCount` are unverified on real Postgres.
+  evidence: Verification Gap and Blind Hunter (would be medium, unverified). PGlite has one connection and serialises statements. Settle it by running the 35-request race once against the Docker Postgres (or the first live run in Story 3.12) and confirming the result array shape.

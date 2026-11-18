@@ -12,6 +12,8 @@ export default defineConfig({
     },
   },
   test: {
+    // PGlite starts and migrates in each worker; parallel files make it slow.
+    testTimeout: 20_000,
     include: ["src/**/*.test.ts", "scripts/**/*.test.ts", "test/**/*.test.ts"],
     env: {
       APP_ENV: "local",

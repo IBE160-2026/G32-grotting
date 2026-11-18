@@ -1,9 +1,11 @@
 import type { z } from "zod";
 import type { MessageKey } from "@/shared/core/message-key";
 import { err, ok, type Result } from "@/shared/core/result";
+import { osloDay } from "@/shared/core/time";
 import { getConfig } from "@/shared/server/config";
+import { getDb } from "@/shared/server/db";
 import { log } from "@/shared/server/log";
-import type { AiOutput } from "../contracts";
+import type { AiConsent, AiOutput } from "../contracts";
 import { lookupKeyOf } from "../core/lookup-key";
 import { stripContactDetails } from "../core/strip-contact";
 import {
@@ -11,6 +13,7 @@ import {
   type AiUsage,
   createAdapter,
 } from "./adapters/factory";
+import { reserveRequest } from "./daily-cap";
 
 export const AI_TIMEOUT_MS = 90_000;
 
@@ -28,23 +31,42 @@ export type AiRequest<T> = {
   readonly schema: z.ZodType<T>;
 };
 
-// Who asks. Story 3.2 reads the cap scope (`studentId ?? 'installation'`) from
-// here; Story 3.1 does not use it yet.
-export type AiContext = { readonly studentId?: string | null };
+// Who asks and what they have accepted. The cap scope is derived from here
+// (`studentId ?? 'installation'`) and never passed by a caller.
+export type AiContext = {
+  readonly studentId: string | null;
+  readonly consent: AiConsent | null;
+};
 
 export type AiFailure = {
-  readonly code: Extract<MessageKey, "AI_TIMEOUT" | "AI_PROVIDER_ERROR">;
-  readonly retryable: true;
+  readonly code: Extract<
+    MessageKey,
+    | "AI_TIMEOUT"
+    | "AI_PROVIDER_ERROR"
+    | "AI_NOTICE_REQUIRED"
+    | "DAILY_CAP_REACHED"
+  >;
+  // Only a timeout or a provider error is worth another try.
+  readonly retryable: boolean;
 };
+
+const RETRYABLE: ReadonlySet<AiFailure["code"]> = new Set([
+  "AI_TIMEOUT",
+  "AI_PROVIDER_ERROR",
+]);
+
+const INSTALLATION_SCOPE = "installation";
 
 export type AiRunResult<T> = Result<
   AiOutput<T> & { readonly sentCvText: string },
   AiFailure
 >;
 
-// A test seam: the default adapter comes from the config.
+// A test seam: the default adapter and Test mode come from the config. A test
+// runs the mock adapter with `testMode: false`; no setting selects `mock`.
 export type AiRunOptions = {
   readonly adapter?: AiAdapterPort;
+  readonly testMode?: boolean;
   readonly now?: () => Date;
   readonly timeoutMs?: number;
 };
@@ -55,16 +77,17 @@ const TIMED_OUT = Symbol("timed out");
 /**
  * The only way to reach an AI provider (AD-13). Story 3.1 builds the lookup key,
  * the contact stripping, the adapter call with its 90 s limit and no retries,
- * the shape check and the one log event. The notice check and the Daily cap join
- * in Story 3.2.
+ * the shape check and the one log event. Story 3.2 adds the notice check and
+ * the Daily cap reservation, both skipped in Test mode.
  */
 export async function runAi<T>(
   request: AiRequest<T>,
-  _ctx: AiContext = {},
+  ctx: AiContext,
   options: AiRunOptions = {},
 ): Promise<AiRunResult<T>> {
   const now = options.now ?? (() => new Date());
-  const started = now().getTime();
+  const startedAt = now();
+  const started = startedAt.getTime();
   let provider = "unknown";
   let model = "unknown";
 
@@ -81,12 +104,31 @@ export async function runAi<T>(
     });
   const fail = (code: AiFailure["code"], usage: AiUsage): AiRunResult<T> => {
     finish(code, usage);
-    return err({ code, retryable: true });
+    return err({ code, retryable: RETRYABLE.has(code) });
   };
 
   let logged = false;
   try {
     const lookupKey = lookupKeyOf(request);
+
+    const testMode = options.testMode ?? getConfig().testMode;
+    if (!testMode) {
+      // Step 2: the notice. Step 3: one atomic reservation, never refunded.
+      if (ctx.consent?.noticeVersion !== getConfig().aiNotice.version) {
+        logged = true;
+        return fail("AI_NOTICE_REQUIRED", NO_USAGE);
+      }
+      const reserved = await reserveRequest(
+        await getDb(),
+        ctx.studentId ?? INSTALLATION_SCOPE,
+        osloDay(startedAt),
+      );
+      if (!reserved) {
+        logged = true;
+        return fail("DAILY_CAP_REACHED", NO_USAGE);
+      }
+    }
+
     const sentCvText =
       request.cvText === undefined ? "" : stripContactDetails(request.cvText);
     const prompt = request.buildPrompt(sentCvText);

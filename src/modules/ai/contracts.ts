@@ -20,3 +20,6 @@ export type AiOutput<T> = {
   readonly data: T;
   readonly meta: AiResultMeta;
 };
+
+// What the Student has accepted: the version of the AI notice they saw (FR-24).
+export type AiConsent = { readonly noticeVersion: string };

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { sql } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { applyMigrations, closeDb, getDb, withAdvisoryLock } from "./db";
@@ -15,8 +17,31 @@ describe("NFR-9 database in tests (AD-9)", () => {
     expect(await getDb()).toBe(await getDb());
   });
 
-  it("skips migrating while there is no migration history", async () => {
-    await expect(applyMigrations(await getDb())).resolves.toBeUndefined();
+  it("applies every committed migration and creates its tables", async () => {
+    const db = await getDb();
+    const journal = JSON.parse(
+      readFileSync(
+        join(process.cwd(), "drizzle", "meta", "_journal.json"),
+        "utf8",
+      ),
+    ) as { entries: unknown[] };
+    const rowsOf = async (query: ReturnType<typeof sql>) => {
+      const result = await db.execute(query);
+      return (
+        Array.isArray(result) ? result : (result as { rows: unknown[] }).rows
+      ) as Record<string, unknown>[];
+    };
+    // Opening already applied the history; applying it again changes nothing.
+    await expect(applyMigrations(db)).resolves.toBeUndefined();
+    const applied = await rowsOf(
+      sql`select id from drizzle.__drizzle_migrations`,
+    );
+    expect(journal.entries.length).toBeGreaterThan(0);
+    expect(applied).toHaveLength(journal.entries.length);
+    const tables = await rowsOf(
+      sql`select table_name from information_schema.tables where table_schema = 'public'`,
+    );
+    expect(tables.length).toBeGreaterThan(0);
   });
 
   it("opens a fresh instance after closeDb", async () => {

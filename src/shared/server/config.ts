@@ -15,6 +15,15 @@ export type Features = Record<keyof typeof FEATURE_DEFAULTS, boolean>;
 export type AiAdapter = "live" | "cached" | "mock";
 export type DbKind = "postgres" | "pglite";
 
+// What the AI notice tells the Student (FR-24). `version` changes whenever the
+// provider, the retention period or the keyword fallback changes, so a stored
+// consent for an older notice stops counting.
+export type AiNotice = {
+  readonly version: string;
+  readonly providerName: string;
+  readonly retentionDays: number | null;
+};
+
 export type Config = {
   readonly hosted: boolean;
   readonly testMode: boolean;
@@ -24,6 +33,7 @@ export type Config = {
   readonly ai: { readonly adapter: AiAdapter };
   readonly db: { readonly kind: DbKind; readonly url: string };
   readonly features: Features;
+  readonly aiNotice: AiNotice;
 };
 
 export const LOCAL_DATABASE_URL =
@@ -40,6 +50,11 @@ const envSchema = z.object({
   APP_ENV: z.enum(["local", "hosted"]).default("local"),
   TEST_MODE: flag,
   AI_PROVIDER: z.string().optional(),
+  AI_RETENTION_DAYS: z
+    .string()
+    .regex(/^\d{1,4}$/)
+    .transform(Number)
+    .optional(),
   AI_API_KEY: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   ACCESS_CODE: z.string().optional(),
@@ -114,6 +129,16 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     !isTestRun && e.AI_API_KEY !== undefined && e.AI_PROVIDER !== undefined;
   const testMode = e.TEST_MODE === true || !hasKey;
 
+  const features: Features = {
+    accounts: e.FEATURE_ACCOUNTS ?? FEATURE_DEFAULTS.accounts,
+    gaps: e.FEATURE_GAPS ?? FEATURE_DEFAULTS.gaps,
+    rewording: e.FEATURE_REWORDING ?? FEATURE_DEFAULTS.rewording,
+    keywordFallback:
+      e.FEATURE_KEYWORD_FALLBACK ?? FEATURE_DEFAULTS.keywordFallback,
+  };
+  const providerName = e.AI_PROVIDER ?? "none";
+  const retentionDays = e.AI_RETENTION_DAYS ?? null;
+
   return {
     hosted,
     testMode,
@@ -121,12 +146,18 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     accessCode: e.ACCESS_CODE,
     ai: { adapter: testMode ? "cached" : "live" },
     db: { kind, url },
-    features: {
-      accounts: e.FEATURE_ACCOUNTS ?? FEATURE_DEFAULTS.accounts,
-      gaps: e.FEATURE_GAPS ?? FEATURE_DEFAULTS.gaps,
-      rewording: e.FEATURE_REWORDING ?? FEATURE_DEFAULTS.rewording,
-      keywordFallback:
-        e.FEATURE_KEYWORD_FALLBACK ?? FEATURE_DEFAULTS.keywordFallback,
+    features,
+    aiNotice: {
+      version: [
+        // Bump this prefix whenever the notice text in messages.nb.ts changes
+        // (Stories 3.6 and 3.7), so earlier consents stop counting.
+        "notice-1",
+        encodeURIComponent(providerName),
+        retentionDays === null ? "unknown" : String(retentionDays),
+        features.keywordFallback ? "fallback" : "no-fallback",
+      ].join(":"),
+      providerName,
+      retentionDays,
     },
   };
 }
