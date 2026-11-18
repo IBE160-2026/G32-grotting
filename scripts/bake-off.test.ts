@@ -60,6 +60,20 @@ describe("PRD 8.2 Bake-off arguments", () => {
     });
   });
 
+  it("reads a price for openrouter", () => {
+    expect(
+      parseArgs([
+        "--price-in",
+        "openrouter=1.5",
+        "--price-out",
+        "openrouter=6",
+      ]),
+    ).toMatchObject({
+      priceIn: { openrouter: 1.5 },
+      priceOut: { openrouter: 6 },
+    });
+  });
+
   it("refuses an unknown flag, a bad price and a missing folder", () => {
     expect(() => parseArgs(["--wat"])).toThrow(BakeOffUsageError);
     expect(() => parseArgs(["--price-in", "3"])).toThrow(/price-in/);
@@ -100,6 +114,98 @@ describe("PRD 8.2 Bake-off settings", () => {
       runBakeOff({ args: { ...noPrices, out }, env: {} }),
     ).rejects.toThrow(/BAKE_OFF_OPENAI_MODEL/);
     expect(existsSync(out)).toBe(false);
+  });
+});
+
+describe("PRD 8.2 Bake-off OpenRouter contender", () => {
+  const withOpenRouter = {
+    ...fullEnv,
+    BAKE_OFF_OPENROUTER_KEY: "SENTINEL-KEY-r",
+    BAKE_OFF_OPENROUTER_MODEL: "vendor/model",
+  };
+
+  it("plans two contenders without an OpenRouter key", () => {
+    const contenders = resolveContenders(noPrices, fullEnv);
+    expect(contenders.map((c) => c.provider)).toEqual(["anthropic", "openai"]);
+  });
+
+  it("refuses an OpenRouter model without its key, and writes nothing", async () => {
+    const env = { ...fullEnv, BAKE_OFF_OPENROUTER_MODEL: "vendor/model" };
+    expect(() => resolveContenders(noPrices, env)).toThrow(
+      "Missing setting: BAKE_OFF_OPENROUTER_KEY",
+    );
+    const out = join(await tempDir(), "never");
+    await expect(
+      runBakeOff({ args: { ...noPrices, out }, env }),
+    ).rejects.toThrow(/BAKE_OFF_OPENROUTER_KEY/);
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it("refuses an OpenRouter price without its key", () => {
+    expect(() =>
+      resolveContenders({ ...noPrices, priceIn: { openrouter: 1 } }, fullEnv),
+    ).toThrow(/BAKE_OFF_OPENROUTER_KEY/);
+    expect(() =>
+      resolveContenders({ ...noPrices, priceOut: { openrouter: 1 } }, fullEnv),
+    ).toThrow(/BAKE_OFF_OPENROUTER_KEY/);
+  });
+
+  it("adds it as the third contender when its key and model are set", () => {
+    const contenders = resolveContenders(
+      {
+        ...noPrices,
+        priceIn: { openrouter: 1 },
+        priceOut: { openrouter: 2 },
+      },
+      withOpenRouter,
+    );
+    expect(contenders).toHaveLength(3);
+    expect(contenders[2]).toMatchObject({
+      provider: "openrouter",
+      model: "vendor/model",
+      apiKey: "SENTINEL-KEY-r",
+      price: { inPerMillion: 1, outPerMillion: 2 },
+    });
+  });
+
+  it("names the model when the key is set without it, and writes nothing", async () => {
+    const env = { ...fullEnv, BAKE_OFF_OPENROUTER_KEY: "SENTINEL-KEY-r" };
+    expect(() => resolveContenders(noPrices, env)).toThrow(
+      "Missing setting: BAKE_OFF_OPENROUTER_MODEL",
+    );
+    const out = join(await tempDir(), "never");
+    await expect(
+      runBakeOff({ args: { ...noPrices, out }, env }),
+    ).rejects.toThrow(/BAKE_OFF_OPENROUTER_MODEL/);
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it("is in a dry run with no settings", () => {
+    expect(
+      resolveContenders({ ...noPrices, dry: true }, {}).map((c) => c.provider),
+    ).toEqual(["anthropic", "openai", "openrouter"]);
+  });
+
+  it("makes 24 requests with three contenders, each with its own key and model", async () => {
+    const out = await tempDir();
+    const seen: string[] = [];
+    await runBakeOff({
+      args: { dry: false, out, priceIn: {}, priceOut: {} },
+      env: withOpenRouter,
+      adapterFor: (contender) => {
+        seen.push(
+          `${contender.provider}|${contender.model}|${contender.apiKey}`,
+        );
+        return createMockAdapter({
+          respond: () => ({ text: "Hei", gaps: [] }),
+        });
+      },
+    });
+    // 4 Fixtures x 2 tasks x 3 contenders.
+    expect(seen).toHaveLength(24);
+    expect(seen).toContain("openrouter|vendor/model|SENTINEL-KEY-r");
+    expect(seen).toContain("openai|gpt-test|SENTINEL-KEY-o");
+    expect(await readdir(join(out, "openrouter"))).not.toHaveLength(0);
   });
 });
 
@@ -152,7 +258,7 @@ describe("PRD 8.2 Bake-off never overwrites scored results", () => {
 });
 
 describe("PRD 8.2 Bake-off dry run", () => {
-  it("writes every Fixture for both contenders, with blank checklist cells", async () => {
+  it("writes every Fixture for all three contenders, with blank checklist cells", async () => {
     const out = await tempDir();
     const dir = await runBakeOff({
       args: { dry: true, out, priceIn: {}, priceOut: {} },
@@ -165,7 +271,7 @@ describe("PRD 8.2 Bake-off dry run", () => {
     expect(fixtures.length).toBeGreaterThanOrEqual(4);
     const results = await readFile(join(out, "results.md"), "utf8");
     for (const { id } of fixtures) {
-      for (const provider of ["anthropic", "openai"]) {
+      for (const provider of ["anthropic", "openai", "openrouter"]) {
         expect(results).toContain(`${provider}/${id}.letter.txt`);
         expect(results).toContain(`${provider}/${id}.gap.json`);
         expect(await readdir(join(out, provider))).toContain(`${id}.gap.json`);
@@ -228,8 +334,9 @@ describe("PRD 8.2 Bake-off requests", () => {
           },
         }),
     });
-    // One Letter and one Gap request per contender, for the one Fixture.
-    expect(prompts).toHaveLength(4);
+    // One Letter and one Gap request per contender (three in a dry run), for the
+    // one Fixture.
+    expect(prompts).toHaveLength(6);
     expect(retries.every((n) => n === 0)).toBe(true);
     for (const prompt of prompts) {
       expect(prompt).toContain("Erfaring som vikar.");

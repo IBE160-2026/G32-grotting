@@ -7,7 +7,13 @@ import { log } from "@/shared/server/log";
 vi.mock("@/shared/server/log", () => ({ log: vi.fn() }));
 
 import { createAdapter } from "./factory";
-import { AiProviderError, createLiveAdapter, type ModelFactory } from "./live";
+import {
+  AiProviderError,
+  createLiveAdapter,
+  type ModelFactory,
+  OPENROUTER_PRIVACY,
+  openRouterModel,
+} from "./live";
 
 const KEY = "SENTINEL-KEY-sk-hemmelig";
 const PROMPT = "SENTINEL-PROMPT-instruks med CV-tekst";
@@ -76,6 +82,25 @@ describe("AD-3 createAdapter for live", () => {
         live: { ...settings, provider: "openai" },
       }).provider,
     ).toBe("openai");
+    expect(
+      createAdapter("live", {
+        isTestRun: false,
+        live: { ...settings, provider: "openrouter", model: "vendor/model" },
+      }),
+    ).toMatchObject({
+      kind: "live",
+      provider: "openrouter",
+      model: "vendor/model",
+    });
+  });
+
+  it("throws in a test run for openrouter too", () => {
+    expect(() =>
+      createAdapter("live", {
+        isTestRun: true,
+        live: { ...settings, provider: "openrouter", model: "vendor/model" },
+      }),
+    ).toThrow(/test run/);
   });
 
   it("throws a plain error naming the missing field, never the key", () => {
@@ -225,6 +250,120 @@ describe("AD-3 live adapter", () => {
     });
     const failure = await adapter.generate(args()).catch((error) => error);
     expect(failure.code).toBe("PROVIDER_ERROR");
+  });
+});
+
+describe("NFR-8 OpenRouter adapter", () => {
+  const openRouterSettings = {
+    provider: "openrouter",
+    model: "vendor/model",
+    apiKey: KEY,
+  };
+
+  // A stand-in for fetch: records the request, makes no network call.
+  function stubFetch(respond: () => Response) {
+    const calls: { url: string; body: unknown; headers: Headers }[] = [];
+    const fetchStub = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({
+        url: String(input),
+        body: JSON.parse(String(init?.body)),
+        headers: new Headers(init?.headers),
+      });
+      return respond();
+    }) as typeof fetch;
+    return { calls, fetchStub };
+  }
+
+  const providerOf = (call: { body: unknown } | undefined) =>
+    (call?.body as { provider?: unknown } | undefined)?.provider;
+
+  const completion = (content: string) =>
+    new Response(
+      JSON.stringify({
+        id: "gen-1",
+        object: "chat.completion",
+        created: 1,
+        model: "vendor/model",
+        choices: [
+          {
+            index: 0,
+            finish_reason: "stop",
+            message: { role: "assistant", content },
+          },
+        ],
+        usage: { prompt_tokens: 40, completion_tokens: 12, total_tokens: 52 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } },
+    );
+
+  const adapterOverFetch = (fetchStub: typeof fetch) =>
+    createLiveAdapter(openRouterSettings, ({ model, apiKey }) =>
+      openRouterModel({ model, apiKey, fetch: fetchStub }),
+    );
+
+  it("asks OpenRouter for providers that do not collect data and keep none", async () => {
+    const { calls, fetchStub } = stubFetch(() =>
+      completion(JSON.stringify({ text: "Hei" })),
+    );
+    const result = await adapterOverFetch(fetchStub).generate(args());
+    expect(result).toEqual({
+      output: { text: "Hei" },
+      usage: { inputTokens: 40, outputTokens: 12 },
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.url).toContain("openrouter.ai");
+    expect(calls[0]?.headers.get("authorization")).toBe(`Bearer ${KEY}`);
+    expect(calls[0]?.body).toMatchObject({ model: "vendor/model" });
+    expect(providerOf(calls[0])).toEqual({
+      data_collection: "deny",
+      zdr: true,
+    });
+    expect(OPENROUTER_PRIVACY).toEqual({ data_collection: "deny", zdr: true });
+  });
+
+  it("sends the same restriction through the default wiring", async () => {
+    const { calls, fetchStub } = stubFetch(() =>
+      completion(JSON.stringify({ text: "Hei" })),
+    );
+    const original = globalThis.fetch;
+    globalThis.fetch = fetchStub;
+    try {
+      // No model factory argument: the adapter builds its own model.
+      await createLiveAdapter(openRouterSettings).generate(args());
+    } finally {
+      globalThis.fetch = original;
+    }
+    expect(calls).toHaveLength(1);
+    expect(providerOf(calls[0])).toEqual({
+      data_collection: "deny",
+      zdr: true,
+    });
+  });
+
+  it("rejects with a generic error that holds no key, prompt or response", async () => {
+    const { fetchStub } = stubFetch(
+      () =>
+        new Response(
+          JSON.stringify({
+            error: { message: `Rejected: ${PROMPT} / ${KEY} / ${RESPONSE}` },
+          }),
+          { status: 401, headers: { "content-type": "application/json" } },
+        ),
+    );
+    const failure = await adapterOverFetch(fetchStub)
+      .generate(args())
+      .catch((error) => error);
+    expect(failure).toBeInstanceOf(AiProviderError);
+    expect(failure.code).toBe("HTTP_401");
+    const everything = [
+      failure.message,
+      failure.stack,
+      JSON.stringify(failure),
+    ].join("\n");
+    for (const secret of [KEY, PROMPT, RESPONSE]) {
+      expect(everything).not.toContain(secret);
+    }
+    expect(failure.cause).toBeUndefined();
   });
 });
 

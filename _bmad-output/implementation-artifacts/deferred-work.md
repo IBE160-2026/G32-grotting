@@ -107,3 +107,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-3-pick-the-ai-provider-in-a-bake-off.md`
   summary: The Bake-off's live path (`defaultAdapterFor(false)`) and its non-zero exit on a missing setting are not covered by a test that checks each contender gets its own provider, model and key.
   evidence: Verification Gap (would be medium, unverified). `bake-off.test.ts` uses `--dry` or an injected `adapterFor`. A small test with a stubbed `ModelFactory` would settle it; Helene's first paid run is the manual check.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-3b-add-openrouter-as-a-third-live-provider.md`
+  summary: If OpenRouter wins the Bake-off, the AI notice text (Story 3.6) and the PRD §8.1 data rules need a decision: the Student's text reaches two companies (OpenRouter and the model vendor), so the notice must name both and the retention period and the DPF or SCC basis must hold for both.
+  evidence: Design Notes of the spec. `docs/qa/ai-provider-terms.md` has an OpenRouter section with most rows «not verified». This story records no decision and does not touch `architecture.md` or the PRD. Decide with the Bake-off result in runbook step 7.
