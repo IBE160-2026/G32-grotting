@@ -44,12 +44,17 @@ function requestBody(body: unknown): Pick<RequestInit, "body" | "headers"> {
 export async function callApi<T>(
   path: string,
   schema: z.ZodType<T>,
-  init: { method?: "GET" | "POST"; body?: unknown } = {},
+  init: {
+    method?: "GET" | "POST";
+    body?: unknown;
+    // The Letter waits for an AI answer, which is far slower than the rest.
+    timeoutMs?: number;
+  } = {},
 ): Promise<ApiResult<T>> {
   let body: unknown;
   try {
     const response = await fetch(path, {
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(init.timeoutMs ?? REQUEST_TIMEOUT_MS),
       method: init.method ?? (init.body === undefined ? "GET" : "POST"),
       ...requestBody(init.body),
     });

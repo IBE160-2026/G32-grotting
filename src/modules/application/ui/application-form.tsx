@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { AiNotice, noticeRequired } from "@/modules/ai/ui";
+import { AiNotice, consentFor, noticeRequired } from "@/modules/ai/ui";
 import {
   type CvErrorCode,
   type CvState,
@@ -19,6 +19,15 @@ import {
 } from "@/modules/cv/contracts";
 import { CvInput } from "@/modules/cv/ui";
 import { splitParagraphs } from "@/modules/keywords/core";
+import { TONES, type Tone } from "@/modules/letter/contracts";
+import {
+  type LetterJob,
+  type LetterPhase,
+  LetterSection,
+  letterLine,
+  requestLetter,
+  ToneChoice,
+} from "@/modules/letter/ui";
 import type { AnalysisResult } from "@/modules/match/contracts";
 import {
   KeywordList,
@@ -39,6 +48,7 @@ import { messages } from "@/shared/ui/messages.nb";
 import { useRunMode } from "@/shared/ui/run-mode";
 import {
   type AnalyseRequest,
+  type AnalyseResponse,
   type AnalysisInputs,
   analyseResponseSchema,
   type InputErrorCode,
@@ -55,12 +65,25 @@ type JobValues = Omit<AnalysisInputs, "cvText">;
 const EMPTY: JobValues = { jobTitle: "", employer: "", jobAd: "" };
 const NONE: readonly never[] = [];
 const EMPTY_CV: CvState = { draft: "", confirmed: false };
+const DEFAULT_TONE: Tone = "Formell";
+
+// Read from the tab's session; a value that is not a Tone reads as unset.
+function storedTone(): Tone {
+  const stored = readSession().tone;
+  return TONES.find((tone) => tone === stored) ?? DEFAULT_TONE;
+}
+
+// The phase-1 line is spoken first; the phase-2 line waits until it has had
+// time to be read, so a Letter that arrives at once does not cut it off.
+const PHASE_LINE_GAP_MS = 1500;
 
 // What the result view shows, kept as it was submitted: the form can change
 // only after «Endre annonsen» has brought it back. Held in this component only,
 // never stored (AD-8).
 type Outcome = {
   readonly result: AnalysisResult;
+  // What phase 2 needs to ask for the Letter again.
+  readonly job: LetterJob;
   readonly jobTitle: string;
   readonly employer: string;
   readonly date: string;
@@ -112,6 +135,18 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   // The request got no answer, or the answer was not a result.
   const [failed, setFailed] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [tone, setTone] = useState<Tone>(DEFAULT_TONE);
+  // Phase 2: where the Letter stands, and what a refused request holds back.
+  const [letterPhase, setLetterPhase] = useState<LetterPhase | null>(null);
+  const letterHeadingRef = useRef<HTMLHeadingElement>(null);
+  const [letterFocus, setLetterFocus] = useState(0);
+  const pendingLetter = useRef<LetterJob | null>(null);
+  const reprompted = useRef(false);
+  const lastJob = useRef<LetterJob | null>(null);
+  const phaseOneAt = useRef(0);
+  const phaseTwoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const headingRef = useRef<HTMLHeadingElement>(null);
   // Counts the times the form and the result have traded places; the new `h1`
   // takes focus once it is on the page (UX-DR19).
@@ -127,6 +162,12 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     mutationFn: (request: AnalyseRequest) =>
       callApi("/api/analyses", analyseResponseSchema, { body: request }),
   });
+  // One Letter request in flight (AD-6). The consent is read when it starts,
+  // so a notice accepted a moment ago counts (AD-13).
+  const letter = useMutation({
+    mutationFn: (job: LetterJob) =>
+      requestLetter(job, consentFor(runMode, readSession().noticeVersion)),
+  });
   // Nothing is written until what the tab held has been read back (AD-16).
   const [restored, setRestored] = useState(false);
 
@@ -138,8 +179,15 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       jobAd: inputs.jobAd ?? "",
     });
     setCv(restoreCv(inputs));
+    setTone(storedTone());
     setRestored(true);
   }, []);
+
+  useEffect(() => () => clearTimeout(phaseTwoTimer.current), []);
+
+  useEffect(() => {
+    if (letterFocus > 0) letterHeadingRef.current?.focus();
+  }, [letterFocus]);
 
   const refs: Record<
     InputField,
@@ -186,6 +234,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     if (restored) {
       writeSession({ applicationId: null, inputs: { [field]: value } });
     }
+  }
+
+  function changeTone(next: Tone) {
+    setTone(next);
+    if (restored) writeSession({ tone: next });
   }
 
   // Any CV edit drops the confirmation (FR-3): `cvText` goes, the draft stays.
@@ -313,13 +366,22 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     const request = pending.current;
     pending.current = null;
     if (request !== null) send(request);
+    const job = pendingLetter.current;
+    pendingLetter.current = null;
+    if (job !== null) runLetter(job);
   }
 
   // «Avbryt» and Esc: the inputs stay, nothing is sent, and focus goes back to
-  // the submit button once the dialog has closed.
+  // the submit button once the dialog has closed. A Letter held back by the
+  // server's refusal becomes the section alert, with its retry.
   function cancelNotice() {
     pending.current = null;
     setNoticeOpen(false);
+    if (pendingLetter.current !== null) {
+      pendingLetter.current = null;
+      reprompted.current = false;
+      settleLetter({ kind: "failed", code: "AI_NOTICE_REQUIRED" });
+    }
   }
 
   // One request for phase 1: code only, so the result needs no AI (NFR-4).
@@ -331,7 +393,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       onSuccess: (answer) => {
         sending.current = false;
         if (answer.ok) {
-          show(answer.data.result, request.inputs);
+          show(answer.data, request);
           return;
         }
         const { code, field } = answer.error;
@@ -352,19 +414,101 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     });
   }
 
-  function show(result: AnalysisResult, inputs: AnalysisInputs) {
+  // Phase 1 is on the screen; phase 2 starts at once (NFR-4). The Tone is the
+  // one chosen at submit (the form is inert while the notice is open), and the phase-1 line ends with what happens next.
+  function show(answer: AnalyseResponse, request: AnalyseRequest) {
+    const { inputs } = request;
+    const job: LetterJob = {
+      applicationId: request.applicationId,
+      inputs,
+      tone,
+      fingerprint: answer.fingerprint,
+    };
     setHeadingFocus((count) => count + 1);
     setOutcome({
-      result,
+      result: answer.result,
+      job,
       jobTitle: inputs.jobTitle,
       employer: inputs.employer,
       date: DATE.format(new Date()),
       adParagraphs: splitParagraphs(inputs.jobAd),
     });
-    announce("phase", phaseOneLine(result));
+    announce("phase", phaseOneLine(answer.result, true));
+    phaseOneAt.current = Date.now();
+    reprompted.current = false;
+    runLetter(job);
+  }
+
+  function runLetter(job: LetterJob) {
+    // A line still waiting from an earlier outcome must not be spoken now.
+    clearTimeout(phaseTwoTimer.current);
+    lastJob.current = job;
+    setLetterPhase({ kind: "pending" });
+    letter.mutate(job, {
+      onSuccess: ({ answer, rerun }) => {
+        // ANALYSIS_STALE was answered by a silent rerun of phase 1: the score
+        // and the fingerprint now come from it (AD-6).
+        const current = rerun
+          ? { ...job, fingerprint: rerun.fingerprint }
+          : job;
+        lastJob.current = current;
+        if (rerun) {
+          setOutcome((held) =>
+            held === null
+              ? held
+              : { ...held, result: rerun.result, job: current },
+          );
+        }
+        if (answer.ok) {
+          reprompted.current = false;
+          settleLetter({ kind: "done", letter: answer.data.letter });
+          return;
+        }
+        // The server and this page disagree about the notice (a config change
+        // in mid-session): ask again, once, then resend (AD-13, FR-24). A
+        // second refusal after the Student accepted is an alert, so it cannot
+        // loop; a reload brings the server's current version.
+        if (answer.error.code === "AI_NOTICE_REQUIRED" && !reprompted.current) {
+          reprompted.current = true;
+          pendingLetter.current = current;
+          setNoticeOpen(true);
+          return;
+        }
+        reprompted.current = false;
+        settleLetter({ kind: "failed", code: answer.error.code });
+      },
+      onError: () => settleLetter({ kind: "failed", code: "UNEXPECTED" }),
+    });
+  }
+
+  // The phase-2 line, once, in the first live region (NFR-2).
+  function settleLetter(phase: LetterPhase) {
+    setLetterPhase(phase);
+    const line = letterLine(phase);
+    if (line === null) return;
+    clearTimeout(phaseTwoTimer.current);
+    const wait = Math.max(
+      0,
+      PHASE_LINE_GAP_MS - (Date.now() - phaseOneAt.current),
+    );
+    phaseTwoTimer.current = setTimeout(() => announce("phase", line), wait);
+  }
+
+  // «Prøv igjen»: only the Letter request is sent again; focus follows to the
+  // section heading, since the button goes away.
+  function retryLetter() {
+    const job = lastJob.current;
+    if (job === null) return;
+    reprompted.current = false;
+    setLetterFocus((count) => count + 1);
+    runLetter(job);
   }
 
   function backToForm() {
+    clearTimeout(phaseTwoTimer.current);
+    letter.reset();
+    pendingLetter.current = null;
+    setLetterPhase(null);
     setHeadingFocus((count) => count + 1);
     setOutcome(null);
   }
@@ -385,6 +529,15 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
                   value: outcome.jobTitle,
                 },
                 { term: messages.result.credits.date, value: outcome.date },
+                ...(letterPhase?.kind === "done"
+                  ? [
+                      {
+                        term: messages.result.credits.tone,
+                        value:
+                          messages.tone.options[letterPhase.letter.tone].name,
+                      },
+                    ]
+                  : []),
                 {
                   term: messages.result.credits.ad,
                   value: messages.result.adSummary(
@@ -422,6 +575,19 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
             adParagraphs={outcome.adParagraphs}
           />
         </div>
+        <div className="mt-8 max-w-letter">
+          <LetterSection
+            phase={letterPhase ?? { kind: "pending" }}
+            onRetry={retryLetter}
+            headingRef={letterHeadingRef}
+          />
+        </div>
+        <AiNotice
+          open={noticeOpen}
+          onAccept={acceptNotice}
+          onCancel={cancelNotice}
+          returnFocusRef={letterHeadingRef}
+        />
       </>
     );
   }
@@ -494,6 +660,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
           onChange={(event) => change("jobAd", event.target.value)}
           onBlur={() => blur("jobAd")}
         />
+        <ToneChoice value={tone} onChange={changeTone} />
         <div>
           <Button ref={submitRef} type="submit" busy={analysis.isPending}>
             {messages.application.submit}

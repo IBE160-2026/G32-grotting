@@ -64,7 +64,7 @@ test.describe("UX-DR36 Søknad form", () => {
     expect(pickerBox?.y ?? 0).toBeLessThan(adBox?.y ?? 0);
   });
 
-  test("follows the focus order file, CV, confirm, title, employer, example, ad, submit", async ({
+  test("follows the focus order file, CV, confirm, title, employer, example, ad, tone, submit", async ({
     page,
   }) => {
     await openForm(page);
@@ -83,6 +83,10 @@ test.describe("UX-DR36 Søknad form", () => {
     ).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByLabel("Stillingsannonse")).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(
+      page.getByRole("radio", { name: /^Formell – / }),
+    ).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: SUBMIT })).toBeFocused();
   });

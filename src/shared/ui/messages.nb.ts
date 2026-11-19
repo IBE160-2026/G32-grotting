@@ -111,11 +111,54 @@ export const messages = {
       TOO_LONG: "Maks 200 tegn.",
     },
   },
+  // «Tone i brevet» on Søknad (FR-10, UX-DR25). The name and the hint are one
+  // accessible name, «Formell – Høflig og saklig».
+  tone: {
+    legend: "Tone i brevet",
+    options: {
+      Formell: { name: "Formell", hint: "Høflig og saklig" },
+      Personlig: { name: "Personlig", hint: "Varm, med «jeg» i front" },
+      Direkte: { name: "Direkte", hint: "Kort, rett på sak" },
+    },
+  },
+  // The Letter on the result, phase 2 (FR-9, UX-DR28, UX-DR30). The variant
+  // before S4 has this one slot and no Gapanalyse.
+  letter: {
+    heading: "Søknadsbrev",
+    // The progress line while the Letter is written.
+    progress: "Skriver søknadsbrevet … dette tar under ett minutt.",
+    placeholderHint: "Kommer om under ett minutt.",
+    pendingStrip: "Skrives",
+    aiLabel: "Utkast skrevet med KI – les gjennom og tilpass før du sender.",
+    // The phase-2 line, spoken once in the first live region (NFR-2).
+    live: {
+      done: "Søknadsbrevet er klart.",
+      failed: "Søknadsbrevet kunne ikke lages. Samsvaret står fortsatt.",
+      cap: "Dagens grense for KI er nådd. Samsvaret står fortsatt.",
+      testMode: "Søknadsbrevet er ikke tilgjengelig i testmodus.",
+    },
+    failed:
+      "Søknadsbrevet kunne ikke lages. Samsvaret over er fortsatt riktig.",
+    retry: "Prøv igjen",
+    cap: {
+      label: "Dagens grense",
+      text: "Du har brukt dagens 30 KI-forespørsler. Grensen nullstilles ved midnatt.",
+    },
+    testMode: {
+      label: "Testmodus",
+      text: "Ikke tilgjengelig i testmodus. Bruk eksempelet for å se hele flyten.",
+    },
+  },
   // The phase-1 result on Søknad (FR-7, FR-8). Percent sign with a space and
   // sjevroner for quotes, as in EXPERIENCE.md, Key strings.
   result: {
     editAd: "Endre annonsen",
-    credits: { position: "Stilling", date: "Dato", ad: "Annonse" },
+    credits: {
+      position: "Stilling",
+      date: "Dato",
+      tone: "Tone",
+      ad: "Annonse",
+    },
     // «14 avsnitt · 7 nøkkelord»
     adSummary: (paragraphs: string, keywords: string) =>
       `${paragraphs} avsnitt · ${keywords} nøkkelord`,
@@ -137,7 +180,9 @@ export const messages = {
       `${matched} av ${total} nøkkelord funnet = ${score} %`,
     disclaimer:
       "Et anslag på hvor mange av annonsens nøkkelord CV-en din dekker. Ikke en ekte ATS-vurdering, og ingen spådom om intervjusjanser.",
-    // The before-S3 form of the phase-1 line, without the AI sentence.
+    // The phase-1 line (NFR-2): the score and the Verdict. When the Letter is
+    // being written (before S4), `liveAiNext` ends it.
+    liveAiNext: "Søknadsbrevet skrives nå.",
     live: (score: number, verdict: string, matched: number, total: number) =>
       `Samsvaret er klart: ${score} %, ${verdict.toLowerCase()}, ${matched} av ${total} nøkkelord.`,
     found: {

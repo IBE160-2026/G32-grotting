@@ -95,6 +95,12 @@ describe("FR-7 phase-1 live line", () => {
       "Samsvaret er klart: 57 %, bør forbedres, 4 av 7 nøkkelord.",
     );
   });
+
+  it("FR-9 ends with the AI sentence of the before-S4 variant when the Letter is next", () => {
+    expect(phaseOneLine(withScore(71, 5, 7), true)).toBe(
+      "Samsvaret er klart: 71 %, sterkt samsvar, 5 av 7 nøkkelord. Søknadsbrevet skrives nå.",
+    );
+  });
 });
 
 describe("FR-8 keyword lists", () => {

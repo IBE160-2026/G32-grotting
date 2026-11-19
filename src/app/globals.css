@@ -291,3 +291,22 @@
     transition: none;
   }
 }
+
+/* The pulse trace of the progress line: five runs of one second, then it holds
+   (WCAG 2.2.2). It runs only when motion is allowed; otherwise the trace sits
+   fully drawn. */
+@keyframes progress-trace {
+  from {
+    stroke-dashoffset: 100;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .progress-trace {
+    animation: progress-trace 1s ease-out 5 forwards;
+  }
+}
