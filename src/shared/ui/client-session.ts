@@ -11,6 +11,9 @@ const sessionSchema = z.looseObject({
   // The AI notice the Student accepted in this browser session (FR-24): the
   // `RunMode.aiNotice.version` that was showing.
   noticeVersion: z.string().optional(),
+  // The Tone chosen for the Letter (FR-10). A plain string here: the slice that
+  // owns the Tones checks the value, so a Tone it later drops reads as unset.
+  tone: z.string().optional(),
   inputs: z
     .looseObject({
       // `cvDraft` is the CV text as typed; `cvText` exists only while it is
@@ -33,6 +36,7 @@ export type SessionPatch = {
   // `null` removes the id. An input set to `undefined` is removed.
   readonly applicationId?: string | null;
   readonly noticeVersion?: string;
+  readonly tone?: string;
   readonly inputs?: SessionInputs;
 };
 
@@ -82,6 +86,7 @@ export function writeSession(
   if (patch.noticeVersion !== undefined) {
     next.noticeVersion = patch.noticeVersion;
   }
+  if (patch.tone !== undefined) next.tone = patch.tone;
   try {
     storage?.setItem(SESSION_KEY, JSON.stringify(next));
   } catch {

@@ -2,7 +2,11 @@ import { expect, type Page, test } from "@playwright/test";
 import {
   analysisCalls,
   EXAMPLE_SENTENCE,
+  failure,
   fillExample,
+  LETTER_ROUTE,
+  letterAnswer,
+  letterCalls,
   PHONE,
   SUBMIT,
   seriousFindings,
@@ -17,6 +21,17 @@ const TITLE = "Teksten din sendes til en KI-tjeneste";
 
 const dialog = (page: Page) => page.getByRole("dialog", { name: TITLE });
 const submit = (page: Page) => page.getByRole("button", { name: SUBMIT });
+
+// The live-settings server has a made-up key, so no phase-2 request may reach
+// it: the browser answers them here, one answer per request, then the last one.
+async function stubLetters(page: Page, answers: object[]) {
+  let sent = 0;
+  await page.route(LETTER_ROUTE, (route) => {
+    const answer = answers[Math.min(sent, answers.length - 1)];
+    sent += 1;
+    return route.fulfill({ json: answer });
+  });
+}
 
 async function openNotice(page: Page) {
   await fillExample(page);
@@ -88,6 +103,7 @@ test.describe("FR-24 the AI notice, Test mode off", () => {
     page,
   }) => {
     const calls = analysisCalls(page);
+    await stubLetters(page, [letterAnswer("Formell")]);
     await openNotice(page);
     await dialog(page)
       .getByRole("button", { name: "Godta og fortsett" })
@@ -100,6 +116,102 @@ test.describe("FR-24 the AI notice, Test mode off", () => {
     await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(0);
     expect(calls).toHaveLength(2);
+  });
+
+  test("FR-24, AD-13 the phase-2 request carries the accepted notice version as consent", async ({
+    page,
+  }) => {
+    const letters = letterCalls(page);
+    await stubLetters(page, [letterAnswer("Personlig")]);
+    await fillExample(page);
+    await page.getByRole("radio", { name: /^Personlig – / }).check();
+    await submit(page).click();
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(page.locator("article")).toBeVisible();
+    const accepted = (await session(page))?.noticeVersion;
+    expect(accepted).toMatch(/^notice-/);
+    expect(letters).toHaveLength(1);
+    expect(letters[0]?.consent).toEqual({ noticeVersion: accepted });
+    expect(letters[0]?.tone).toBe("Personlig");
+    await expect(page.locator("dl")).toContainText("Personlig");
+  });
+
+  test("AD-13 AI_NOTICE_REQUIRED opens the notice again, and «Godta og fortsett» resends the Letter request only", async ({
+    page,
+  }) => {
+    const analyses = analysisCalls(page);
+    const letters = letterCalls(page);
+    await stubLetters(page, [
+      failure("AI_NOTICE_REQUIRED"),
+      letterAnswer("Formell"),
+    ]);
+    await openNotice(page);
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    // The server refused: the notice comes back, with the score still shown.
+    await expect(dialog(page)).toBeVisible();
+    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    expect(letters).toHaveLength(1);
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(page.locator("article")).toBeVisible();
+    expect(letters).toHaveLength(2);
+    expect(analyses).toHaveLength(1);
+    await expect(dialog(page)).toBeHidden();
+  });
+
+  test("AD-13 «Avbryt» on the second notice leaves the section alert with «Prøv igjen»", async ({
+    page,
+  }) => {
+    const letters = letterCalls(page);
+    await stubLetters(page, [
+      failure("AI_NOTICE_REQUIRED"),
+      letterAnswer("Formell"),
+    ]);
+    await openNotice(page);
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(dialog(page)).toBeVisible();
+    await dialog(page).getByRole("button", { name: "Avbryt" }).click();
+    await expect(dialog(page)).toBeHidden();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Søknadsbrevet kunne ikke lages." }),
+    ).toBeVisible();
+    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    expect(letters).toHaveLength(1);
+    // «Prøv igjen» sends again, and the server now accepts.
+    await page.getByRole("button", { name: "Prøv igjen" }).click();
+    await expect(page.locator("article")).toBeVisible();
+    expect(letters).toHaveLength(2);
+  });
+
+  test("AD-13 a second refusal after the Student accepted shows the alert instead of asking forever", async ({
+    page,
+  }) => {
+    const letters = letterCalls(page);
+    await stubLetters(page, [failure("AI_NOTICE_REQUIRED")]);
+    await openNotice(page);
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(dialog(page)).toBeVisible();
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Søknadsbrevet kunne ikke lages." }),
+    ).toBeVisible();
+    await expect(dialog(page)).toBeHidden();
+    expect(letters).toHaveLength(2);
   });
 
   for (const [name, size] of [

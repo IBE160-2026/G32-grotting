@@ -120,3 +120,18 @@ describe("NFR-5, AD-16 client session", () => {
     expect(SESSION_KEY).toBe("ja.session.v1");
   });
 });
+
+describe("FR-10 the Tone in the client session", () => {
+  it("keeps the Tone through edits and a dropped id, and reads none from a foreign session", () => {
+    const storage = memoryStorage();
+    writeSession({ tone: "Direkte" }, storage);
+    writeSession({ applicationId: "id-1", inputs: { jobAd: "a" } }, storage);
+    writeSession({ applicationId: null, inputs: { jobAd: "b" } }, storage);
+    expect(readSession(storage).tone).toBe("Direkte");
+    expect(readSession(memoryStorage()).tone).toBeUndefined();
+    expect(
+      readSession(memoryStorage(JSON.stringify({ v: 1, inputs: {}, tone: 3 })))
+        .tone,
+    ).toBeUndefined();
+  });
+});

@@ -97,16 +97,26 @@ test.describe("FR-7, FR-8 Søknad result", () => {
     await expect(page.locator("mark").first()).toBeVisible();
   });
 
-  test("speaks the score sentence and the Verdict once in the first live region", async ({
+  test("speaks the score sentence, the Verdict and what comes next once in the first live region", async ({
     page,
   }) => {
+    // The Letter is held back, so the phase-1 line is still the one spoken.
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/analyses/*/letter", async (route) => {
+      await held;
+      await route.continue();
+    });
     await fillExample(page);
     await page.getByRole("button", { name: SUBMIT }).click();
     const verdict =
       EXAMPLE_KEY.score >= 70 ? "sterkt samsvar" : "bør forbedres";
     await expect(page.locator("#live-phase")).toHaveText(
-      `Samsvaret er klart: ${EXAMPLE_KEY.score} %, ${verdict}, ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord.`,
+      `Samsvaret er klart: ${EXAMPLE_KEY.score} %, ${verdict}, ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord. Søknadsbrevet skrives nå.`,
     );
+    release();
   });
 
   test("sends one request on a double click and keeps the button busy meanwhile", async ({

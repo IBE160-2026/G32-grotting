@@ -151,3 +151,65 @@ export function analysisCalls(page: Page): string[] {
   });
   return calls;
 }
+
+export const TONES = ["Formell", "Personlig", "Direkte"] as const;
+export type ToneName = (typeof TONES)[number];
+
+// The Cached Letter the server returns for the Example pair, per Tone.
+export function cachedLetter(tone: ToneName): string {
+  const file = exampleFile(`cached/letter-${tone.toLowerCase()}.json`);
+  return (JSON.parse(file) as { data: { text: string } }).data.text;
+}
+
+// What the Letter view shows for a cached text: the sign-off is the placeholder.
+export function shownLetter(tone: ToneName): string {
+  return cachedLetter(tone)
+    .replace(/\r\n?/g, "\n")
+    .split("{{SIGNATUR}}")
+    .join("[Navnet ditt]");
+}
+
+export type LetterBody = {
+  applicationId: string;
+  fingerprint: string;
+  tone: string;
+  consent: { noticeVersion: string } | null;
+  inputs: { employer: string };
+};
+
+export const LETTER_ROUTE = "**/api/analyses/*/letter";
+
+// The phase-2 requests the browser sends, with their bodies.
+export function letterCalls(page: Page): LetterBody[] {
+  const calls: LetterBody[] = [];
+  page.on("request", (request) => {
+    const { pathname } = new URL(request.url());
+    if (/\/api\/analyses\/[^/]+\/letter$/.test(pathname)) {
+      calls.push(request.postDataJSON() as LetterBody);
+    }
+  });
+  return calls;
+}
+
+export const failure = (code: string, retryable = false) => ({
+  ok: false,
+  error: { code, retryable },
+});
+
+// A Letter answer for a route stub: never reaches the server.
+export const letterAnswer = (tone: string, text = "Hei,\n\n{{SIGNATUR}}") => ({
+  ok: true,
+  data: {
+    letter: { text, tone, rev: 1 },
+    meta: {
+      source: "cached",
+      provider: "stub",
+      model: "stub",
+      promptVersion: "letter-1",
+      createdAt: "2026-11-19T10:00:00.000Z",
+    },
+  },
+});
+
+export const toneRadio = (page: Page, tone: ToneName) =>
+  page.getByRole("radio", { name: new RegExp(`^${tone} – `) });

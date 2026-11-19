@@ -110,3 +110,15 @@ describe("AD-7 api-client", () => {
     expect((await callApi("/api/access", schema)).ok).toBe(false);
   });
 });
+
+describe("NFR-4 api-client timeout", () => {
+  it("uses the given timeout for a slow request such as the Letter", async () => {
+    const spy = vi.spyOn(AbortSignal, "timeout");
+    stubFetch(async () => Response.json({ ok: true, data: { opened: true } }));
+    await callApi("/api/x", schema, { body: {}, timeoutMs: 105_000 });
+    await callApi("/api/x", schema, { body: {} });
+    expect(spy).toHaveBeenNthCalledWith(1, 105_000);
+    expect(spy).toHaveBeenNthCalledWith(2, 15_000);
+    spy.mockRestore();
+  });
+});
