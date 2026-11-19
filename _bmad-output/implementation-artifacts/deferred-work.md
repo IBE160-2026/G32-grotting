@@ -120,3 +120,7 @@
 
 - A usage error in `scripts/bake-off.ts` should exit non-zero, but no test checks the exit code or that `isEntryPoint()` fires. Settle with a child-process run of the script with an empty env, or move the block into a testable function. Deferred: Helene watches the first live run.
 - The go-live condition («not live on the Hosted version until the host and its terms are verified») is prose in five documents and enforced by no code. A wrong `AI_PROVIDER` burns a Daily-cap slot before `createLiveAdapter` throws. Requests are not pinned to a host (`provider.only`) and the serving host is not recorded. Owned by Stories 3.6 and 3.12.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-3-4-write-the-letter-on-the-server.md`
+  summary: Check the AI Letter answer for length (250-400 words, at most 300 for Direkte), language and leftover placeholders such as «[Ditt navn]».
+  evidence: `generateLetter` accepts any non-blank text; an over-long, English or placeholder-filled answer is returned as a successful Letter. Belongs to `checkTone` (Story 3.5) and the integrity guard (Story 3.10); unverified how often the model does it.

@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-19-2026 17:28
+last_updated: 11-19-2026 18:00
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -67,7 +67,7 @@ development_status:
   3-1-send-every-ai-request-through-one-pipeline: done
   3-2-enforce-the-daily-cap-and-the-ai-notice-on-the-server: done
   3-3-pick-the-ai-provider-in-a-bake-off: done
-  3-4-write-the-letter-on-the-server: backlog
+  3-4-write-the-letter-on-the-server: done
   3-5-run-the-full-flow-in-test-mode-on-cached-responses: backlog
   3-6-ask-before-any-text-leaves-the-app: backlog
   3-7-choose-a-tone-and-see-the-letter-arrive: backlog
