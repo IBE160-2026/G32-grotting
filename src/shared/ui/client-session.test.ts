@@ -97,6 +97,25 @@ describe("NFR-5, AD-16 client session", () => {
     expect(storage.dump()).not.toContain("applicationId");
   });
 
+  it("FR-24 keeps the accepted noticeVersion through edits and a dropped id", () => {
+    const storage = memoryStorage();
+    writeSession({ noticeVersion: "notice-2:a:unknown:no-fallback" }, storage);
+    writeSession({ applicationId: "id-1", inputs: { jobAd: "a" } }, storage);
+    writeSession({ applicationId: null, inputs: { jobAd: "b" } }, storage);
+    expect(readSession(storage).noticeVersion).toBe(
+      "notice-2:a:unknown:no-fallback",
+    );
+  });
+
+  it("FR-24 reads no noticeVersion from a fresh or foreign session", () => {
+    expect(readSession(memoryStorage()).noticeVersion).toBeUndefined();
+    expect(
+      readSession(
+        memoryStorage(JSON.stringify({ v: 1, inputs: {}, noticeVersion: 5 })),
+      ).noticeVersion,
+    ).toBeUndefined();
+  });
+
   it("uses the one key ja.session.v1", () => {
     expect(SESSION_KEY).toBe("ja.session.v1");
   });

@@ -17,6 +17,41 @@ export const messages = {
     text: "Testmodus – KI-svarene er forhåndslagret",
     note: "Samsvaret regnes likevel ut av koden.",
   },
+  // The AI notice (FR-24, UX-DR17). It names the two companies the text reaches:
+  // OpenRouter, and the model's host. With `zdr: true` only Google Vertex and
+  // Amazon Bedrock serve the model (docs/qa/ai-provider-terms.md), so the host
+  // is Google or Amazon, never Anthropic. Change this text, or the routing it
+  // describes, and the version prefix in config.ts must change too.
+  aiNotice: {
+    title: "Teksten din sendes til en KI-tjeneste",
+    // «Ingenting sendes før du godtar» is the promise the server also keeps:
+    // runAi refuses without the accepted version.
+    body: (provider: string, host: string) =>
+      `For å skrive søknadsbrevet sender vi CV-teksten og annonsen til ${provider}, en mellomtjeneste som sender dem videre til ${host}, som kjører KI-modellen. Ingenting er sendt ennå, og ingenting sendes før du godtar.`,
+    // Names of the companies, as the Student reads them.
+    provider: { openrouter: "OpenRouter" } as Record<string, string>,
+    host: "Google (Vertex AI) eller Amazon (Bedrock)",
+    // A short form for the list point: «OpenRouter og modellverten».
+    hostShort: "modellverten (Google eller Amazon)",
+    points: {
+      local: "Samsvaret regnes ut her i appen, uten KI.",
+      stripped: "E-postadresser og telefonnumre fjernes før teksten sendes.",
+      // `when` is `retention(days)`.
+      noTraining: (provider: string, hostShort: string, when: string) =>
+        `${provider} og ${hostShort} trener ikke på teksten og sletter den ${when}.`,
+      sensitive:
+        "Ta ikke med sensitive opplysninger som helse eller fødselsnummer.",
+      once: "Du blir bare spurt denne ene gangen i denne nettleserøkten.",
+    },
+    // `null` or 0: no fixed period is set, and the text goes at once because
+    // every request asks only for zero-retention endpoints.
+    retention: (days: number | null) =>
+      days === null || days === 0
+        ? "så snart svaret er skrevet"
+        : `senest etter ${days} ${days === 1 ? "dag" : "dager"}`,
+    accept: "Godta og fortsett",
+    cancel: "Avbryt",
+  },
   // «612 av 20 000 tegn»: the counter under a long text field.
   counter: (used: string, max: string) => `${used} av ${max} tegn`,
   networkFailure:

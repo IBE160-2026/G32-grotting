@@ -1,0 +1,130 @@
+import { expect, type Page, test } from "@playwright/test";
+import {
+  analysisCalls,
+  EXAMPLE_SENTENCE,
+  fillExample,
+  PHONE,
+  SUBMIT,
+  seriousFindings,
+  session,
+  WIDE,
+} from "./support/application";
+
+// The live-settings server from playwright.config.ts (made-up key, no request
+// to a provider). Test mode is off there, so the notice appears.
+const LIVE = "http://localhost:3102";
+const TITLE = "Teksten din sendes til en KI-tjeneste";
+
+const dialog = (page: Page) => page.getByRole("dialog", { name: TITLE });
+const submit = (page: Page) => page.getByRole("button", { name: SUBMIT });
+
+async function openNotice(page: Page) {
+  await fillExample(page);
+  await submit(page).click();
+  await expect(dialog(page)).toBeVisible();
+}
+
+test.describe("FR-24 the AI notice, Test mode off", () => {
+  test.use({ baseURL: LIVE });
+
+  test("opens before phase 1, names OpenRouter and the model host, and has focus on its title", async ({
+    page,
+  }) => {
+    const calls = analysisCalls(page);
+    await openNotice(page);
+    await expect(
+      dialog(page).getByRole("heading", { name: TITLE }),
+    ).toBeFocused();
+    await expect(dialog(page)).toContainText("OpenRouter");
+    await expect(dialog(page)).toContainText(
+      "Google (Vertex AI) eller Amazon (Bedrock)",
+    );
+    await expect(dialog(page)).toContainText(
+      "Ingenting er sendt ennå, og ingenting sendes før du godtar.",
+    );
+    expect(calls).toHaveLength(0);
+  });
+
+  test("traps focus and ignores a click on the scrim", async ({ page }) => {
+    await openNotice(page);
+    for (let i = 0; i < 6; i += 1) {
+      await page.keyboard.press("Tab");
+      const inside = await page.evaluate(
+        () =>
+          document.activeElement === document.body ||
+          document.activeElement?.closest("dialog") != null,
+      );
+      expect(inside).toBe(true);
+    }
+    await page.mouse.click(4, 4);
+    await expect(dialog(page)).toBeVisible();
+  });
+
+  test("«Avbryt» keeps every input, sends nothing and returns focus to the submit button", async ({
+    page,
+  }) => {
+    const calls = analysisCalls(page);
+    await openNotice(page);
+    await dialog(page).getByRole("button", { name: "Avbryt" }).click();
+    await expect(dialog(page)).toBeHidden();
+    await expect(submit(page)).toBeFocused();
+    await expect(page.getByLabel("Arbeidsgiver")).not.toHaveValue("");
+    expect((await session(page))?.noticeVersion).toBeUndefined();
+    expect(calls).toHaveLength(0);
+  });
+
+  test("Esc does the same as «Avbryt»", async ({ page }) => {
+    const calls = analysisCalls(page);
+    await openNotice(page);
+    await page.keyboard.press("Escape");
+    await expect(dialog(page)).toBeHidden();
+    await expect(submit(page)).toBeFocused();
+    await expect(page.getByLabel("Arbeidsgiver")).not.toHaveValue("");
+    expect((await session(page))?.noticeVersion).toBeUndefined();
+    expect(calls).toHaveLength(0);
+  });
+
+  test("«Godta og fortsett» saves the version, starts phase 1 once and is not asked again", async ({
+    page,
+  }) => {
+    const calls = analysisCalls(page);
+    await openNotice(page);
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    expect(calls).toHaveLength(1);
+    expect((await session(page))?.noticeVersion).toMatch(/^notice-/);
+    await page.getByRole("button", { name: "Endre annonsen" }).click();
+    await submit(page).click();
+    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(calls).toHaveLength(2);
+  });
+
+  for (const [name, size] of [
+    ["1280 px", WIDE],
+    ["360 px", PHONE],
+  ] as const) {
+    test(`has no serious axe finding at ${name}`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await openNotice(page);
+      expect(await seriousFindings(page)).toEqual([]);
+      const overflow = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth,
+      );
+      expect(overflow).toBe(false);
+    });
+  }
+});
+
+test.describe("FR-24 the AI notice, Test mode on", () => {
+  test("never appears, and phase 1 starts at once", async ({ page }) => {
+    await fillExample(page);
+    await submit(page).click();
+    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+});
