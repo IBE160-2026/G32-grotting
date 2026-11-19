@@ -154,3 +154,30 @@ Finne hvilken vert som svarer på Sonnet 5.5 gjennom OpenRouter, og føre funnen
 ### Åpne punkter
 - Les Google Vertex og Amazon Bedrock sine vilkår, SCC/DPF og region; navngi begge i varselet (3.6).
 - Sjekk Activity-siden i OpenRouter; vurder `provider.only`.
+
+## 2026-11-19 kl. 17:26 — Helise-26
+
+### Oppgave
+Kjøre kodegjennomgang (`bmad-code-review`) av Story 3.3 og delstoryene 3.3b, 3.3c og 3.3d, og kjøre Docker-testen fra Epic 2-retroen.
+
+### Plan
+- Sprintstatus (`bmad-sprint-planning status`): 3.3 sto som `review`, mens alle fire spec-filene var `done`.
+- Diff `e37ac19..HEAD` uten `.logs/` og de genererte bake-off-utdataene i `docs/qa/bake-off/` (3382 linjer, 29 filer); fire reviewere (Blind Hunter, Edge Case Hunter, Verification Gap, Acceptance Auditor mot spec 3.3, 3.3b–d).
+- Triage, så anvende alle patcher (valg 1 både på diff-omfanget og på «Apply every patch»).
+
+### Resultat
+- `docker compose run --rm --build test` på main: exit 0, 63 testfiler / 713 tester (2 expected fail, 1 hoppet over), 120 e2e grønne.
+- Review: 1 decision-needed (Helene valgte 1: godta og dokumenter), 3 patcher, 2 defer, 8 avvist. Funnene står i `### Review Findings` i `spec-3-3-pick-the-ai-provider-in-a-bake-off.md`; utsettelsene i `deferred-work.md`.
+- Patch 1: begrensningene i modellvalget (lettere Gap-oppgave med fasitens nøkkelord, bare tonen Formell, Claude som poengsetter, ingen stikkprøve for hånd) lagt til i `results.md` (Decision) og `docs/architecture.md` seksjon 4.
+- Patch 2: dokumentene rettet: verten er Google Vertex eller Amazon Bedrock, ikke Anthropic (runbook trinn 7–8 og innledning, architecture seksjon 4, terms-fila, PRD Open question 3); varselet (3.6) skal navngi OpenRouter, Google og Amazon; runbook sier nå at §8.1 er endret til å godta SCC, men ikke oppfylt.
+- Patch 3: ny test i `scripts/bake-off.test.ts` som kjører `runBakeOff` uten injisert adapter og sjekker at hver kandidat sender sin egen modell og nøkkel. Mutasjonssjekk: med fast `model` i `defaultAdapterFor` feilet testen; filen er gjenopprettet.
+- Etter patchene: `npx biome check`, `npm run typecheck` og `npx vitest run` grønne (63 filer, 715 tester). Docker-testen er ikke kjørt på nytt etter patchene.
+- `sprint-status.yaml`: 3-3 satt til `done` (validert med `sprint_plan.py validate`). 3.3b, 3.3c og 3.3d har ikke egne nøkler der.
+- Docker-punktene fra tidligere stories (1.8, 2.6, 2.7, 2.10, 2.11) lukket i `issues.md`; 2.5, 2.8, 2.9 og retro-punktet delvis.
+- Endringene i kode, dokumenter, PRD, spec og sprint-status er ukommitterte; bare loggfila og `issues.md` committes her. `issues.md` hadde allerede ukommitterte endringer fra før økten (30 linjer med `[x]` → `[X]` og tre lukkede punkter); de ble med i loggcommiten.
+
+### Åpne punkter
+- Ingen test sjekker bake-offens exit-kode ved brukerfeil (lagt i `issues.md` og `deferred-work.md`).
+- Ferdig-kriteriene for Epic 3-stories som endrer Dockerfile, avhengigheter eller `data/` må fortsatt få Docker-testen med.
+- Kjør Docker-testen på nytt etter at patchene er merget, eller la CI vise det.
+- Ellers uendret: les Pass/Fail-utkastet i `results.md`, verifiser verten (Google/Amazon) og vilkårene, og gjør det før Story 3.6 og 3.12.
