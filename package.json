@@ -22,7 +22,8 @@
     "db:generate": "drizzle-kit generate",
     "db:check": "tsx --conditions=react-server scripts/db-check.ts",
     "db:migrate": "tsx --conditions=react-server scripts/migrate.ts",
-    "fixtures:extract": "tsx scripts/extract-fixture-cv.ts"
+    "fixtures:extract": "tsx scripts/extract-fixture-cv.ts",
+    "fixtures:record": "tsx scripts/record-cached.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.4.6",

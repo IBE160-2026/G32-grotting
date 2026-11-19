@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { VOCABULARY_VERSION_FORMAT } from "@/shared/core/vocabulary";
-import { loadExamplePair, loadVocabulary } from "./data-files";
+import { loadExamplePair, loadFixtures, loadVocabulary } from "./data-files";
 
 const folders: string[] = [];
 
@@ -150,5 +150,115 @@ describe("FR-8 loadExamplePair (AD-15)", () => {
       "meta.json": JSON.stringify({ jobTitle: "T", employer: "E" }),
     });
     await expect(loadExamplePair()).rejects.toThrow();
+  });
+});
+
+const FIXTURES = "data/fixtures";
+const META = JSON.stringify({ jobTitle: "T", employer: "E" });
+
+// A working directory with fixture folders: id -> file name -> content.
+async function fixturesWith(
+  tree: Record<string, Record<string, string | Uint8Array>>,
+) {
+  const root = await mkdtemp(join(tmpdir(), "fixtures-"));
+  folders.push(root);
+  await mkdir(join(root, FIXTURES), { recursive: true });
+  for (const [id, files] of Object.entries(tree)) {
+    for (const [name, content] of Object.entries(files)) {
+      const file = join(root, FIXTURES, id, name);
+      await mkdir(join(file, ".."), { recursive: true });
+      await writeFile(file, content);
+    }
+  }
+  vi.spyOn(process, "cwd").mockReturnValue(root);
+}
+
+describe("FR-27 loadFixtures (AD-15)", () => {
+  it("reads the real Fixtures, skips folders starting with _ and finds the Example pair", async () => {
+    const fixtures = await loadFixtures();
+    expect(fixtures.map((fixture) => fixture.id)).toContain(
+      "example-nordic-digital",
+    );
+    expect(fixtures.every((fixture) => !fixture.id.startsWith("_"))).toBe(true);
+    const example = fixtures.find(
+      (fixture) => fixture.id === "example-nordic-digital",
+    );
+    expect(example?.cvPdf?.byteLength).toBeGreaterThan(0);
+    expect(example?.jobTitle).toBe("Junior frontendutvikler");
+  });
+
+  it("reads the files, the optional cv.pdf and the Cached Letters by Tone", async () => {
+    await fixturesWith({
+      b: {
+        "cv.txt": "CV",
+        "ad.txt": "AD",
+        "meta.json": META,
+        "cv.pdf": new Uint8Array([1, 2, 3]),
+        "cached/letter-direkte.json": '{"data":{"text":"d"}}',
+        "cached/letter-formell.json": '{"data":{"text":"f"}}',
+      },
+      a: { "cv.txt": "CV2", "ad.txt": "AD2", "meta.json": META },
+      _planted: { "cv.txt": "x" },
+    });
+    const fixtures = await loadFixtures();
+    // `a` has no Cached Letters, so it is not a Test-mode source.
+    expect(fixtures.map((fixture) => fixture.id)).toEqual(["b"]);
+    expect(Array.from(fixtures[0]?.cvPdf ?? [])).toEqual([1, 2, 3]);
+    expect(fixtures[0]?.cachedLetters).toEqual([
+      {
+        tone: "Formell",
+        file: "letter-formell.json",
+        content: { data: { text: "f" } },
+      },
+      {
+        tone: "Direkte",
+        file: "letter-direkte.json",
+        content: { data: { text: "d" } },
+      },
+    ]);
+  });
+
+  it("throws when a Cached file is not JSON, naming the file", async () => {
+    await fixturesWith({
+      a: {
+        "cv.txt": "CV",
+        "ad.txt": "AD",
+        "meta.json": META,
+        "cached/letter-formell.json": "not json",
+      },
+    });
+    await expect(loadFixtures()).rejects.toThrow(
+      "Invalid Cached response a/letter-formell.json: not JSON",
+    );
+  });
+
+  it("throws when meta.json is not valid or a file is missing, for a Fixture with Cached Letters", async () => {
+    const cached = { "cached/letter-formell.json": '{"data":{"text":"f"}}' };
+    await fixturesWith({
+      a: {
+        "cv.txt": "CV",
+        "ad.txt": "AD",
+        "meta.json": '{"jobTitle":"T"}',
+        ...cached,
+      },
+    });
+    await expect(loadFixtures()).rejects.toThrow(
+      /^Invalid Fixture a: employer/,
+    );
+    await fixturesWith({ a: { "cv.txt": "CV", "meta.json": META, ...cached } });
+    await expect(loadFixtures()).rejects.toThrow();
+  });
+
+  it("ignores a half-built Fixture that has no Cached Letters", async () => {
+    await fixturesWith({
+      a: { "cv.txt": "CV" },
+      b: {
+        "cv.txt": "CV",
+        "ad.txt": "AD",
+        "meta.json": META,
+        "cached/letter-formell.json": '{"data":{"text":"f"}}',
+      },
+    });
+    expect((await loadFixtures()).map((fixture) => fixture.id)).toEqual(["b"]);
   });
 });

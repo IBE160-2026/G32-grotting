@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import nextConfig from "../next.config";
 
 describe("AD-15 file tracing of data/", () => {
-  it("includes the vocabulary for every API route", () => {
+  it("includes the vocabulary and the Example pair with its cached/ folder for every API route", () => {
     expect(nextConfig.outputFileTracingIncludes?.["/api/**"]).toEqual([
       "./data/vocabulary/**",
+      "./data/fixtures/example-nordic-digital/**",
     ]);
   });
 

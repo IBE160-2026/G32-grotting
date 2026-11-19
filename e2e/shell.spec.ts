@@ -63,6 +63,20 @@ test.describe("UX-DR19 live regions", () => {
   });
 });
 
+test.describe("FR-27 UX-DR16 Test-mode banner", () => {
+  test("sits under the app bar inside the header and can't be closed", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const note = page.locator('header [role="note"]');
+    await expect(note).toContainText(
+      "Testmodus – KI-svarene er forhåndslagret",
+    );
+    await expect(note).toContainText("Samsvaret regnes likevel ut av koden.");
+    await expect(note.getByRole("button")).toHaveCount(0);
+  });
+});
+
 test.describe("AD-4 RunMode", () => {
   test("sends config only to the client", async ({ request }) => {
     // The props travel inside the escaped RSC payload.

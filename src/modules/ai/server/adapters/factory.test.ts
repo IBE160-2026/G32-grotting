@@ -16,10 +16,10 @@ describe("AD-3 createAdapter", () => {
     );
   });
 
-  it("says cached is not built yet", () => {
-    expect(() => createAdapter("cached", { isTestRun: true })).toThrow(
-      /not built yet/,
-    );
+  it("returns the cached adapter", () => {
+    const adapter = createAdapter("cached", { isTestRun: true });
+    expect(adapter.kind).toBe("cached");
+    expect(adapter.provider).toBe("cached");
   });
 
   it("returns the mock adapter", () => {

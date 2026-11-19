@@ -24,6 +24,7 @@ vi.mock("./adapters/factory", async (importOriginal) => {
   return { ...actual, createAdapter: vi.fn(actual.createAdapter) };
 });
 
+import { CachedMissError } from "./adapters/cached";
 import { createAdapter } from "./adapters/factory";
 import { AiProviderError } from "./adapters/live";
 import { createMockAdapter } from "./adapters/mock";
@@ -159,13 +160,36 @@ describe("AD-13 runAi result and clock", () => {
   });
 
   it("logs UNEXPECTED once and rethrows when the default adapter is unavailable", async () => {
+    vi.mocked(createAdapter).mockImplementationOnce(() => {
+      throw new Error("adapter unavailable");
+    });
     await expect(
       runAi(request(), CTX, { now: fixedNow, testMode: true }),
-    ).rejects.toThrow(/not built yet/);
+    ).rejects.toThrow(/adapter unavailable/);
     expect(loggedEvents()).toHaveLength(1);
     expect(loggedEvents()[0]).toMatchObject({
       kind: "ai",
       errorCode: "UNEXPECTED",
+    });
+  });
+
+  it("answers an input that is no Fixture with TEST_MODE_UNAVAILABLE on the default cached adapter", async () => {
+    const result = await runAi(request(), CTX, {
+      now: fixedNow,
+      testMode: true,
+    });
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "TEST_MODE_UNAVAILABLE", retryable: false },
+    });
+    expect(createAdapter).toHaveBeenLastCalledWith(
+      "cached",
+      expect.objectContaining({ isTestRun: true }),
+    );
+    expect(loggedEvents()).toHaveLength(1);
+    expect(loggedEvents()[0]).toMatchObject({
+      provider: "cached",
+      errorCode: "TEST_MODE_UNAVAILABLE",
     });
   });
 });
@@ -279,6 +303,22 @@ describe("NFR-4 failures", () => {
     expect(loggedEvents()[0]).toMatchObject({
       errorCode: "AI_PROVIDER_ERROR",
     });
+  });
+
+  it("maps a Cached miss to TEST_MODE_UNAVAILABLE, not retryable, and logs once", async () => {
+    const adapter = createMockAdapter({ error: new CachedMissError() });
+    const result = await runAi(request(), CTX, options(adapter));
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "TEST_MODE_UNAVAILABLE", retryable: false },
+    });
+    expect(loggedEvents()).toHaveLength(1);
+    expect(loggedEvents()[0]).toMatchObject({
+      errorCode: "TEST_MODE_UNAVAILABLE",
+      inputTokens: null,
+      outputTokens: null,
+    });
+    expect(JSON.stringify(loggedEvents())).not.toContain(CV_SENTINEL);
   });
 
   it("maps a bad shape to AI_PROVIDER_ERROR and logs once", async () => {

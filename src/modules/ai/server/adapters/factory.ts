@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { AiSource } from "../../contracts";
+import { sharedCachedAdapter } from "./cached";
 import { createLiveAdapter, type LiveSettings } from "./live";
 import { createMockAdapter } from "./mock";
 
@@ -45,7 +46,7 @@ export function createAdapter(
         },
       );
     case "cached":
-      throw new Error("The cached AI adapter is not built yet (Story 3.5)");
+      return sharedCachedAdapter();
     case "mock":
       return createMockAdapter();
   }

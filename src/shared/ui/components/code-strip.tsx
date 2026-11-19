@@ -3,12 +3,14 @@ import type { ReactNode } from "react";
 // «Funnet», «Mangler» and the verdict strips (UX-DR12). Real text on a code
 // colour: the label alone carries the meaning, the colour only repeats it.
 // Not interactive.
-export type CodeStripKind = "found" | "missing" | "outline";
+export type CodeStripKind = "found" | "missing" | "outline" | "sand";
 
 const KIND: Record<CodeStripKind, string> = {
   found: "bg-moss text-ground",
   missing: "bg-rust text-ground",
   outline: "border border-edge bg-transparent text-ink",
+  // The Test-mode banner (UX-DR16).
+  sand: "bg-sand text-ground",
 };
 
 export function codeStripClasses(kind: CodeStripKind): string {
