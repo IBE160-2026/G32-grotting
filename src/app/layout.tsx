@@ -5,6 +5,7 @@ import { getConfig } from "@/shared/server/config";
 import { toRunMode } from "@/shared/server/run-mode";
 import { LIVE_REGION_IDS } from "@/shared/ui/announce";
 import { AppBar } from "@/shared/ui/components/app-bar";
+import { Banner } from "@/shared/ui/components/banner";
 import { messages } from "@/shared/ui/messages.nb";
 import { QueryProvider } from "@/shared/ui/query-provider";
 import { RunModeProvider } from "@/shared/ui/run-mode";
@@ -53,6 +54,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </a>
           <header>
             <AppBar />
+            <Banner />
           </header>
           <main
             id="hovedinnhold"

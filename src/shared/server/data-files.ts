@@ -1,5 +1,5 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { type Vocabulary, vocabularySchema } from "@/shared/core/vocabulary";
@@ -77,4 +77,113 @@ export async function loadExamplePair(): Promise<ExamplePair> {
     throw new Error(`Invalid example pair: ${problems}`);
   }
   return { cvText, jobAd, ...meta.data };
+}
+
+// The Tones that have a Cached Letter, as they are written in the lookup key.
+// The file is `cached/letter-<tone in lower case>.json`; the recorder
+// (`scripts/record-cached.ts`) is its only writer.
+const CACHED_TONES = ["Formell", "Personlig", "Direkte"] as const;
+
+/** One `cached/letter-<tone>.json`, as parsed JSON: `ai` validates it. */
+export type CachedLetterFile = {
+  readonly tone: (typeof CACHED_TONES)[number];
+  readonly file: string;
+  readonly content: unknown;
+};
+
+/** The files of one Fixture folder that a Test-mode run needs. */
+export type FixtureFiles = {
+  readonly id: string;
+  readonly cvText: string;
+  /** The bytes of `cv.pdf`, when the Fixture has one. */
+  readonly cvPdf: Uint8Array | undefined;
+  readonly jobAd: string;
+  readonly jobTitle: string;
+  readonly employer: string;
+  /** The Cached Letters that exist, in Tone order. */
+  readonly cachedLetters: readonly CachedLetterFile[];
+};
+
+const isMissing = (error: unknown) =>
+  error instanceof Error && "code" in error && error.code === "ENOENT";
+
+async function readOptional<T>(read: () => Promise<T>): Promise<T | undefined> {
+  try {
+    return await read();
+  } catch (error) {
+    if (isMissing(error)) return undefined;
+    throw error;
+  }
+}
+
+// The Cached Letters of one folder, in Tone order. A folder without any is not
+// a Test-mode source, so a half-built one elsewhere cannot break the others.
+async function loadCachedLetters(
+  folder: string,
+  id: string,
+): Promise<CachedLetterFile[]> {
+  const cachedLetters: CachedLetterFile[] = [];
+  for (const tone of CACHED_TONES) {
+    const file = `letter-${tone.toLowerCase()}.json`;
+    const text = await readOptional(() =>
+      readFile(join(folder, "cached", file), "utf8"),
+    );
+    if (text === undefined) continue;
+    let content: unknown;
+    try {
+      content = JSON.parse(text);
+    } catch {
+      throw new Error(`Invalid Cached response ${id}/${file}: not JSON`);
+    }
+    cachedLetters.push({ tone, file, content });
+  }
+  return cachedLetters;
+}
+
+async function loadFixtureFiles(
+  root: string,
+  id: string,
+): Promise<FixtureFiles | undefined> {
+  const folder = join(root, id);
+  const cachedLetters = await loadCachedLetters(folder, id);
+  if (cachedLetters.length === 0) return undefined;
+  const [cvText, jobAd, metaText, cvPdf] = await Promise.all([
+    readFile(join(folder, "cv.txt"), "utf8"),
+    readFile(join(folder, "ad.txt"), "utf8"),
+    readFile(join(folder, "meta.json"), "utf8"),
+    readOptional(
+      async () => new Uint8Array(await readFile(join(folder, "cv.pdf"))),
+    ),
+  ]);
+  let json: unknown;
+  try {
+    json = JSON.parse(metaText);
+  } catch {
+    throw new Error(`Invalid Fixture ${id}: meta.json is not JSON`);
+  }
+  const meta = exampleMetaSchema.safeParse(json);
+  if (!meta.success) {
+    const problems = meta.error.issues
+      .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Invalid Fixture ${id}: ${problems}`);
+  }
+  return { id, cvText, cvPdf, jobAd, ...meta.data, cachedLetters };
+}
+
+/**
+ * Every Fixture folder under `data/fixtures/` that does not start with `_`
+ * (`_planted` is for tests), with `cv.txt`, `cv.pdf` when present, `ad.txt`,
+ * `meta.json` and its Cached Letters. Sorted by id. Throws when a file a
+ * Fixture needs is missing or when `meta.json` or a Cached file is not valid.
+ */
+export async function loadFixtures(): Promise<FixtureFiles[]> {
+  const root = join(process.cwd(), "data", "fixtures");
+  const entries = await readdir(root, { withFileTypes: true });
+  const ids = entries
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
+    .map((entry) => entry.name)
+    .sort();
+  const loaded = await Promise.all(ids.map((id) => loadFixtureFiles(root, id)));
+  return loaded.filter((fixture) => fixture !== undefined);
 }

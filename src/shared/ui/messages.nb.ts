@@ -11,6 +11,12 @@ export const messages = {
     menuClose: "Lukk",
   },
   errorStrip: "Feil",
+  // The Test-mode banner under the app bar (FR-27, UX-DR16).
+  testBanner: {
+    strip: "Testmodus",
+    text: "Testmodus – KI-svarene er forhåndslagret",
+    note: "Samsvaret regnes likevel ut av koden.",
+  },
   // «612 av 20 000 tegn»: the counter under a long text field.
   counter: (used: string, max: string) => `${used} av ${max} tegn`,
   networkFailure:

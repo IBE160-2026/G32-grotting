@@ -8,6 +8,7 @@ import { log } from "@/shared/server/log";
 import type { AiConsent, AiOutput } from "../contracts";
 import { lookupKeyOf } from "../core/lookup-key";
 import { stripContactDetails } from "../core/strip-contact";
+import { CachedMissError } from "./adapters/cached";
 import {
   type AiAdapterPort,
   type AiUsage,
@@ -45,8 +46,10 @@ export type AiFailure = {
     | "AI_PROVIDER_ERROR"
     | "AI_NOTICE_REQUIRED"
     | "DAILY_CAP_REACHED"
+    | "TEST_MODE_UNAVAILABLE"
   >;
-  // Only a timeout or a provider error is worth another try.
+  // Only a timeout or a provider error is worth another try; a Test-mode miss
+  // is final (the input is not a recorded Fixture).
   readonly retryable: boolean;
 };
 
@@ -165,8 +168,11 @@ export async function runAi<T>(
     let generated: Awaited<typeof pending> | typeof TIMED_OUT;
     try {
       generated = await Promise.race([pending, timedOut]);
-    } catch {
+    } catch (error) {
       logged = true;
+      if (error instanceof CachedMissError) {
+        return fail("TEST_MODE_UNAVAILABLE", NO_USAGE);
+      }
       return fail(
         controller.signal.aborted ? "AI_TIMEOUT" : "AI_PROVIDER_ERROR",
         NO_USAGE,

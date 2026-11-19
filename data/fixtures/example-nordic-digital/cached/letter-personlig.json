@@ -1,0 +1,12 @@
+{
+  "data": {
+    "text": "Hei Nordic Digital,\n\nSøknad på stillingen som Junior frontendutvikler\n\nJeg søker stillingen som junior frontendutvikler hos dere. Jeg er nyutdannet bachelor i informatikk fra Høgskolen i Oslo, og jeg brenner for å bygge nettsider som folk faktisk har nytte av.\n\nHøsten 2025 var jeg med i en gruppe på fire studenter som lagde en nettside for en lokal frivillig organisasjon. De trengte en enklere måte å melde seg på arrangementer. Jeg hadde ansvar for brukergrensesnittet og skrev komponentene i React. Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen. Jeg skrev også enkle tester for skjemaene våre. Det lærte meg å skrive kode som andre skal lese og kunne stole på.\n\nHver andre uke møtte vi organisasjonen, og jeg viste frem det vi hadde laget og forklarte det på en enkel måte. Den samme evnen brukte jeg som butikkmedarbeider på deltid i flere år, der jeg lærte å forklare ting enkelt og å jobbe sammen i et lite team.\n\nI faget Programvareutvikling jobbet vi med Agile og Scrum i praksis, med to ukers sprinter og retrospektiv. Jeg kjenner derfor igjen arbeidsmåten dere beskriver, og jeg har lyst til å lære mer av den i et team der jeg kan spørre og få råd fra mer erfarne kolleger.\n\nUniversell utforming er noe jeg synes er viktig. I emnet Brukeropplevelse jobbet jeg med prototyping i Figma og med universell utforming av nettsider. I Webutvikling 1 bygde jeg en nettside i HTML og CSS som tilpasser seg mobilskjermer. Jeg mener at en nettside først er god når alle kan bruke den, uansett skjerm og forutsetninger.\n\nJeg lærer raskt, og jeg er nysgjerrig på hvordan et byrå som Nordic Digital arbeider med ekte kunder. Jeg håper å få komme på en samtale og fortelle mer om hva jeg kan bidra med.\n\nMed vennlig hilsen\n{{SIGNATUR}}"
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "letter-1",
+    "createdAt": "2026-11-19T17:22:38.982Z"
+  }
+}
