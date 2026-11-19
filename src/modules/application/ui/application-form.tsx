@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { AiNotice, noticeRequired } from "@/modules/ai/ui";
 import {
   type CvErrorCode,
   type CvState,
@@ -35,6 +36,7 @@ import { CatalogueHeading } from "@/shared/ui/components/catalogue-heading";
 import { CreditsList } from "@/shared/ui/components/credits-list";
 import { TextArea, TextField } from "@/shared/ui/components/text-field";
 import { messages } from "@/shared/ui/messages.nb";
+import { useRunMode } from "@/shared/ui/run-mode";
 import {
   type AnalyseRequest,
   type AnalysisInputs,
@@ -117,6 +119,10 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   // A second submit while one runs does nothing, even before React has
   // rendered the busy button (NFR-5).
   const sending = useRef(false);
+  const runMode = useRunMode();
+  // The AI notice is open (FR-24); the request it holds back waits in the ref.
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  const pending = useRef<AnalyseRequest | null>(null);
   const analysis = useMutation({
     mutationFn: (request: AnalyseRequest) =>
       callApi("/api/analyses", analyseResponseSchema, { body: request }),
@@ -287,7 +293,33 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       applicationId = crypto.randomUUID();
       writeSession({ applicationId });
     }
-    send({ applicationId, inputs: { cvText: cv.draft, ...values } });
+    const request: AnalyseRequest = {
+      applicationId,
+      inputs: { cvText: cv.draft, ...values },
+    };
+    // Before anything can leave the app, the Student is asked once per browser
+    // session (FR-24). Test mode never asks. Phase 1 waits for the answer.
+    if (noticeRequired(runMode, readSession().noticeVersion)) {
+      pending.current = request;
+      setNoticeOpen(true);
+      return;
+    }
+    send(request);
+  }
+
+  function acceptNotice() {
+    writeSession({ noticeVersion: runMode.aiNotice.version });
+    setNoticeOpen(false);
+    const request = pending.current;
+    pending.current = null;
+    if (request !== null) send(request);
+  }
+
+  // «Avbryt» and Esc: the inputs stay, nothing is sent, and focus goes back to
+  // the submit button once the dialog has closed.
+  function cancelNotice() {
+    pending.current = null;
+    setNoticeOpen(false);
   }
 
   // One request for phase 1: code only, so the result needs no AI (NFR-4).
@@ -468,6 +500,12 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
           </Button>
         </div>
       </form>
+      <AiNotice
+        open={noticeOpen}
+        onAccept={acceptNotice}
+        onCancel={cancelNotice}
+        returnFocusRef={submitRef}
+      />
       <div className="mt-8">
         <PulsePlot
           placement="flat"

@@ -8,6 +8,9 @@ export const SESSION_KEY = "ja.session.v1";
 const sessionSchema = z.looseObject({
   v: z.literal(1),
   applicationId: z.string().optional(),
+  // The AI notice the Student accepted in this browser session (FR-24): the
+  // `RunMode.aiNotice.version` that was showing.
+  noticeVersion: z.string().optional(),
   inputs: z
     .looseObject({
       // `cvDraft` is the CV text as typed; `cvText` exists only while it is
@@ -29,6 +32,7 @@ export type SessionStorage = Pick<Storage, "getItem" | "setItem">;
 export type SessionPatch = {
   // `null` removes the id. An input set to `undefined` is removed.
   readonly applicationId?: string | null;
+  readonly noticeVersion?: string;
   readonly inputs?: SessionInputs;
 };
 
@@ -75,6 +79,9 @@ export function writeSession(
     inputs: { ...rest.inputs, ...patch.inputs },
   };
   if (applicationId !== undefined) next.applicationId = applicationId;
+  if (patch.noticeVersion !== undefined) {
+    next.noticeVersion = patch.noticeVersion;
+  }
   try {
     storage?.setItem(SESSION_KEY, JSON.stringify(next));
   } catch {

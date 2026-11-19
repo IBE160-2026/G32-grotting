@@ -168,8 +168,8 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     aiNotice: {
       version: [
         // Bump this prefix whenever the notice text in messages.nb.ts changes
-        // (Stories 3.6 and 3.7), so earlier consents stop counting.
-        "notice-1",
+        // (Story 3.6 wrote the first text; Story 3.11 adds the keyword sentence), so earlier consents stop counting.
+        "notice-2",
         encodeURIComponent(providerName),
         retentionDays === null ? "unknown" : String(retentionDays),
         features.keywordFallback ? "fallback" : "no-fallback",
