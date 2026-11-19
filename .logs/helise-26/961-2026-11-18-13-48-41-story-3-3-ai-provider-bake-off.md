@@ -174,10 +174,11 @@ Kjøre kodegjennomgang (`bmad-code-review`) av Story 3.3 og delstoryene 3.3b, 3.
 - Etter patchene: `npx biome check`, `npm run typecheck` og `npx vitest run` grønne (63 filer, 715 tester). Docker-testen er ikke kjørt på nytt etter patchene.
 - `sprint-status.yaml`: 3-3 satt til `done` (validert med `sprint_plan.py validate`). 3.3b, 3.3c og 3.3d har ikke egne nøkler der.
 - Docker-punktene fra tidligere stories (1.8, 2.6, 2.7, 2.10, 2.11) lukket i `issues.md`; 2.5, 2.8, 2.9 og retro-punktet delvis.
+- Senere samme dag: Helene leste Pass/Fail-utkastet (punktet i `issues.md` lukket). Retro-punkt 5 fra Epic 2 lukket: regelen om Docker-testen for stories som endrer Dockerfile, avhengigheter eller `data/` lagt i `epic-3-context.md`; action item 5 satt til `done` i `sprint-status.yaml` med `sprint_status.py update --set-action-status`; retro-dokumentets oppfølging oppdatert.
 - Endringene i kode, dokumenter, PRD, spec og sprint-status er ukommitterte; bare loggfila og `issues.md` committes her. `issues.md` hadde allerede ukommitterte endringer fra før økten (30 linjer med `[x]` → `[X]` og tre lukkede punkter); de ble med i loggcommiten.
 
 ### Åpne punkter
 - Ingen test sjekker bake-offens exit-kode ved brukerfeil (lagt i `issues.md` og `deferred-work.md`).
-- Ferdig-kriteriene for Epic 3-stories som endrer Dockerfile, avhengigheter eller `data/` må fortsatt få Docker-testen med.
 - Kjør Docker-testen på nytt etter at patchene er merget, eller la CI vise det.
-- Ellers uendret: les Pass/Fail-utkastet i `results.md`, verifiser verten (Google/Amazon) og vilkårene, og gjør det før Story 3.6 og 3.12.
+- `results.md` og runbook trinn 6 sier fortsatt at utkastet ikke er gjennomgått celle for celle; Helene har lest det, men ikke bekreftet cellene én og én. Rett teksten hvis hun vil stå inne for dem.
+- Ellers uendret: verifiser verten (Google/Amazon) og vilkårene, og gjør det før Story 3.6 og 3.12.
