@@ -18,6 +18,8 @@ Drafted 2026-11-15 from the public terms. **Not yet confirmed in the dashboards.
 
 **Decision (Helene, 2026-11-15):** accept the finding. The public Vercel DPA names Enterprise and Pro, not Hobby, and Vercel support was not asked. Per PRD §5.1 (cut 0) the README run (NFR-9) is the delivery. The Hosted version stays a skeleton: the Access code gate and the app shell, with no AI and no Student data. The change is logged as D23 in PRD §11. Stories that assume a live-AI Hosted version (3.12, 6.12, 7.x) are to be matched in a later pass.
 
+**Frozen 2026-11-19 (Helene, option (a)):** `git.deploymentEnabled.main` in `vercel.json` is `false`, so no merge deploys any more and Hosted stays at its last skeleton deploy (the one from the merge of Story 3.4, PR #48, or earlier; no `AI_*` variable is set). Stories 3.12 and 6.12 in `epics.md` were rewritten to match. To confirm in Vercel: Settings → Git shows no Production deployment after this change, and Production has no `AI_*`, `FEATURE_*` or `ENCRYPTION_KEY` variable.
+
 ## 2. Set-up (once)
 
 Do these in order. The first Production build starts when the story's pull request is merged to `main`, so finish steps 1 and 2 before merging.
@@ -75,7 +77,7 @@ FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-throug
 
 - GitHub disables scheduled workflows after 60 days without repository activity. Check that `keep-alive` is still enabled when grading starts.
 - Supabase Free pauses a project after 7 days without activity; the keep-alive prevents that. A paused project is resumed in the dashboard.
-- Cut 0 (PRD §5.1): set `main` to `false` in `git.deploymentEnabled` in `vercel.json`. The Hosted version then stays at its last deploy.
+- Cut 0 (PRD §5.1): applied on 2026-11-19. `main` is `false` in `git.deploymentEnabled` in `vercel.json`, so the Hosted version stays at its last deploy. To deploy again, set it back to `true` (and the test in `scripts/hosted-config.test.ts`).
 - After grading: delete the Vercel and Supabase projects (FR-23).
 - The Access code is handed in with the submission and never committed (NFR-7). To change it, edit `ACCESS_CODE` in Vercel and redeploy `main`: a changed variable applies only to a new build. Everyone then needs the new code.
 - `/api/health` is open without the code on purpose (the keep-alive calls it). It answers only `ok` and `hosted`.

@@ -17,9 +17,9 @@ describe("FR-30 vercel.json", () => {
     expect(vercel.buildCommand).toBe("npm run db:migrate && npm run build");
   });
 
-  it("deploys only main", () => {
+  it("deploys nothing: the Hosted version is frozen (cut 0, D23)", () => {
     expect(vercel.git).toEqual({
-      deploymentEnabled: { "**": false, main: true },
+      deploymentEnabled: { "**": false, main: false },
     });
   });
 
