@@ -30,3 +30,23 @@ Helene vil bygge resten av epikene (3.4–7.5, 36 stories) autonomt med `/goal`,
 - PRD §11 og FR-30/FR-31/UJ-3 avstemmes mot D23 i story 7.5 (allerede planlagt).
 - Vurder å heve OpenRouter-grensen (20 USD) hvis live-innspillingene i 3.5, 3.11, 4.3, 5.1, 5.4 og 7.1 ikke holder.
 - Foreslått goal-oppdeling: (1) Epic 3 til og med 3.11, (2) Epic 4 og Epic 5 frem til live-sjekklisten, (3) Epic 6, (4) Epic 7; hvert goal stopper ved et menneske-steg og skriver det til `issues.md`.
+
+## 2026-11-19 kl. 18:25 — Helise-26
+
+### Oppgave
+Helene svarte: frys Hosted nå, «prompt logging» og «use of inputs/outputs» er bekreftet av i OpenRouter, gitleaks er godkjent, og agenten får pushe og merge.
+
+### Plan
+- Frysen gjøres i en egen worktree fra `origin/main`, så 3.5-arbeidet på arbeidsgrenen ikke berøres.
+- Kjøre gitleaks via Docker (offisielt image) som utgangspunkt for story 7.4.
+
+### Resultat
+- PR #49 (`chore/freeze-hosted-d23`) merget til `main` (merge `1d26388`, commit `23ccf6c`): `vercel.json` `main: false`, `scripts/hosted-config.test.ts` oppdatert, `docs/qa/hosted-deployment.md` har fryse-notat og cut 0 markert som tatt. CI grønn (4m11s). Selve merge-en deployet ikke. `https://g32-grotting.vercel.app/api/health` svarer 200.
+- Ikke gjort av meg: sjekk i Vercel-dashbordet at Production ikke har `AI_*`, `FEATURE_*` eller `ENCRYPTION_KEY` (menneskesteg i 3.12).
+- gitleaks (Docker, 212 commits): 4 funn, alle `generic-api-key`: `scripts/setup.test.ts` linje 32 og 74, `vitest.config.ts` linje 19 (testkonstant for `ENCRYPTION_KEY`) og `_bmad/_config/files-manifest.csv` linje 48 (hash). Ser ut som falske positiver; ikke undersøkt videre. Rapport: `%TEMP%\gl\report.json` (utenfor repoet).
+- Helenes bekreftelse av prompt logging og use of inputs/outputs er ikke ført inn i `docs/qa/ai-provider-terms.md`.
+
+### Åpne punkter
+- Føre inn Helenes bekreftelse (prompt logging og use of inputs/outputs av, 2026-11-19) i `docs/qa/ai-provider-terms.md`, helst i story 3.6.
+- Story 7.4: legg en `.gitleaks.toml` med tillatelse for de fire kjente falske positivene, og kjør skanningen på nytt.
+- Arbeidsgrenen er `story/3.5-…` med ukommitterte endringer (`epics.md`, `AGENTS.md`, `sprint-status.yaml`, `spec-3-5-…`) og loggcommiten `d2609cb` som ikke er pushet.
