@@ -42,7 +42,7 @@ Helene svarte: frys Hosted nå, «prompt logging» og «use of inputs/outputs» 
 
 ### Resultat
 - PR #49 (`chore/freeze-hosted-d23`) merget til `main` (merge `1d26388`, commit `23ccf6c`): `vercel.json` `main: false`, `scripts/hosted-config.test.ts` oppdatert, `docs/qa/hosted-deployment.md` har fryse-notat og cut 0 markert som tatt. CI grønn (4m11s). Selve merge-en deployet ikke. `https://g32-grotting.vercel.app/api/health` svarer 200.
-- Ikke gjort av meg: sjekk i Vercel-dashbordet at Production ikke har `AI_*`, `FEATURE_*` eller `ENCRYPTION_KEY` (menneskesteg i 3.12).
+- Bekreftet av Helene 2026-11-19 (i Vercel-dashbordet, etter at PR #49 var merget): Production har ingen `AI_*`, `FEATURE_*` eller `ENCRYPTION_KEY`. Raden er ikke ført inn i `docs/qa/hosted-deployment.md` ennå; story 3.12 kan sitere denne loggen eller skrive raden.
 - gitleaks (Docker, 212 commits): 4 funn, alle `generic-api-key`: `scripts/setup.test.ts` linje 32 og 74, `vitest.config.ts` linje 19 (testkonstant for `ENCRYPTION_KEY`) og `_bmad/_config/files-manifest.csv` linje 48 (hash). Ser ut som falske positiver; ikke undersøkt videre. Rapport: `%TEMP%\gl\report.json` (utenfor repoet).
 - Helenes bekreftelse av prompt logging og use of inputs/outputs er ikke ført inn i `docs/qa/ai-provider-terms.md`.
 
