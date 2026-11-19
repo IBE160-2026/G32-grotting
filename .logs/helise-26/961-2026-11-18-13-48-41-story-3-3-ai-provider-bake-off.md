@@ -154,3 +154,54 @@ Finne hvilken vert som svarer på Sonnet 5.5 gjennom OpenRouter, og føre funnen
 ### Åpne punkter
 - Les Google Vertex og Amazon Bedrock sine vilkår, SCC/DPF og region; navngi begge i varselet (3.6).
 - Sjekk Activity-siden i OpenRouter; vurder `provider.only`.
+
+## 2026-11-19 kl. 17:26 — Helise-26
+
+### Oppgave
+Kjøre kodegjennomgang (`bmad-code-review`) av Story 3.3 og delstoryene 3.3b, 3.3c og 3.3d, og kjøre Docker-testen fra Epic 2-retroen.
+
+### Plan
+- Sprintstatus (`bmad-sprint-planning status`): 3.3 sto som `review`, mens alle fire spec-filene var `done`.
+- Diff `e37ac19..HEAD` uten `.logs/` og de genererte bake-off-utdataene i `docs/qa/bake-off/` (3382 linjer, 29 filer); fire reviewere (Blind Hunter, Edge Case Hunter, Verification Gap, Acceptance Auditor mot spec 3.3, 3.3b–d).
+- Triage, så anvende alle patcher (valg 1 både på diff-omfanget og på «Apply every patch»).
+
+### Resultat
+- `docker compose run --rm --build test` på main: exit 0, 63 testfiler / 713 tester (2 expected fail, 1 hoppet over), 120 e2e grønne.
+- Review: 1 decision-needed (Helene valgte 1: godta og dokumenter), 3 patcher, 2 defer, 8 avvist. Funnene står i `### Review Findings` i `spec-3-3-pick-the-ai-provider-in-a-bake-off.md`; utsettelsene i `deferred-work.md`.
+- Patch 1: begrensningene i modellvalget (lettere Gap-oppgave med fasitens nøkkelord, bare tonen Formell, Claude som poengsetter, ingen stikkprøve for hånd) lagt til i `results.md` (Decision) og `docs/architecture.md` seksjon 4.
+- Patch 2: dokumentene rettet: verten er Google Vertex eller Amazon Bedrock, ikke Anthropic (runbook trinn 7–8 og innledning, architecture seksjon 4, terms-fila, PRD Open question 3); varselet (3.6) skal navngi OpenRouter, Google og Amazon; runbook sier nå at §8.1 er endret til å godta SCC, men ikke oppfylt.
+- Patch 3: ny test i `scripts/bake-off.test.ts` som kjører `runBakeOff` uten injisert adapter og sjekker at hver kandidat sender sin egen modell og nøkkel. Mutasjonssjekk: med fast `model` i `defaultAdapterFor` feilet testen; filen er gjenopprettet.
+- Etter patchene: `npx biome check`, `npm run typecheck` og `npx vitest run` grønne (63 filer, 715 tester). Docker-testen er ikke kjørt på nytt etter patchene.
+- `sprint-status.yaml`: 3-3 satt til `done` (validert med `sprint_plan.py validate`). 3.3b, 3.3c og 3.3d har ikke egne nøkler der.
+- Docker-punktene fra tidligere stories (1.8, 2.6, 2.7, 2.10, 2.11) lukket i `issues.md`; 2.5, 2.8, 2.9 og retro-punktet delvis.
+- Senere samme dag: Helene leste Pass/Fail-utkastet (punktet i `issues.md` lukket). Retro-punkt 5 fra Epic 2 lukket: regelen om Docker-testen for stories som endrer Dockerfile, avhengigheter eller `data/` lagt i `epic-3-context.md`; action item 5 satt til `done` i `sprint-status.yaml` med `sprint_status.py update --set-action-status`; retro-dokumentets oppfølging oppdatert.
+- Helene sa at hun står inne for hver celle. `DRAFT` fjernet fra de 96 cellene i `results.md` (Pass 81, Check 5, Fail 2, n/a 8) uten å endre innholdet; overskrift og Decision-punkter, runbook trinn 6, architecture §4 og PRD (linje 893) sier nå at Claude utkastet og Helene bekreftet hver celle 2026-11-19. Begrensningen «ingen stikkprøve for hånd» er fjernet; de andre (lettere Gap-oppgave, bare Formell, Claude-familien) står. Hva hun eventuelt endret i cellene er ikke notert.
+- Endringene i kode, dokumenter, PRD, spec og sprint-status er ukommitterte; bare loggfila og `issues.md` committes her. `issues.md` hadde allerede ukommitterte endringer fra før økten (30 linjer med `[x]` → `[X]` og tre lukkede punkter); de ble med i loggcommiten.
+
+### Åpne punkter
+- Ingen test sjekker bake-offens exit-kode ved brukerfeil (lagt i `issues.md` og `deferred-work.md`).
+- Kjør Docker-testen på nytt etter at patchene er merget, eller la CI vise det.
+- Ellers uendret: verifiser verten (Google/Amazon) og vilkårene, og gjør det før Story 3.6 og 3.12.
+
+## 2026-11-19 kl. 17:31 — Helise-26
+
+### Oppgave
+Lese `issues.md` og sjekke KI-leverandørens vilkår (de åpne punktene fra bake-offen), så langt det lar seg gjøre fra primærkilder; deretter søke på DPF-lista og føre resultatet i vilkårsdokumentet og `issues.md`.
+
+### Plan
+- Lese hele `issues.md` (191 linjer) og `docs/qa/ai-provider-terms.md`.
+- Websøk og oppslag for de åpne punktene: DPF-status for Google, Amazon og OpenRouter, vertens vilkår (Vertex, Bedrock), OpenRouters underleverandørliste og EU-alternativ.
+- dataprivacyframework.gov/list er en JS-app uten innebygd søk for verktøyet; fant sidens egne offentlige søkekall (POST til `dpfapi.azurewebsites.net/api/participants`, samme kropp som siden sender) og søkte på hvert navn med status Active og Inactive.
+- Føre resultatet i `docs/qa/ai-provider-terms.md` og `issues.md` (Helene ba om «record and tick»).
+
+### Resultat
+- DPF-lista (søkt 2026-11-19 av Claude): OpenRouter, Anthropic og OpenAI gir 0 treff (Active og Inactive). Google LLC er Active (EU–US, Swiss–US og UK Extension; HR og ikke-HR; omfang står bare som «See Purposes of Data Collection section»). Amazon.com, Inc. er Active (de tre rammeverkene, ikke-HR; dekker Amazon Web Services, Inc.).
+- Øvrige funn (ikke ført som bekreftet): Googles egen side sier at Google LLC er DPF-sertifisert; Googles dokumentasjon sier at global endpoint kan behandle forespørsler hvor som helst (EØS-only er ikke vist for Vertex-ruten); Bedrock: bare sekundærkilder om retensjon og trening, EU-inferensprofiler holder seg i EU, standardprofilene kan behandle utenfor kilderegionen; OpenRouters underleverandørliste viser fortsatt bare fem navn; EU-ruting (`eu.openrouter.ai`) er dokumentert for Business- og Enterprise-planer, og om Sonnet 5.5 står på EU-lista er ikke verifisert.
+- `docs/qa/ai-provider-terms.md`: DPF-raden for OpenRouter omskrevet med resultatet og kildene, «What is left for Helene» oppdatert (DPF søkt, Helene bekrefter på nettsiden og leser Googles omfangsoppføring; underleverandørliste og EU-alternativ fortsatt åpne; vertens DPF-status ferdig, region ikke).
+- `issues.md`: punktet «søk OpenRouter (og verten) på dataprivacyframework.gov» lukket (`[X]`, løst 2026-11-19); notater lagt til på punktene om OpenRouter-vilkårene og om Vertex/Bedrock; nytt punkt for Heleles bekreftelse.
+- Senere i økten: Helene sa at Google Vertex svarte på alle Sonnet-forespørslene i bake-offen. Ført i `docs/qa/ai-provider-terms.md` (rad «Which host serves the request», Decision og «What is left») som rapportert av Helene, ikke sett av Claude; punktet «verifiser OpenRouters vilkår og hvilken vert som svarte» lukket i `issues.md`, og punktet om Vertex og Bedrock oppdatert (Activity-siden sjekket, `provider.only` fortsatt åpent). `docs/architecture.md`, PRD, runbook og varselteksten sier fortsatt «Google eller Amazon»; ikke endret i denne økten.
+- Arbeidskopien har mange andre ukommitterte endringer (`_bmad-output/`, `docs/architecture.md`, `docs/qa/bake-off*`, `scripts/bake-off.test.ts`, PRD, `AGENTS.md`) som ikke er fra denne økten; også endringen i `docs/qa/ai-provider-terms.md` er ukommittert. Bare loggfila og `issues.md` committes her.
+
+### Åpne punkter
+- Helene bekrefter DPF-oppslaget på nettsiden og leser Googles «Purposes of Data Collection»-oppføring (gjelder Google Cloud-kundedata?). Lagt i `issues.md`.
+- Ellers uendret: full underleverandørliste, EU-alternativet, avgjørelsen om `provider.only` (uten den kan Bedrock fortsatt svare), og vertenes vilkår og region (Vertex global endpoint, Bedrock-region) før Story 3.6 og 3.12. Dokumentene som sier «Google eller Amazon» (architecture, PRD, runbook, varselet i 3.6) bør oppdateres når `provider.only` er avgjort.

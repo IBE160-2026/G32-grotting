@@ -127,3 +127,24 @@ The story ends at «ready for Helene to run»: the winner is a human decision, s
 - `npm run typecheck` -- expected: no errors
 - `npx vitest run` -- expected: all pass
 - `npx tsx --conditions=react-server scripts/bake-off.ts --dry` -- expected: files written to the OS temp directory
+
+### Review Findings
+
+Code review of Stories 3.3, 3.3b, 3.3c and 3.3d together (2026-11-19). Diff: `e37ac19..HEAD`, without `.logs/` and the generated outputs in `docs/qa/bake-off/`.
+
+- [x] [Review][Patch] Record the limits of the model decision (decided 2026-11-19, Helene: option 1, accept and record) — the Gap task was given the Answer key's `missingKeywords`, so it was easier than the app's; every Letter used the Formell tone; the cells were scored by a Claude model that is also a contender; no human check of a sample was done (Helene confirmed every cell on 2026-11-19, after this review). Add this to the «Decision» header of `docs/qa/bake-off/2026-11-18/results.md` and to the «Why this model» text in `docs/architecture.md` section 4 [docs/qa/bake-off/2026-11-18/results.md] [docs/architecture.md:82]
+- [x] [Review][Patch] The documents contradict each other about who receives the text and what is done — runbook step 7 says PRD §8.1 «is not amended» (it is: SCCs, U25); runbook step 8 and its `AI_RETENTION_DAYS` line say the notice names «OpenRouter and Anthropic» (should be OpenRouter, Google and Amazon); the runbook intro says steps 1 to 7 are done while step 2 is open; `docs/architecture.md` section 4 (two places), the PRD Open question 3 and `docs/qa/ai-provider-terms.md` (Decision, line 9) say the host is «expected to be Anthropic» next to the finding that it is Google or Amazon; the terms file says «Helene has not confirmed any row» above rows she confirmed [docs/qa/bake-off-runbook.md:3,42,49] [docs/architecture.md:82,86] [docs/qa/ai-provider-terms.md:9,36]
+- [x] [Review][Patch] The bake-off's live wiring (`defaultAdapterFor(false)`) has no test — every `runBakeOff` test is `dry` or injects `adapterFor`; a wrong key, model or provider there would pass all tests and the results would be labelled by the planned id. Add a `runBakeOff` test with a stubbed `fetch` that checks each contender's request carries its own key and model [scripts/bake-off.ts:289]
+- [x] [Review][Defer] Nothing tests that a bake-off usage error sets a non-zero exit code [scripts/bake-off.ts:~513] — deferred: Helene watches the first live run (runbook); settle with a child-process test or by moving the block into a testable function
+- [x] [Review][Defer] The go-live condition is prose only; a wrong `AI_PROVIDER` burns a Daily-cap slot; routing is not pinned and the serving host is not recorded — deferred: already recorded in `deferred-work.md` and `issues.md`, owned by Stories 3.6 and 3.12
+
+#### Rejected
+
+- `false` — RetryError hides the HTTP status: `runAi` and the bake-off both pass `maxRetries: 0`, so the SDK never wraps the error.
+- `false` — billed tokens lost on a script SCHEMA_MISMATCH: the live adapter already validates with the same schema and throws first; the script's check only trips in the mock.
+- `false` — `sumOf` drops known tokens when one request fails: a failed request's usage is unknown, so «n/a» is right and the row says «(a request failed)».
+- `false` — the first two commit messages describe Anthropic/OpenAI adapters: commit messages are history; the code and 3.3d are current.
+- `low` — an aborted signal hides a real HTTP failure; a provider value is echoed in the unsupported-provider error; a blank or hex price parses as a number; a missing `meta.json` gives the default title and employer; a run killed midway, or a write error, leaves paid outputs without `results.md` and a re-run overwrites them: unlikely, cheap (16 requests) and watched by Helene; the fixes add guards.
+- `low` — the `maxRetries` test covers only 0; the one-element `Provider` type and `["openrouter-mock-1"]` loop; `<usd>` placeholders in runbook step 5; the 3.3b `deferred-work.md` note and the `sprint-status.yaml` edits go beyond 3.3d: cosmetic.
+- Already tracked — the cost limit's type and amount, the EU routing option, the singular «the AI provider» in PRD FR-24/§8.1: in `issues.md` or `deferred-work.md`.
+- Edits the spec under review — the adapter validates the shape with the SDK although the 3.3 matrix says `runAi` does; the 3.3d spec still says «Anthropic»: the fix is to change a spec.

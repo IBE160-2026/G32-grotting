@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-18-2026 16:00
+last_updated: 11-19-2026 17:28
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -66,7 +66,7 @@ development_status:
   epic-3: in-progress
   3-1-send-every-ai-request-through-one-pipeline: done
   3-2-enforce-the-daily-cap-and-the-ai-notice-on-the-server: done
-  3-3-pick-the-ai-provider-in-a-bake-off: review
+  3-3-pick-the-ai-provider-in-a-bake-off: done
   3-4-write-the-letter-on-the-server: backlog
   3-5-run-the-full-flow-in-test-mode-on-cached-responses: backlog
   3-6-ask-before-any-text-leaves-the-app: backlog
@@ -150,7 +150,7 @@ action_items:
     action: "Run docker compose run --rm --build test once and add it to the done
       criteria for Epic 3 stories that change Dockerfile, dependencies or data/"
     owner: "dev loop"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-2-retro-2026-11-18.md"
   - id: "epic-2-retro-item-6-split-e2e-application-spec-ts-by-flow-be"
     epic: 2
