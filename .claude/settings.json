@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm view *)",
+      "Bash(npm test)",
+      "Bash(npm run typecheck)",
+      "Bash(docker compose run --rm --build test)",
+      "Bash(git fetch *)"
+    ]
+  }
+}
