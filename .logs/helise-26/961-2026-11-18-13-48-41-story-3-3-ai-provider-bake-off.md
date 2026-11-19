@@ -182,3 +182,25 @@ Kjøre kodegjennomgang (`bmad-code-review`) av Story 3.3 og delstoryene 3.3b, 3.
 - Ingen test sjekker bake-offens exit-kode ved brukerfeil (lagt i `issues.md` og `deferred-work.md`).
 - Kjør Docker-testen på nytt etter at patchene er merget, eller la CI vise det.
 - Ellers uendret: verifiser verten (Google/Amazon) og vilkårene, og gjør det før Story 3.6 og 3.12.
+
+## 2026-11-19 kl. 17:31 — Helise-26
+
+### Oppgave
+Lese `issues.md` og sjekke KI-leverandørens vilkår (de åpne punktene fra bake-offen), så langt det lar seg gjøre fra primærkilder; deretter søke på DPF-lista og føre resultatet i vilkårsdokumentet og `issues.md`.
+
+### Plan
+- Lese hele `issues.md` (191 linjer) og `docs/qa/ai-provider-terms.md`.
+- Websøk og oppslag for de åpne punktene: DPF-status for Google, Amazon og OpenRouter, vertens vilkår (Vertex, Bedrock), OpenRouters underleverandørliste og EU-alternativ.
+- dataprivacyframework.gov/list er en JS-app uten innebygd søk for verktøyet; fant sidens egne offentlige søkekall (POST til `dpfapi.azurewebsites.net/api/participants`, samme kropp som siden sender) og søkte på hvert navn med status Active og Inactive.
+- Føre resultatet i `docs/qa/ai-provider-terms.md` og `issues.md` (Helene ba om «record and tick»).
+
+### Resultat
+- DPF-lista (søkt 2026-11-19 av Claude): OpenRouter, Anthropic og OpenAI gir 0 treff (Active og Inactive). Google LLC er Active (EU–US, Swiss–US og UK Extension; HR og ikke-HR; omfang står bare som «See Purposes of Data Collection section»). Amazon.com, Inc. er Active (de tre rammeverkene, ikke-HR; dekker Amazon Web Services, Inc.).
+- Øvrige funn (ikke ført som bekreftet): Googles egen side sier at Google LLC er DPF-sertifisert; Googles dokumentasjon sier at global endpoint kan behandle forespørsler hvor som helst (EØS-only er ikke vist for Vertex-ruten); Bedrock: bare sekundærkilder om retensjon og trening, EU-inferensprofiler holder seg i EU, standardprofilene kan behandle utenfor kilderegionen; OpenRouters underleverandørliste viser fortsatt bare fem navn; EU-ruting (`eu.openrouter.ai`) er dokumentert for Business- og Enterprise-planer, og om Sonnet 5.5 står på EU-lista er ikke verifisert.
+- `docs/qa/ai-provider-terms.md`: DPF-raden for OpenRouter omskrevet med resultatet og kildene, «What is left for Helene» oppdatert (DPF søkt, Helene bekrefter på nettsiden og leser Googles omfangsoppføring; underleverandørliste og EU-alternativ fortsatt åpne; vertens DPF-status ferdig, region ikke).
+- `issues.md`: punktet «søk OpenRouter (og verten) på dataprivacyframework.gov» lukket (`[X]`, løst 2026-11-19); notater lagt til på punktene om OpenRouter-vilkårene og om Vertex/Bedrock; nytt punkt for Heleles bekreftelse.
+- Arbeidskopien har mange andre ukommitterte endringer (`_bmad-output/`, `docs/architecture.md`, `docs/qa/bake-off*`, `scripts/bake-off.test.ts`, PRD, `AGENTS.md`) som ikke er fra denne økten; også endringen i `docs/qa/ai-provider-terms.md` er ukommittert. Bare loggfila og `issues.md` committes her.
+
+### Åpne punkter
+- Helene bekrefter DPF-oppslaget på nettsiden og leser Googles «Purposes of Data Collection»-oppføring (gjelder Google Cloud-kundedata?). Lagt i `issues.md`.
+- Ellers uendret: full underleverandørliste, EU-alternativet, hvilken vert som svarte, og vertenes vilkår og region (Vertex global endpoint, Bedrock-region) før Story 3.6 og 3.12.
