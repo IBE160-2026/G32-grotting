@@ -316,7 +316,7 @@ Requirement IDs are the PRD's own (FR-1 to FR-31, FR-5b, NFR-1 to NFR-11) and ar
 | FR-27 | 2, 3 | Example pair files and «Bruk eksempelet» with the score (2); Test-mode banner and Cached responses for the AI sections (3) |
 | FR-28 | 2 | Fixtures and Answer keys |
 | FR-29 | 6 | Seeded local test user |
-| FR-30 | 1, 7 | Hosted skeleton on Vercel and Supabase (1); final deploy and grading-period check (7) |
+| FR-30 | 1, 3, 7 | Hosted skeleton on Vercel and Supabase (1); frozen, with no AI (3.12, D23); README note and grading-period check (7) |
 | FR-31 | 1, 6 | Access-code gate per browser session (1); code at registration (6) |
 
 NFRs are cross-cutting. Each story meets NFR-1 to NFR-7, NFR-10 and NFR-11 for what it builds, and writes its own `docs/qa/` rows. NFR-9 starts in Epic 1 (Docker Compose run and test command) and grows with each epic. Epic 7 runs the final whole-app checks: NFR-2, NFR-4, NFR-7 (secret scan), NFR-9 (dry run), NFR-10 and NFR-11.
@@ -382,9 +382,9 @@ The Student registers once, keeps the CV in Profil, and finds every Application 
 
 ### Epic 7: Hand in a gradable app (never cut)
 
-The Examiner can run the delivered app from the README alone on a clean machine, try it live on the Hosted version, and trace every feature to a requirement, with the QA evidence and the planning documents matching what was built.
+The Examiner can run the delivered app from the README alone on a clean machine, see the frozen Hosted skeleton (D23: no AI, no Student data), and trace every feature to a requirement, with the QA evidence and the planning documents matching what was built.
 
-**FRs covered:** FR-23 (course-end deletion in README), FR-30 (final deploy, grading-period check)
+**FRs covered:** FR-23 (course-end deletion in README), FR-30 (README note on the frozen Hosted skeleton, grading-period check)
 **NFR focus:** NFR-2 (final axe and keyboard pass), NFR-4 (timed runs), NFR-7 (secret scan), NFR-9 (full README and dry run), NFR-10, NFR-11
 **Includes:** final §9.2 checklist runs for the final prompt version (SM-3, SM-5), clean-machine dry run (SM-4), check of every planning document against the app, repository clean-up
 
@@ -1562,28 +1562,36 @@ So that my score reflects the ad (kept: Story 2.11 decided on 2026-11-17 that FR
 **When** `keywordFallback` is on
 **Then** its text also says that the Job ad, never the CV, is sent to extract Keywords, and `aiNotice.version` has changed
 
-### Story 3.12: Turn on live AI on the Hosted version and pass the core-flow checkpoint
+### Story 3.12: Freeze the Hosted version and pass the core-flow checkpoint
+
+**Changed 2026-11-19 (Helene, D23):** the Hosted version stays a skeleton (Access code gate and app shell, no AI, no Student data) because Vercel's DPA does not name the Hobby plan (`docs/qa/hosted-deployment.md` §1). The README run is the delivery. This story no longer turns on live AI on Hosted; it freezes Hosted and proves the core flow locally.
 
 As the Examiner,
-I want the Hosted version to write real Letters, and the core flow proven stable before more features are added,
-So that I can try the live AI, and the build order's checkpoint is met before work starts on S4.
+I want the core flow proven stable on the local app before more features are added, and the Hosted version left as the skeleton,
+So that the build order's checkpoint is met before work starts on S4, and the Hosted version never carries AI or Student data.
 
-**Covers:** FR-30, FR-24, FR-25, NFR-5, NFR-8, SM-1, SM-2, PRD §5.2 (core-flow checkpoint, 24 Nov), SC7, SC8
-**Code:** Vercel environment variables only; `docs/qa/` rows
+**Covers:** FR-30 (reduced by D23), FR-24, FR-25, NFR-5, NFR-8, SM-1, SM-2, PRD §5.1 (cut 0 as taken in D23), PRD §5.2 (core-flow checkpoint, 24 Nov), SC7, SC8
+**Code:** `vercel.json` (`main` set to `false`); the Hosted rule in `config.ts` (`AI_PROVIDER` set without an AI key is a startup error on Hosted, and so is a half-set AI setting; from the Story 1.2 deferred item); `docs/qa/` rows
 
 **Acceptance Criteria:**
 
-**Given** Vercel's Production environment
-**When** live AI is switched on
-**Then** `AI_PROVIDER`, `AI_MODEL` and `AI_API_KEY` are set, the provider's monthly spending limit is confirmed, and UJ-1 (without accounts) works on the Hosted version on a laptop and on a phone, recorded in the FR-30 row
+**Given** `vercel.json`
+**When** this story is merged
+**Then** `git.deploymentEnabled.main` is `false`, so the Hosted version stays at its last skeleton deploy, and `keep-alive.yml` stays enabled
+**And** a human check in Vercel's dashboard confirms that Production has no `AI_*` and no `FEATURE_*` variable and no `ENCRYPTION_KEY`; the result is a dated row in the FR-30 table in `docs/qa/hosted-deployment.md`
+
+**Given** `APP_ENV=hosted`
+**When** `AI_PROVIDER` is set without `AI_API_KEY`, or `AI_API_KEY` or `AI_MODEL` is set without `AI_PROVIDER`
+**Then** startup fails naming the setting, and a test covers each case
 
 **Given** the checkpoint on 24 Nov
-**When** it is assessed
+**When** it is assessed on the local app (Docker run, Helene's live key in `.env` for the live Fixture)
 **Then** `docs/qa/` records, with the date: the automated tests for FR-1 to FR-12 and FR-24 to FR-28 pass; SM-1 passes for the Example pair in Test mode and for at least one live Fixture; SM-2 passes; and the wrong-input tour (all 6 inputs, plus a double click and a refresh during phase 2) passes
+**And** UJ-1 (without accounts) is walked through once on a laptop and once on a real phone against the local app on the same network, and recorded (a human step: Helene)
 
 **Given** the checkpoint isn't passed
 **When** it is recorded
-**Then** cut 0 is applied (the Hosted version is frozen by setting `main` to `false` in `deploymentEnabled`), S1–S3 are finished before anything else, and the decision is logged in PRD §11
+**Then** S1–S3 are finished before anything else (cut 0 is already applied), and the decision is logged in PRD §11
 
 ## Epic 4: Understand each gap honestly
 
@@ -2221,7 +2229,7 @@ I want accounts, Profil and Historikk on in every run, with privacy and encrypti
 So that the full v1 is what I grade.
 
 **Covers:** FR-19, FR-22 (database inspection), FR-29, FR-31, NFR-7, NFR-9, AD-4 (flag default), AD-17 (CI smoke login)
-**Code:** `FEATURE_DEFAULTS.accounts = true` in `config.ts`; Vercel `ENCRYPTION_KEY`; extends `scripts/smoke.mjs`; README; `docs/qa/` rows
+**Code:** `FEATURE_DEFAULTS.accounts = true` in `config.ts`; extends `scripts/smoke.mjs`; README; `docs/qa/` rows (changed 2026-11-19, D23: no Vercel `ENCRYPTION_KEY`; the Hosted version stays frozen with accounts off)
 
 **Acceptance Criteria:**
 
@@ -2245,9 +2253,11 @@ So that the full v1 is what I grade.
 **When** the account flows run end to end
 **Then** registration, login, Profil, Søknad with the Profile CV, Historikk (empty and with entries), a Saved Application, Konto, logout and the expiry warning (with a shortened timeout in the test) each pass, and every one of those screens passes the axe scan at 1280 px and 360 px
 
-**Given** the Hosted version
-**When** accounts go live
-**Then** `ENCRYPTION_KEY` is set in Vercel's Production environment, registration asks for the Access code, `/tilgang` is no longer shown, and UJ-1 and UJ-2 are walked through on it and recorded
+**Given** the Hosted version, frozen since Story 3.12 (D23)
+**When** accounts go live in the code
+**Then** nothing is redeployed: Vercel's Production still has no `ENCRYPTION_KEY`, accounts are never on there, and no Student data is stored on Hosted
+**And** the rule «registration asks for the Access code on Hosted» is covered by unit tests of `gateDecision` and the registration route with `hosted: true`, since it can't be walked through live
+**And** UJ-1 and UJ-2 are walked through on the local Docker app and recorded in `docs/qa/`
 
 **Given** the README
 **When** this story is merged
@@ -2255,7 +2265,7 @@ So that the full v1 is what I grade.
 
 ## Epic 7: Hand in a gradable app (never cut)
 
-The Examiner can run the delivered app from the README alone on a clean machine, try it live on the Hosted version, and trace every feature to a requirement, with the QA evidence and the planning documents matching what was built. This epic is the final period, 12–15 December, which the PRD says is never compressed.
+The Examiner can run the delivered app from the README alone on a clean machine, see the frozen Hosted skeleton (D23: no AI, no Student data), and trace every feature to a requirement, with the QA evidence and the planning documents matching what was built. This epic is the final period, 12–15 December, which the PRD says is never compressed.
 
 ### Story 7.1: Record the final checklist runs
 
@@ -2320,7 +2330,7 @@ So that I can grade runnability without asking anyone for help.
 
 **Given** the README
 **When** it is finished
-**Then** it covers what the app does and who it is for (with a screenshot), Docker as the one prerequisite (with the tested version), the three commands, the environment variables and how to run with a live AI key, UJ-1 and UJ-3 and the local test user, the Hosted URL (the Access code comes with the submission), an overview of the folders, and links to the brief (marked as the approved proposal), the PRD and its §11, the UX documents, the architecture, the epics, `docs/qa/` and the session logs
+**Then** it covers what the app does and who it is for (with a screenshot), Docker as the one prerequisite (with the tested version), the three commands, the environment variables and how to run with a live AI key, UJ-1 and UJ-3 and the local test user, the Hosted URL with a note that it is a frozen skeleton with no AI (D23; the Access code comes with the submission), an overview of the folders, and links to the brief (marked as the approved proposal), the PRD and its §11, the UX documents, the architecture, the epics, `docs/qa/` and the session logs
 **And** it says that all stored Student data is deleted when the course ends, and that the Hosted version and its database are taken down after grading
 
 **Given** a clean machine (a fresh virtual machine, a sandbox or a classmate's computer)
@@ -2372,4 +2382,4 @@ So that I can trace every feature to a requirement and every change to a reason.
 
 **Given** the final commit on `main`
 **When** it deploys
-**Then** the Hosted version answers at its URL, the Access code is ready to hand over with the submission (never committed), and the keep-alive job keeps the database awake through grading
+**Then** the Hosted version (the frozen skeleton, D23) answers at its URL, the Access code is ready to hand over with the submission (never committed), and the keep-alive job keeps the database awake through grading
