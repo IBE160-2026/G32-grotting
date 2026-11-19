@@ -4,16 +4,17 @@
 
 **Decided 2026-11-18 by Helene:** Claude Sonnet 5.5 (`anthropic/claude-sonnet-5.5`) used through OpenRouter, not directly. The runner-up was `openai/gpt-5.6-terra`. Reasons, data handling and the open condition are in `docs/architecture.md` section 4 and PRD Open question 3.
 
+- Limits of the evidence (accepted by Helene 2026-11-19): the Gap request was given the Answer key's missing Keywords, so it was easier than the app's, where code or the AI finds the Keywords (FR-5b); every Letter used the Formell tone only.
 - The evidence is one run per model per Fixture: Sonnet found 12 of 15 expected Rewordable gaps against 11. The margin is small and the variance between runs was not measured.
-- In Claude's reading Sonnet wrote more natural Norwegian. That is Claude's own unverified reading: Claude drafted every cell and Sonnet is a Claude model, so it may favour its own family. Helene did not review L1 and R3 (or any other cell) one by one.
+- In Claude's reading Sonnet wrote more natural Norwegian. Claude drafted every cell and Sonnet is a Claude model, so the draft may favour its own family; Helene read the draft and confirmed every cell, L1 and R3 included, on 2026-11-19, after she had chosen the model.
 - No R1 failure in the draft; one unresolved Check on pull requests, the same as the other model.
 - Against Sonnet: one G2 failure (nursing, «erfaring med demens»), about $0.048 against $0.028 per Application (still far inside 200 NOK a month), and slower (about 14 s against 6 s for a Letter).
-- The Pass / fail cells below are Claude's draft; Helene chose the model on those results.
-- Every request sent `data_collection: deny` and `zdr: true` (settings the app sends; the resulting retention is not verified), and all 16 requests succeeded. The text reaches OpenRouter and the model's host, expected to be Anthropic; the host that served these requests was not recorded. OpenRouter's and the host's data-handling terms are not verified; that is a condition for Story 3.12 and the AI notice (Story 3.6).
+- Claude drafted the Pass / fail cells below; Helene confirmed each cell on 2026-11-19. She chose the model on 2026-11-18, on the draft.
+- Every request sent `data_collection: deny` and `zdr: true` (settings the app sends; the resulting retention is not verified), and all 16 requests succeeded. The text reaches OpenRouter and the model's host; under `zdr: true` that is Google Vertex or Amazon Bedrock, not Anthropic, and the host that served these requests was not recorded. OpenRouter's and the host's data-handling terms are not verified; that is a condition for Story 3.12 and the AI notice (Story 3.6).
 
-**DRAFT by Claude, 2026-11-18: every cell below that starts with «DRAFT» is a proposal to be confirmed or changed by Helene. Mechanical checks (words, copied runs, emoji, title, employer, evidence in the CV) were run by script; the rest is Claude's reading. L1 naturalness, L6, L8 and R3 need a native speaker. Gap recall against the Answer keys (G4) is in the summary below.**
+**Drafted by Claude 2026-11-18; every cell confirmed by Helene 2026-11-19. Mechanical checks (words, copied runs, emoji, title, employer, evidence in the CV) were run by script; the rest is Claude's reading. Gap recall against the Answer keys (G4) is in the summary below.**
 
-Score each output by hand against PRD §9.2 and fill the Pass / fail cells. The decision is Helene's; follow `docs/qa/bake-off-runbook.md`.
+Each output was scored against PRD §9.2 (Claude's draft, confirmed by Helene). The decision is Helene's; follow `docs/qa/bake-off-runbook.md`.
 
 ## Contenders
 
@@ -45,14 +46,14 @@ Output: [openrouter-anthropic-claude-sonnet-5.5/example-nordic-digital.letter.tx
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| L1 | Bokmål throughout; no English sentences | DRAFT Pass (language only; naturalness is for Helene) |
-| L2 | Every qualification, tool, employer, date and number exists in the CV text | DRAFT Pass |
-| L3 | No run of 8 or more words in a row copied from the ad | DRAFT Pass (longest run from the ad: 5 words) |
-| L4 | Job title and employer are correct | DRAFT Pass |
-| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | DRAFT Pass (about 293 words) |
-| L6 | The chosen Tone's rules hold and it reads as that Tone | DRAFT Pass (formal, no anecdote marker; only Formell was requested) |
-| L7 | Every flag the integrity guard would raise is a real problem | DRAFT n/a (the integrity guard is not built; see L2) |
-| L8 | No emoji or exclamation marks, no needless English loanwords | DRAFT Pass (no emoji, no exclamation marks) |
+| L1 | Bokmål throughout; no English sentences | Pass (language only; naturalness read by Helene) |
+| L2 | Every qualification, tool, employer, date and number exists in the CV text | Pass |
+| L3 | No run of 8 or more words in a row copied from the ad | Pass (longest run from the ad: 5 words) |
+| L4 | Job title and employer are correct | Pass |
+| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | Pass (about 293 words) |
+| L6 | The chosen Tone's rules hold and it reads as that Tone | Pass (formal, no anecdote marker; only Formell was requested) |
+| L7 | Every flag the integrity guard would raise is a real problem | n/a (the integrity guard is not built; see L2) |
+| L8 | No emoji or exclamation marks, no needless English loanwords | Pass (no emoji, no exclamation marks) |
 
 ### openrouter:anthropic/claude-sonnet-5.5: Gap analysis
 
@@ -60,10 +61,10 @@ Output: [openrouter-anthropic-claude-sonnet-5.5/example-nordic-digital.gap.json]
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| G1 | Each rewordable gap's cited CV entry really shows the Keyword | DRAFT Pass (evidence is verbatim from the CV) |
-| G2 | Every must-never-suggest item in the Answer key is a Real gap | DRAFT Pass |
-| G3 | Real gaps are worded honestly and do not push to add the Keyword | DRAFT Pass |
-| R1 | No suggestion adds a fact or upgrades the work or the role | DRAFT Check: «code review i pull requests» adds that the review happened in pull requests; the CV does not say so |
+| G1 | Each rewordable gap's cited CV entry really shows the Keyword | Pass (evidence is verbatim from the CV) |
+| G2 | Every must-never-suggest item in the Answer key is a Real gap | Pass |
+| G3 | Real gaps are worded honestly and do not push to add the Keyword | Pass |
+| R1 | No suggestion adds a fact or upgrades the work or the role | Check: «code review i pull requests» adds that the review happened in pull requests; the CV does not say so |
 
 ### openrouter:openai/gpt-5.6-terra: Letter
 
@@ -71,14 +72,14 @@ Output: [openrouter-openai-gpt-5.6-terra/example-nordic-digital.letter.txt](open
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| L1 | Bokmål throughout; no English sentences | DRAFT Pass (language only; naturalness is for Helene) |
-| L2 | Every qualification, tool, employer, date and number exists in the CV text | DRAFT Pass |
-| L3 | No run of 8 or more words in a row copied from the ad | DRAFT Pass (longest run from the ad: 5 words) |
-| L4 | Job title and employer are correct | DRAFT Pass |
-| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | DRAFT Pass (about 292 words) |
-| L6 | The chosen Tone's rules hold and it reads as that Tone | DRAFT Pass (formal, no anecdote marker; only Formell was requested) |
-| L7 | Every flag the integrity guard would raise is a real problem | DRAFT n/a (the integrity guard is not built; see L2) |
-| L8 | No emoji or exclamation marks, no needless English loanwords | DRAFT Pass (no emoji, no exclamation marks) |
+| L1 | Bokmål throughout; no English sentences | Pass (language only; naturalness read by Helene) |
+| L2 | Every qualification, tool, employer, date and number exists in the CV text | Pass |
+| L3 | No run of 8 or more words in a row copied from the ad | Pass (longest run from the ad: 5 words) |
+| L4 | Job title and employer are correct | Pass |
+| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | Pass (about 292 words) |
+| L6 | The chosen Tone's rules hold and it reads as that Tone | Pass (formal, no anecdote marker; only Formell was requested) |
+| L7 | Every flag the integrity guard would raise is a real problem | n/a (the integrity guard is not built; see L2) |
+| L8 | No emoji or exclamation marks, no needless English loanwords | Pass (no emoji, no exclamation marks) |
 
 ### openrouter:openai/gpt-5.6-terra: Gap analysis
 
@@ -86,10 +87,10 @@ Output: [openrouter-openai-gpt-5.6-terra/example-nordic-digital.gap.json](openro
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| G1 | Each rewordable gap's cited CV entry really shows the Keyword | DRAFT Pass (evidence is verbatim from the CV) |
-| G2 | Every must-never-suggest item in the Answer key is a Real gap | DRAFT Pass |
-| G3 | Real gaps are worded honestly and do not push to add the Keyword | DRAFT Pass |
-| R1 | No suggestion adds a fact or upgrades the work or the role | DRAFT Check: «i pull requests» adds that the review happened in pull requests; the CV does not say so |
+| G1 | Each rewordable gap's cited CV entry really shows the Keyword | Pass (evidence is verbatim from the CV) |
+| G2 | Every must-never-suggest item in the Answer key is a Real gap | Pass |
+| G3 | Real gaps are worded honestly and do not push to add the Keyword | Pass |
+| R1 | No suggestion adds a fact or upgrades the work or the role | Check: «i pull requests» adds that the review happened in pull requests; the CV does not say so |
 
 ## held-out-regnskap-kvale
 
@@ -99,14 +100,14 @@ Output: [openrouter-anthropic-claude-sonnet-5.5/held-out-regnskap-kvale.letter.t
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| L1 | Bokmål throughout; no English sentences | DRAFT Pass (language only; naturalness is for Helene) |
-| L2 | Every qualification, tool, employer, date and number exists in the CV text | DRAFT Check: «avvik oppdages tidlig» and «hvordan det kan unngås» are not in the CV |
-| L3 | No run of 8 or more words in a row copied from the ad | DRAFT Pass (longest run from the ad: 2 words) |
-| L4 | Job title and employer are correct | DRAFT Pass |
-| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | DRAFT Pass (about 283 words) |
-| L6 | The chosen Tone's rules hold and it reads as that Tone | DRAFT Pass (formal, no anecdote marker; only Formell was requested) |
-| L7 | Every flag the integrity guard would raise is a real problem | DRAFT n/a (the integrity guard is not built; see L2) |
-| L8 | No emoji or exclamation marks, no needless English loanwords | DRAFT Pass (no emoji, no exclamation marks) |
+| L1 | Bokmål throughout; no English sentences | Pass (language only; naturalness read by Helene) |
+| L2 | Every qualification, tool, employer, date and number exists in the CV text | Check: «avvik oppdages tidlig» and «hvordan det kan unngås» are not in the CV |
+| L3 | No run of 8 or more words in a row copied from the ad | Pass (longest run from the ad: 2 words) |
+| L4 | Job title and employer are correct | Pass |
+| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | Pass (about 283 words) |
+| L6 | The chosen Tone's rules hold and it reads as that Tone | Pass (formal, no anecdote marker; only Formell was requested) |
+| L7 | Every flag the integrity guard would raise is a real problem | n/a (the integrity guard is not built; see L2) |
+| L8 | No emoji or exclamation marks, no needless English loanwords | Pass (no emoji, no exclamation marks) |
 
 ### openrouter:anthropic/claude-sonnet-5.5: Gap analysis
 
@@ -114,10 +115,10 @@ Output: [openrouter-anthropic-claude-sonnet-5.5/held-out-regnskap-kvale.gap.json
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| G1 | Each rewordable gap's cited CV entry really shows the Keyword | DRAFT Pass (evidence is verbatim from the CV) |
-| G2 | Every must-never-suggest item in the Answer key is a Real gap | DRAFT Pass |
-| G3 | Real gaps are worded honestly and do not push to add the Keyword | DRAFT Pass |
-| R1 | No suggestion adds a fact or upgrades the work or the role | DRAFT Pass |
+| G1 | Each rewordable gap's cited CV entry really shows the Keyword | Pass (evidence is verbatim from the CV) |
+| G2 | Every must-never-suggest item in the Answer key is a Real gap | Pass |
+| G3 | Real gaps are worded honestly and do not push to add the Keyword | Pass |
+| R1 | No suggestion adds a fact or upgrades the work or the role | Pass |
 
 ### openrouter:openai/gpt-5.6-terra: Letter
 
@@ -125,14 +126,14 @@ Output: [openrouter-openai-gpt-5.6-terra/held-out-regnskap-kvale.letter.txt](ope
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| L1 | Bokmål throughout; no English sentences | DRAFT Pass (language only; naturalness is for Helene) |
-| L2 | Every qualification, tool, employer, date and number exists in the CV text | DRAFT Check: «registrering og behandling av bilag» is only in the education list, not the job |
-| L3 | No run of 8 or more words in a row copied from the ad | DRAFT Pass (longest run from the ad: 3 words) |
-| L4 | Job title and employer are correct | DRAFT Pass |
-| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | DRAFT Pass (about 260 words) |
-| L6 | The chosen Tone's rules hold and it reads as that Tone | DRAFT Pass (formal, no anecdote marker; only Formell was requested) |
-| L7 | Every flag the integrity guard would raise is a real problem | DRAFT n/a (the integrity guard is not built; see L2) |
-| L8 | No emoji or exclamation marks, no needless English loanwords | DRAFT Pass (no emoji, no exclamation marks) |
+| L1 | Bokmål throughout; no English sentences | Pass (language only; naturalness read by Helene) |
+| L2 | Every qualification, tool, employer, date and number exists in the CV text | Check: «registrering og behandling av bilag» is only in the education list, not the job |
+| L3 | No run of 8 or more words in a row copied from the ad | Pass (longest run from the ad: 3 words) |
+| L4 | Job title and employer are correct | Pass |
+| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | Pass (about 260 words) |
+| L6 | The chosen Tone's rules hold and it reads as that Tone | Pass (formal, no anecdote marker; only Formell was requested) |
+| L7 | Every flag the integrity guard would raise is a real problem | n/a (the integrity guard is not built; see L2) |
+| L8 | No emoji or exclamation marks, no needless English loanwords | Pass (no emoji, no exclamation marks) |
 
 ### openrouter:openai/gpt-5.6-terra: Gap analysis
 
@@ -140,10 +141,10 @@ Output: [openrouter-openai-gpt-5.6-terra/held-out-regnskap-kvale.gap.json](openr
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| G1 | Each rewordable gap's cited CV entry really shows the Keyword | DRAFT Pass (evidence is verbatim from the CV) |
-| G2 | Every must-never-suggest item in the Answer key is a Real gap | DRAFT Pass |
-| G3 | Real gaps are worded honestly and do not push to add the Keyword | DRAFT Pass |
-| R1 | No suggestion adds a fact or upgrades the work or the role | DRAFT Pass |
+| G1 | Each rewordable gap's cited CV entry really shows the Keyword | Pass (evidence is verbatim from the CV) |
+| G2 | Every must-never-suggest item in the Answer key is a Real gap | Pass |
+| G3 | Real gaps are worded honestly and do not push to add the Keyword | Pass |
+| R1 | No suggestion adds a fact or upgrades the work or the role | Pass |
 
 ## nursing-sarvurdering
 
@@ -153,14 +154,14 @@ Output: [openrouter-anthropic-claude-sonnet-5.5/nursing-sarvurdering.letter.txt]
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| L1 | Bokmål throughout; no English sentences | DRAFT Pass (language only; naturalness is for Helene) |
-| L2 | Every qualification, tool, employer, date and number exists in the CV text | DRAFT Pass |
-| L3 | No run of 8 or more words in a row copied from the ad | DRAFT Pass (longest run from the ad: 7 words) |
-| L4 | Job title and employer are correct | DRAFT Pass |
-| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | DRAFT Pass (about 294 words) |
-| L6 | The chosen Tone's rules hold and it reads as that Tone | DRAFT Pass (formal, no anecdote marker; only Formell was requested) |
-| L7 | Every flag the integrity guard would raise is a real problem | DRAFT n/a (the integrity guard is not built; see L2) |
-| L8 | No emoji or exclamation marks, no needless English loanwords | DRAFT Pass (no emoji, no exclamation marks) |
+| L1 | Bokmål throughout; no English sentences | Pass (language only; naturalness read by Helene) |
+| L2 | Every qualification, tool, employer, date and number exists in the CV text | Pass |
+| L3 | No run of 8 or more words in a row copied from the ad | Pass (longest run from the ad: 7 words) |
+| L4 | Job title and employer are correct | Pass |
+| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | Pass (about 294 words) |
+| L6 | The chosen Tone's rules hold and it reads as that Tone | Pass (formal, no anecdote marker; only Formell was requested) |
+| L7 | Every flag the integrity guard would raise is a real problem | n/a (the integrity guard is not built; see L2) |
+| L8 | No emoji or exclamation marks, no needless English loanwords | Pass (no emoji, no exclamation marks) |
 
 ### openrouter:anthropic/claude-sonnet-5.5: Gap analysis
 
@@ -168,10 +169,10 @@ Output: [openrouter-anthropic-claude-sonnet-5.5/nursing-sarvurdering.gap.json](o
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| G1 | Each rewordable gap's cited CV entry really shows the Keyword | DRAFT Pass (the cited entry shows demens only as a course topic; see G2) |
-| G2 | Every must-never-suggest item in the Answer key is a Real gap | DRAFT Fail: «erfaring med demens» is on the Answer key's never-suggest list but is marked Rewordable (the suggestion itself is honest) |
-| G3 | Real gaps are worded honestly and do not push to add the Keyword | DRAFT Pass |
-| R1 | No suggestion adds a fact or upgrades the work or the role | DRAFT Pass |
+| G1 | Each rewordable gap's cited CV entry really shows the Keyword | Pass (the cited entry shows demens only as a course topic; see G2) |
+| G2 | Every must-never-suggest item in the Answer key is a Real gap | Fail: «erfaring med demens» is on the Answer key's never-suggest list but is marked Rewordable (the suggestion itself is honest) |
+| G3 | Real gaps are worded honestly and do not push to add the Keyword | Pass |
+| R1 | No suggestion adds a fact or upgrades the work or the role | Pass |
 
 ### openrouter:openai/gpt-5.6-terra: Letter
 
@@ -179,14 +180,14 @@ Output: [openrouter-openai-gpt-5.6-terra/nursing-sarvurdering.letter.txt](openro
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| L1 | Bokmål throughout; no English sentences | DRAFT Pass (language only; naturalness is for Helene) |
-| L2 | Every qualification, tool, employer, date and number exists in the CV text | DRAFT Check: «erfaring med observasjon og oppfølging av beboernes behov» goes a little beyond the CV |
-| L3 | No run of 8 or more words in a row copied from the ad | DRAFT Pass (longest run from the ad: 4 words) |
-| L4 | Job title and employer are correct | DRAFT Pass |
-| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | DRAFT Pass (about 296 words) |
-| L6 | The chosen Tone's rules hold and it reads as that Tone | DRAFT Pass (formal, no anecdote marker; only Formell was requested) |
-| L7 | Every flag the integrity guard would raise is a real problem | DRAFT n/a (the integrity guard is not built; see L2) |
-| L8 | No emoji or exclamation marks, no needless English loanwords | DRAFT Pass (no emoji, no exclamation marks) |
+| L1 | Bokmål throughout; no English sentences | Pass (language only; naturalness read by Helene) |
+| L2 | Every qualification, tool, employer, date and number exists in the CV text | Check: «erfaring med observasjon og oppfølging av beboernes behov» goes a little beyond the CV |
+| L3 | No run of 8 or more words in a row copied from the ad | Pass (longest run from the ad: 4 words) |
+| L4 | Job title and employer are correct | Pass |
+| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | Pass (about 296 words) |
+| L6 | The chosen Tone's rules hold and it reads as that Tone | Pass (formal, no anecdote marker; only Formell was requested) |
+| L7 | Every flag the integrity guard would raise is a real problem | n/a (the integrity guard is not built; see L2) |
+| L8 | No emoji or exclamation marks, no needless English loanwords | Pass (no emoji, no exclamation marks) |
 
 ### openrouter:openai/gpt-5.6-terra: Gap analysis
 
@@ -194,10 +195,10 @@ Output: [openrouter-openai-gpt-5.6-terra/nursing-sarvurdering.gap.json](openrout
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| G1 | Each rewordable gap's cited CV entry really shows the Keyword | DRAFT Pass (evidence is verbatim from the CV) |
-| G2 | Every must-never-suggest item in the Answer key is a Real gap | DRAFT Pass |
-| G3 | Real gaps are worded honestly and do not push to add the Keyword | DRAFT Pass |
-| R1 | No suggestion adds a fact or upgrades the work or the role | DRAFT Fail: «Har praksiserfaring med legemiddelhåndtering» upgrades «Fulgte med på legemidlene»; «gode muntlige og skriftlige norskkunnskaper» adds what the CV does not say |
+| G1 | Each rewordable gap's cited CV entry really shows the Keyword | Pass (evidence is verbatim from the CV) |
+| G2 | Every must-never-suggest item in the Answer key is a Real gap | Pass |
+| G3 | Real gaps are worded honestly and do not push to add the Keyword | Pass |
+| R1 | No suggestion adds a fact or upgrades the work or the role | Fail: «Har praksiserfaring med legemiddelhåndtering» upgrades «Fulgte med på legemidlene»; «gode muntlige og skriftlige norskkunnskaper» adds what the CV does not say |
 
 ## two-column-fjord-analytics
 
@@ -207,14 +208,14 @@ Output: [openrouter-anthropic-claude-sonnet-5.5/two-column-fjord-analytics.lette
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| L1 | Bokmål throughout; no English sentences | DRAFT Pass (language only; naturalness is for Helene) |
-| L2 | Every qualification, tool, employer, date and number exists in the CV text | DRAFT Pass |
-| L3 | No run of 8 or more words in a row copied from the ad | DRAFT Pass (longest run from the ad: 4 words) |
-| L4 | Job title and employer are correct | DRAFT Pass |
-| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | DRAFT Pass (about 269 words) |
-| L6 | The chosen Tone's rules hold and it reads as that Tone | DRAFT Pass (formal, no anecdote marker; only Formell was requested) |
-| L7 | Every flag the integrity guard would raise is a real problem | DRAFT n/a (the integrity guard is not built; see L2) |
-| L8 | No emoji or exclamation marks, no needless English loanwords | DRAFT Pass (no emoji, no exclamation marks) |
+| L1 | Bokmål throughout; no English sentences | Pass (language only; naturalness read by Helene) |
+| L2 | Every qualification, tool, employer, date and number exists in the CV text | Pass |
+| L3 | No run of 8 or more words in a row copied from the ad | Pass (longest run from the ad: 4 words) |
+| L4 | Job title and employer are correct | Pass |
+| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | Pass (about 269 words) |
+| L6 | The chosen Tone's rules hold and it reads as that Tone | Pass (formal, no anecdote marker; only Formell was requested) |
+| L7 | Every flag the integrity guard would raise is a real problem | n/a (the integrity guard is not built; see L2) |
+| L8 | No emoji or exclamation marks, no needless English loanwords | Pass (no emoji, no exclamation marks) |
 
 ### openrouter:anthropic/claude-sonnet-5.5: Gap analysis
 
@@ -222,10 +223,10 @@ Output: [openrouter-anthropic-claude-sonnet-5.5/two-column-fjord-analytics.gap.j
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| G1 | Each rewordable gap's cited CV entry really shows the Keyword | DRAFT Pass (evidence is verbatim from the CV) |
-| G2 | Every must-never-suggest item in the Answer key is a Real gap | DRAFT Pass |
-| G3 | Real gaps are worded honestly and do not push to add the Keyword | DRAFT Pass |
-| R1 | No suggestion adds a fact or upgrades the work or the role | DRAFT Pass |
+| G1 | Each rewordable gap's cited CV entry really shows the Keyword | Pass (evidence is verbatim from the CV) |
+| G2 | Every must-never-suggest item in the Answer key is a Real gap | Pass |
+| G3 | Real gaps are worded honestly and do not push to add the Keyword | Pass |
+| R1 | No suggestion adds a fact or upgrades the work or the role | Pass |
 
 ### openrouter:openai/gpt-5.6-terra: Letter
 
@@ -233,14 +234,14 @@ Output: [openrouter-openai-gpt-5.6-terra/two-column-fjord-analytics.letter.txt](
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| L1 | Bokmål throughout; no English sentences | DRAFT Pass (language only; naturalness is for Helene) |
-| L2 | Every qualification, tool, employer, date and number exists in the CV text | DRAFT Pass |
-| L3 | No run of 8 or more words in a row copied from the ad | DRAFT Pass (longest run from the ad: 4 words) |
-| L4 | Job title and employer are correct | DRAFT Pass |
-| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | DRAFT Pass (about 311 words) |
-| L6 | The chosen Tone's rules hold and it reads as that Tone | DRAFT Pass (formal, no anecdote marker; only Formell was requested) |
-| L7 | Every flag the integrity guard would raise is a real problem | DRAFT n/a (the integrity guard is not built; see L2) |
-| L8 | No emoji or exclamation marks, no needless English loanwords | DRAFT Pass (no emoji, no exclamation marks; «Junior produktanalytiker» is capitalised mid-sentence) |
+| L1 | Bokmål throughout; no English sentences | Pass (language only; naturalness read by Helene) |
+| L2 | Every qualification, tool, employer, date and number exists in the CV text | Pass |
+| L3 | No run of 8 or more words in a row copied from the ad | Pass (longest run from the ad: 4 words) |
+| L4 | Job title and employer are correct | Pass |
+| L5 | 250-400 words (at most 300 for Direkte), 2-3 concrete CV examples | Pass (about 311 words) |
+| L6 | The chosen Tone's rules hold and it reads as that Tone | Pass (formal, no anecdote marker; only Formell was requested) |
+| L7 | Every flag the integrity guard would raise is a real problem | n/a (the integrity guard is not built; see L2) |
+| L8 | No emoji or exclamation marks, no needless English loanwords | Pass (no emoji, no exclamation marks; «Junior produktanalytiker» is capitalised mid-sentence) |
 
 ### openrouter:openai/gpt-5.6-terra: Gap analysis
 
@@ -248,10 +249,10 @@ Output: [openrouter-openai-gpt-5.6-terra/two-column-fjord-analytics.gap.json](op
 
 | Item | Check | Pass / fail |
 | --- | --- | --- |
-| G1 | Each rewordable gap's cited CV entry really shows the Keyword | DRAFT Pass (evidence is verbatim from the CV) |
-| G2 | Every must-never-suggest item in the Answer key is a Real gap | DRAFT Pass |
-| G3 | Real gaps are worded honestly and do not push to add the Keyword | DRAFT Pass |
-| R1 | No suggestion adds a fact or upgrades the work or the role | DRAFT Pass |
+| G1 | Each rewordable gap's cited CV entry really shows the Keyword | Pass (evidence is verbatim from the CV) |
+| G2 | Every must-never-suggest item in the Answer key is a Real gap | Pass |
+| G3 | Real gaps are worded honestly and do not push to add the Keyword | Pass |
+| R1 | No suggestion adds a fact or upgrades the work or the role | Pass |
 
 ## Draft summary (Claude, 2026-11-18)
 

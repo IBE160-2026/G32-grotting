@@ -274,6 +274,60 @@ describe("PRD 8.2 Bake-off settings", () => {
     expect(results).toContain("| openrouter:a/x | a/x |");
     expect(results).toContain("openrouter-b-y/");
   });
+
+  // The default wiring (`defaultAdapterFor(false)`) is what a paid run uses; the
+  // test above injects its own adapter and so never reaches it.
+  it("sends every contender's own model and the key through the default live wiring", async () => {
+    const out = await tempDir();
+    const calls: { model: unknown; authorization: string | null }[] = [];
+    const fetchStub = (async (
+      _input: RequestInfo | URL,
+      init?: RequestInit,
+    ) => {
+      calls.push({
+        model: (JSON.parse(String(init?.body)) as { model?: unknown }).model,
+        authorization: new Headers(init?.headers).get("authorization"),
+      });
+      return new Response(
+        JSON.stringify({
+          id: "gen-1",
+          object: "chat.completion",
+          created: 1,
+          model: "vendor/model",
+          choices: [
+            {
+              index: 0,
+              finish_reason: "stop",
+              message: {
+                role: "assistant",
+                content: JSON.stringify({ text: "Hei", gaps: [] }),
+              },
+            },
+          ],
+          usage: { prompt_tokens: 40, completion_tokens: 12, total_tokens: 52 },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as typeof fetch;
+    const original = globalThis.fetch;
+    globalThis.fetch = fetchStub;
+    try {
+      // No adapterFor: the run builds its own live adapters.
+      await runBakeOff({
+        args: { dry: false, out, priceIn: {}, priceOut: {} },
+        env: orEnv,
+      });
+    } finally {
+      globalThis.fetch = original;
+    }
+    // 4 Fixtures x 2 tasks x 2 contenders.
+    expect(calls).toHaveLength(16);
+    expect(calls.filter((call) => call.model === "a/x")).toHaveLength(8);
+    expect(calls.filter((call) => call.model === "b/y")).toHaveLength(8);
+    for (const call of calls) {
+      expect(call.authorization).toBe("Bearer SENTINEL-KEY-r");
+    }
+  });
 });
 
 describe("PRD 8.2 Bake-off never overwrites scored results", () => {
