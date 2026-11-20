@@ -20,7 +20,7 @@ The two-column Fixture is the one where the PDF reader scrambles lines.
 
 Values taken on 2026-11-17 with vocabulary version `v1-bbb32bad` (`data/vocabulary/nb.json`). If the vocabulary version or the Example Fixture has changed since, the pre-filled text may be out of date: compare against what the page shows, not the pre-filled text.
 
-Steps for every row: open Søknad, press «Bruk eksempelet», press «Analyser og skriv utkast». Expected before you begin: «64 % samsvar – 9 av 14 nøkkelord», Verdict «Bør forbedres» (the Answer key in `data/fixtures/example-nordic-digital/answer-key.json`).
+Steps for every row: open Søknad, press «Bruk eksempelet», press «Analyser og skriv utkast». Expected before you begin (code-only list, `FEATURE_KEYWORD_FALLBACK=false`; with the fallback on, Test mode shows the saved AI list, 63 %, see `fr-5b-decision.md`, D25): «64 % samsvar – 9 av 14 nøkkelord», Verdict «Bør forbedres» (the Answer key in `data/fixtures/example-nordic-digital/answer-key.json`).
 
 The «What the engine shows» column was copied from a real run of the engine on 2026-11-17 (the same code the route runs). It is **not** a check by a person. For each row, read the CV line (Matched) or the ad line (Missing) on the page and decide whether the line really shows that Keyword, and whether the ad paragraph is the right one. Write the date, your name and OK or the problem in Result.
 

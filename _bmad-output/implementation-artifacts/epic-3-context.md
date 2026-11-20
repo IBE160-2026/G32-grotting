@@ -19,7 +19,7 @@ The Student picks a Tone and gets a bokmål draft Letter built on their own CV, 
 - Story 3.9: Keep the score when the AI part fails
 - Story 3.10: Flag claims in the Letter that the CV doesn't support
 - Story 3.11: Let AI propose Keywords when code alone falls short (FR-5b applies)
-- Story 3.12: Turn on live AI on the Hosted version and pass the core-flow checkpoint
+- Story 3.12: Freeze the Hosted version and pass the core-flow checkpoint (D23, 19 Nov: Hosted stays a skeleton with no AI and no Student data; the checkpoint runs on the local app)
 
 ## Requirements & Constraints
 
@@ -36,7 +36,7 @@ The Student picks a Tone and gets a bokmål draft Letter built on their own CV, 
 - Performance: AI sections within 60 s in at least 4 of 5 timed runs. Cost: AI spend at most 200 NOK/month, token counts logged per request.
 - Definition of done, added from the Epic 2 retrospective (item 5): a story that changes `Dockerfile`, `package.json` or the lockfile, or anything under `data/`, is done only after `docker compose run --rm --build test` has passed on the story's branch. The story log names the run; "not run" is not done. Other stories still run it as the standing criterion in `epics.md`, and CI covers the rest.
 - All UI text in bokmål from `src/shared/ui/messages.nb.ts`; UX voice (du, fact then reason, no cheerleading). WCAG 2.2 AA; live regions used exactly as specified; axe scan clean at 1280 px and 360 px.
-- Checkpoint 24 Nov: tests for FR-1 to FR-12 and FR-24 to FR-28 pass, SM-1 passes for the Example pair in Test mode and one live Fixture, SM-2 passes, wrong-input tour passes. If not passed, apply cut 0 (freeze Hosted) and finish S1-S3 first.
+- Checkpoint 24 Nov: tests for FR-1 to FR-12 and FR-24 to FR-28 pass, SM-1 passes for the Example pair in Test mode and one live Fixture, SM-2 passes, wrong-input tour passes. Cut 0 (freeze Hosted) is already taken (D23); if not passed, finish S1-S3 first and log it in the PRD. SM-1's «score equals the Answer key» holds for the code-only list only (Helene, 20 Nov: the Answer key is the oracle for the code engine; stored AI Keyword lists have no key and are guarded by the found-in-the-ad check).
 
 ## Technical Decisions
 

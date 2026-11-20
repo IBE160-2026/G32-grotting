@@ -28,7 +28,7 @@ It builds on these documents and does not repeat them:
 - These items have stable IDs that stories, commits, tests and session logs should cite:
   - functional requirements, FR-1 to FR-31 plus FR-5b (§6), and non-functional requirements, NFR-1 to NFR-11 (§7);
   - user journeys, UJ-1 to UJ-3 (§2.3), and principles, P1 to P6 (§4);
-  - changes from the brief and the UX, D1 to D23 (§11);
+  - changes from the brief and the UX, D1 to D25 (§11);
   - success metrics, SM-1 to SM-8, and counter-metrics, SM-C1 to SM-C3 (§12);
   - checklist items L1 to L8, G1 to G5 and R1 to R3 (§9.2);
   - the brief's scope items S1 to S7 and success criteria SC1 to SC9.
@@ -224,7 +224,7 @@ Some weeks will have less working time than others, so the plan relies on two de
 - **24 November, core-flow checkpoint.** S1–S3 count as stable when:
   - the automated tests for FR-1 to FR-12 and FR-24 to FR-28 pass;
   - SM-1 passes for the Example pair in Test mode and for at least one live Fixture;
-  - SM-2 passes;
+  - SM-2 passes (code-only lists, as worded in SM-2);
   - the wrong-input tour (§9.3) passes (NFR-5).
 
   If not, freeze the Hosted version (cut 0 in §5.1), finish S1–S3 before anything else, and apply the rest of the cut order as needed.
@@ -784,7 +784,7 @@ The lecturer's feedback asks the PRD to describe this checklist.
 
 ## 11. Changes from the brief and the UX specification
 
-The Examiner judges scope against the approved proposal (the brief), and changed or dropped items must be described and justified. By source: the brief, D6–D9, D12, D17, D18, D21 and D22; the UX only, D1–D5, D10, D11, D14–D16, D19 and D20; new, D13, D23 and D24.
+The Examiner judges scope against the approved proposal (the brief), and changed or dropped items must be described and justified. By source: the brief, D6–D9, D12, D17, D18, D21 and D22; the UX only, D1–D5, D10, D11, D14–D16, D19 and D20; new, D13, D23, D24 and D25.
 
 **Product-owner decisions** of 2026-10-31, cited by the rows below:
 - **A1a.** Help with the CV comes only as Rewording suggestions; v1 produces no generated or rewritten CV file (D1, §5.3).
@@ -818,6 +818,7 @@ The Examiner judges scope against the approved proposal (the brief), and changed
 | D22 | S6 and S7 are cut together, not S7 first | Brief cut line (cut from the bottom) | Nothing about a Student is stored before encryption exists (§5.1) |
 | D24 | For a new Job ad, AI proposes the Keyword list and the Keyword engine keeps only what it finds in the ad (FR-5b). The list is saved by a hash of the Job ad. Code-only extraction is the fallback | Brief («does not require sending data out»; D7 keeps the explanation in code) | The held-out test of 17 November: code-only extraction passed SM-2 on the three Fixtures it was tuned on and failed on a held-out accounting Fixture (`docs/qa/fr-5b-decision.md`). The Job ad, never the CV, is sent; the score, the matching and the explanation stay in code (P2). The affected requirements are FR-8, NFR-4, SM-7, P6, NFR-8, FR-24, FR-25, FR-27, UJ-3 and NFR-6 |
 | D23 | v1 was to be deployed on Vercel as a Hosted version with live AI, closed with an Access code. **Not delivered as planned (2026-11-15):** the Hosted version stays a skeleton (Access code gate and app shell, no AI), and the README run (NFR-9) is the delivery | New; the brief doesn't mention hosting | The product owner's decision: the Examiner can try the live AI without a key, and the README run stays (FR-30, FR-31). Vercel's data processing agreement states that it covers the Enterprise and Pro plans, not Hobby (`docs/qa/hosted-deployment.md` §1; Vercel support was not asked), so §5.1 applies: the README run is the delivery. FR-30, FR-31, the last step of UJ-3 and the Examiner's live-AI trial are reduced to a README note and are to be matched in Story 7.5 |
+| D25 | The Answer key is the oracle for the code-only Keyword engine only. A stored AI Keyword list (FR-5b) has no Answer key; it is guarded by the check that every term is found in the Job ad. SM-1 and SM-2 are worded for the code-only list | SM-1 and SM-2 as written on 2026-10-31 (the score equals the Answer key) | Decision by the product owner, 2026-11-20. The recorded AI lists differ from every Answer key (Example 63 % against 64 %, held-out 40 % against 50 %; `docs/qa/fr-5b-decision.md`), because the keys were written against what the vocabulary can find. A second key for the AI lists would be written to fit the AI's output |
 
 The UX documents were updated to match these changes on 2026-11-08 (addendum §4) and then replaced by the UX of 2026-11-09, which is built on this PRD (Open question 7, resolved).
 
@@ -845,10 +846,10 @@ The brief's success criteria SC1–SC9 remain the acceptance criteria. They map 
 **Primary**
 - **SM-1. The core flow works.**
   - Target: 100 %.
-  - Definition: UJ-1 completes end to end without manual intervention (as defined for SC7 above), both for every Fixture with the live AI and for the Example pair in Test mode.
+  - Definition: UJ-1 completes end to end without manual intervention (as defined for SC7 above), both for every Fixture with the live AI and for the Example pair in Test mode. The score is judged against the Answer key only for the code-only list (D25); a stored AI Keyword list (FR-5b) is judged by the found-in-the-ad check, not by an Answer key.
   - Validates FR-1 to FR-12 and FR-27.
 - **SM-2. The score is correct.**
-  - Definition and target: on every Fixture, the Matched and Missing lists equal the Answer key exactly, and the score follows from them. Each Answer key also lists its must-not-match terms, so a failure points to its cause.
+  - Definition and target: on every Fixture, the code-only Matched and Missing lists equal the Answer key exactly, and the score follows from them. The Answer key is the oracle for the code-only engine only (D25). On the held-out Fixture the code-only lists do not equal the key; that failure is the recorded basis for FR-5b (D24) and stays pinned as an expected failure. Each Answer key also lists its must-not-match terms, so a failure points to its cause.
   - Why exact: with 7 Keywords, one Keyword is worth about 14 points, so a points tolerance said something different from what was tested. The lists are what is tested.
   - Validates FR-5 to FR-7.
 - **SM-3. No invented qualifications.**
