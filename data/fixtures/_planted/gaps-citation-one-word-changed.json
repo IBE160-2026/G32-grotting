@@ -1,0 +1,43 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "TypeScript",
+        "kind": "real",
+        "explanation": "Annonsen ber om TypeScript, som gir tryggere kode i større prosjekter. CV-en nevner ikke TypeScript.",
+        "citation": null
+      },
+      {
+        "keyword": "REST-API",
+        "kind": "real",
+        "explanation": "Annonsen ber om erfaring med REST-API-er, som er hvordan frontend henter data. CV-en viser ikke dette.",
+        "citation": null
+      },
+      {
+        "keyword": "pull requests",
+        "kind": "real",
+        "explanation": "Annonsen ber om samarbeid i pull requests. CV-en nevner ikke pull requests.",
+        "citation": null
+      },
+      {
+        "keyword": "testing",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om testing av frontend-kode, som gir tryggere endringer. Linjen din om tester for skjemaene dekker trolig dette – vurder å ta det med.",
+        "citation": "Jeg skrev enkle tester for skjemaene dine."
+      },
+      {
+        "keyword": "responsive nettsider",
+        "kind": "real",
+        "explanation": "Annonsen ber om responsive nettsider. CV-en nevner ikke dette.",
+        "citation": null
+      }
+    ]
+  },
+  "meta": {
+    "source": "cached",
+    "provider": "planted",
+    "model": "planted-1",
+    "promptVersion": "gaps-1",
+    "createdAt": "2026-11-20T09:00:00.000Z"
+  }
+}

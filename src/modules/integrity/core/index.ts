@@ -1,3 +1,5 @@
+export type { CheckableGap } from "./check-citation";
+export { checkCitation } from "./check-citation";
 export type {
   CheckLetterInput,
   LetterFlag,
@@ -12,6 +14,7 @@ export {
   DIREKTE_MAX_WORDS,
   firstSentenceOf,
 } from "./check-tone";
+export { cvEntries } from "./cv-entries";
 export {
   ANECDOTE_MARKERS,
   MOTIVATION_PHRASES,

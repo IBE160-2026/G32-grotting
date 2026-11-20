@@ -80,7 +80,7 @@ development_status:
 
   epic-4: in-progress
   4-1-classify-each-missing-keyword-on-the-server: done
-  4-2-check-every-citation-against-the-cv-text: backlog
+  4-2-check-every-citation-against-the-cv-text: done
   4-3-record-cached-gaps-for-every-fixture: backlog
   4-4-read-the-gapanalyse-on-søknad: backlog
   4-5-let-the-letter-use-gaps-the-cv-supports: backlog

@@ -1,6 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { canonVerbatim } from "@/shared/core/canon-verbatim";
+import { log } from "@/shared/server/log";
 import { REAL_GAP_KEY } from "../contracts";
-import { type AiGapItem, analyseGaps, structureGaps } from "./analyse";
+import {
+  type AiGapItem,
+  analyseGaps,
+  checkGapCitations,
+  structureGaps,
+} from "./analyse";
 
 vi.mock("@/shared/server/log", () => ({ log: vi.fn() }));
 
@@ -131,7 +139,7 @@ type Adapter = NonNullable<
 >;
 
 const inputs = {
-  cvText: `${"Erfaring med Python og SQL i tre år. ".repeat(8)}\nola@example.no`,
+  cvText: `${"Erfaring med Python og SQL i tre år. ".repeat(8)}\nJeg brukte Git.\nola@example.no`,
   jobAd: "Vi søker en utvikler med TypeScript.",
   jobTitle: "Utvikler",
   employer: "Nordic Digital",
@@ -246,5 +254,206 @@ describe("FR-13 analyseGaps", () => {
       error: { code: "AI_NOTICE_REQUIRED", retryable: false },
     });
     expect(respond).not.toHaveBeenCalled();
+  });
+});
+
+// The Gaps log events only: `runAi` logs its own `ai` event (AD-13).
+const gapsEvents = () =>
+  vi
+    .mocked(log)
+    .mock.calls.map(([event]) => event)
+    .filter((event) => event.kind === "gaps");
+
+const gapOf = (keyword: string, citation: string | null) => ({
+  keyword,
+  kind: citation === null ? ("real" as const) : ("rewordable" as const),
+  explanation: { text: "AI-forklaring." },
+  citation,
+  suggestion: null,
+});
+
+describe("FR-15 checkGapCitations", () => {
+  const CV = "Jeg brukte Git og GitHub.\nJeg skrev tester.";
+
+  it("keeps a Rewordable gap whose citation is in the CV text", () => {
+    const gap = gapOf("Git", "jeg  BRUKTE\nGit");
+    expect(checkGapCitations([gap], CV)).toEqual({
+      gaps: [gap],
+      downgraded: 0,
+    });
+  });
+
+  it("turns a Rewordable gap with an unfound citation into the template, dropping explanation, citation and suggestion", () => {
+    const gap = {
+      ...gapOf("testing", "Jeg skrev enkle tester."),
+      suggestion: "x",
+    };
+    expect(checkGapCitations([gap], CV)).toEqual({
+      gaps: [template("testing")],
+      downgraded: 1,
+    });
+  });
+
+  it("leaves Real gaps and the order alone and counts only the downgrades", () => {
+    const real = gapOf("TypeScript", null);
+    const result = checkGapCitations(
+      [
+        gapOf("a", "ikke i CV-en"),
+        real,
+        gapOf("Git", "Jeg brukte Git"),
+        gapOf("b", "heller ikke"),
+      ],
+      CV,
+    );
+    expect(result.gaps.map((gap) => gap.keyword)).toEqual([
+      "a",
+      "TypeScript",
+      "Git",
+      "b",
+    ]);
+    expect(result.gaps.map((gap) => gap.kind)).toEqual([
+      "real",
+      "real",
+      "rewordable",
+      "real",
+    ]);
+    expect(result.gaps[1]).toBe(real);
+    expect(result.downgraded).toBe(2);
+  });
+});
+
+describe("FR-15 analyseGaps checks citations against the sent CV text", () => {
+  beforeEach(() => vi.mocked(log).mockClear());
+
+  it("downgrades a citation that is only in the contact lines the AI never saw, and logs a count only", async () => {
+    const result = await analyseGaps(
+      { inputs, missingTerms: ["TypeScript", "REST-API"] },
+      CTX,
+      {
+        adapter: adapterOf(() => ({
+          gaps: [
+            rewordable("TypeScript", "ola@example.no"),
+            rewordable("REST-API", "Jeg brukte Git."),
+          ],
+        })),
+        testMode: true,
+      },
+    );
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps[0]).toEqual(template("TypeScript"));
+    expect(result.value.gaps[1]?.kind).toBe("rewordable");
+    const events = gapsEvents();
+    expect(events).toEqual([{ kind: "gaps", downgraded: 1 }]);
+    const logged = JSON.stringify(events);
+    expect(logged).not.toContain("ola@example.no");
+    expect(logged).not.toContain("Git");
+    expect(logged).not.toContain("REST-API");
+  });
+
+  it("logs a count of zero when nothing is downgraded", async () => {
+    await analyseGaps({ inputs, missingTerms: ["TypeScript"] }, CTX, {
+      adapter: adapterOf(() => ({ gaps: [real("TypeScript")] })),
+      testMode: true,
+    });
+    expect(gapsEvents()).toEqual([{ kind: "gaps", downgraded: 0 }]);
+  });
+
+  it("logs nothing when no request is made, and nothing when the request fails", async () => {
+    await analyseGaps({ inputs, missingTerms: [] }, CTX, {
+      adapter: adapterOf(() => ({ gaps: [] })),
+      testMode: true,
+    });
+    await analyseGaps({ inputs, missingTerms: ["TypeScript"] }, CTX, {
+      adapter: adapterOf(() => ({ nei: true })),
+      testMode: true,
+    });
+    expect(gapsEvents()).toEqual([]);
+  });
+});
+
+// Planted Cached responses (SC3, P1): raw `AiOutput` files that only tests read.
+// The CV and the ad are the Example pair Fixture.
+const pair = {
+  cvText: readFileSync("data/fixtures/example-nordic-digital/cv.txt", "utf8"),
+  jobAd: readFileSync("data/fixtures/example-nordic-digital/ad.txt", "utf8"),
+  jobTitle: "Junior frontendutvikler",
+  employer: "Nordic Digital",
+};
+const PAIR_MISSING = [
+  "TypeScript",
+  "REST-API",
+  "pull requests",
+  "testing",
+  "responsive nettsider",
+];
+
+async function runPlanted(file: string) {
+  const planted = JSON.parse(
+    readFileSync(`data/fixtures/_planted/${file}.json`, "utf8"),
+  ) as { data: unknown };
+  const result = await analyseGaps(
+    { inputs: pair, missingTerms: PAIR_MISSING },
+    CTX,
+    { adapter: adapterOf(() => planted.data), testMode: true },
+  );
+  if (!result.ok) throw new Error("expected ok");
+  return result.value.gaps;
+}
+
+describe("FR-15 planted Cached responses", () => {
+  beforeEach(() => vi.mocked(log).mockClear());
+
+  const downgraded: [string, string, string][] = [
+    ["a paraphrased citation", "gaps-citation-paraphrased", "pull requests"],
+    [
+      "a citation from the ad instead of the CV",
+      "gaps-citation-from-ad",
+      "pull requests",
+    ],
+    [
+      "a citation with one changed word",
+      "gaps-citation-one-word-changed",
+      "testing",
+    ],
+  ];
+  it.each(downgraded)("downgrades %s", async (_name, file, keyword) => {
+    const raw = JSON.parse(
+      readFileSync(`data/fixtures/_planted/${file}.json`, "utf8"),
+    ) as { data: { gaps: AiGapItem[] } };
+    // The planted answer really does claim Rewordable, with a citation.
+    const planted = raw.data.gaps.find((item) => item.keyword === keyword);
+    expect(planted?.kind).toBe("rewordable");
+    expect(planted?.citation).toBeTruthy();
+    // The plant stays a plant: a citation from the ad really is in the ad and
+    // not in the CV, and none of the three is in the CV word for word.
+    const citation = canonVerbatim(planted?.citation ?? "");
+    expect(canonVerbatim(pair.cvText)).not.toContain(citation);
+    if (file === "gaps-citation-from-ad") {
+      expect(canonVerbatim(pair.jobAd)).toContain(citation);
+    }
+
+    const gaps = await runPlanted(file);
+    expect(gaps).toHaveLength(PAIR_MISSING.length);
+    expect(gaps.find((gap) => gap.keyword === keyword)).toEqual(
+      template(keyword),
+    );
+    expect(gaps.every((gap) => gap.kind === "real")).toBe(true);
+    expect(gapsEvents()).toEqual([{ kind: "gaps", downgraded: 1 }]);
+  });
+
+  it("passes an exact citation in other case and with other line breaks", async () => {
+    const gaps = await runPlanted("gaps-citation-exact-case-and-line-breaks");
+    const gap = gaps.find((item) => item.keyword === "responsive nettsider");
+    expect(gap?.kind).toBe("rewordable");
+    expect(gap?.citation).toBe(
+      "BYGDE EN nettside\nSOM   tilpasser seg\n mobilskjermer.",
+    );
+    expect(gap?.explanation).toHaveProperty("text");
+    // The plant really is in the CV, only in other case and line breaks.
+    expect(pair.cvText).not.toContain(gap?.citation ?? "");
+    expect(canonVerbatim(pair.cvText)).toContain(
+      canonVerbatim(gap?.citation ?? ""),
+    );
+    expect(gapsEvents()).toEqual([{ kind: "gaps", downgraded: 0 }]);
   });
 });

@@ -21,7 +21,15 @@ export type AiLogEvent = {
   readonly errorCode: MessageKey | null;
 };
 
-export type LogEvent = ErrorLogEvent | AiLogEvent;
+// One per Gap analysis (AD-14, FR-15): how many Rewordable gaps were turned into
+// the Real-gap template because their citation is not in the CV text. A count
+// only, never a citation, a keyword or CV text.
+export type GapsLogEvent = {
+  readonly kind: "gaps";
+  readonly downgraded: number;
+};
+
+export type LogEvent = ErrorLogEvent | AiLogEvent | GapsLogEvent;
 
 // The only place that writes to the console (AD-13). An event carries codes,
 // names and counts, never a message, a stack, a prompt or user content.
