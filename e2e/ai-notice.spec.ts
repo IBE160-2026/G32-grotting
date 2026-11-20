@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import {
   analysisCalls,
+  EXAMPLE_CODE_SENTENCE,
   EXAMPLE_SENTENCE,
   failure,
   failureBox,
@@ -109,12 +110,12 @@ test.describe("FR-24 the AI notice, Test mode off", () => {
     await dialog(page)
       .getByRole("button", { name: "Godta og fortsett" })
       .click();
-    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    await expect(page.getByText(EXAMPLE_CODE_SENTENCE)).toBeVisible();
     expect(calls).toHaveLength(1);
     expect((await session(page))?.noticeVersion).toMatch(/^notice-/);
     await page.getByRole("button", { name: "Endre annonsen" }).click();
     await submit(page).click();
-    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    await expect(page.getByText(EXAMPLE_CODE_SENTENCE)).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(0);
     expect(calls).toHaveLength(2);
   });
@@ -154,7 +155,7 @@ test.describe("FR-24 the AI notice, Test mode off", () => {
       .click();
     // The server refused: the notice comes back, with the score still shown.
     await expect(dialog(page)).toBeVisible();
-    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    await expect(page.getByText(EXAMPLE_CODE_SENTENCE)).toBeVisible();
     expect(letters).toHaveLength(1);
     await dialog(page)
       .getByRole("button", { name: "Godta og fortsett" })
@@ -183,7 +184,7 @@ test.describe("FR-24 the AI notice, Test mode off", () => {
     await expect(
       failureBox(page, "Søknadsbrevet kunne ikke lages."),
     ).toBeVisible();
-    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    await expect(page.getByText(EXAMPLE_CODE_SENTENCE)).toBeVisible();
     expect(letters).toHaveLength(1);
     // «Prøv igjen» sends again, and the server now accepts.
     await page.getByRole("button", { name: "Prøv igjen" }).click();

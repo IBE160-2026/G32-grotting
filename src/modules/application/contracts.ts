@@ -57,11 +57,15 @@ export type AnalysisInputs = z.infer<typeof analysisInputsSchema>;
 // never matches a new contract (AD-6).
 export const CONTRACT_VERSION = 1;
 
-// `POST /api/analyses`. A client fingerprint is ignored in phase 1.
+// `POST /api/analyses`. A client fingerprint is ignored in phase 1. The consent
+// is the AI notice version the Student accepted: phase 1 may ask AI for the
+// Keywords of a new ad only with it (FR-5b, FR-24); without it, or in Test
+// mode, the list comes from a saved or Cached list or from code.
 export const analyseRequestSchema = z.object({
   applicationId: z.uuid(),
   fingerprint: z.string().optional(),
   inputs: analysisInputsSchema,
+  consent: z.object({ noticeVersion: z.string() }).nullable().optional(),
 });
 
 export type AnalyseRequest = z.infer<typeof analyseRequestSchema>;

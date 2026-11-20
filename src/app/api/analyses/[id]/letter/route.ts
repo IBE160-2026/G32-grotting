@@ -27,7 +27,9 @@ export async function POST(
       throw new ApiError("INVALID_INPUT", { field: "applicationId" });
     }
 
-    const analysed = analyseInputs(parsed.inputs, await loadVocabulary());
+    // No `ai` option: the Keyword list is the one phase 1 saved, never a new
+    // request, so this route makes exactly one AI request.
+    const analysed = await analyseInputs(parsed.inputs, await loadVocabulary());
     if (!analysed.ok) {
       throw new ApiError("INVALID_INPUT", { field: "inputs.jobAd" });
     }

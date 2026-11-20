@@ -1,0 +1,27 @@
+{
+  "data": {
+    "keywords": [
+      "produktanalyse",
+      "dataanalyse",
+      "SQL",
+      "databaser",
+      "dashbord",
+      "Power BI",
+      "statistikk",
+      "datamodellering",
+      "prosjektledelse",
+      "rapporter",
+      "bachelor i økonomi",
+      "bachelor i statistikk",
+      "bachelor i informatikk",
+      "Python"
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "keywords-1",
+    "createdAt": "2026-11-20T09:19:25.386Z"
+  }
+}

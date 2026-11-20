@@ -83,7 +83,7 @@ test.describe("AD-4 RunMode", () => {
     const html = (await (await request.get("/")).text()).replaceAll("\\", "");
     expect(html).toContain('"testMode":true');
     expect(html).toContain('"hosted":false');
-    expect(html).toContain('"keywordFallback":false');
+    expect(html).toContain('"keywordFallback":true');
     expect(html).not.toContain("pglite://");
     expect(html).not.toContain("postgres://");
     expect(html).not.toContain("isTestRun");

@@ -3,22 +3,25 @@ import { analyseRequestSchema } from "@/modules/application/contracts";
 import { loadVocabulary } from "@/shared/server/data-files";
 import { ApiError, handle } from "@/shared/server/handle";
 
-// Phase 1 is code only and quick; the limit is set for the AI phases that join
-// this route later.
+// A new ad waits for one Keyword request (FR-5b), up to its 90 s limit.
 export const maxDuration = 120;
 
 // Answers per request: never prerendered at build.
 export const dynamic = "force-dynamic";
 
-// FR-4, FR-5, FR-7: scores the CV against the Job ad with ordinary code and
-// returns `{ result, fingerprint }`. Makes no network request and stores
-// nothing. A client fingerprint is ignored in phase 1.
+// FR-4, FR-5, FR-5b, FR-7: scores the CV against the Job ad with ordinary code
+// and returns `{ result, fingerprint }`. The Keyword list of a new ad may come
+// from one AI request that carries the Job ad only, never the CV (FR-26), and
+// is saved by the ad's hash; the CV is scored by code. A client fingerprint is
+// ignored in phase 1.
 export const POST = handle("/api/analyses", async (request) => {
   const body = await request.json().catch(() => undefined);
-  const { inputs } = analyseRequestSchema.parse(body);
+  const { inputs, consent } = analyseRequestSchema.parse(body);
 
   const vocabulary = await loadVocabulary();
-  const analysed = analyseInputs(inputs, vocabulary);
+  const analysed = await analyseInputs(inputs, vocabulary, {
+    ai: { ctx: { studentId: null, consent: consent ?? null } },
+  });
   if (!analysed.ok) {
     throw new ApiError("INVALID_INPUT", { field: "inputs.jobAd" });
   }

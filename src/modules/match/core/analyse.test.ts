@@ -40,7 +40,10 @@ const lower = (words: string[]) => words.map(normalise);
 
 // FR-5b (docs/qa/fr-5b-decision.md): code alone fails SM-2 on the held-out
 // Fixture, so its score and lists test is pinned as an expected failure, as in
-// `keywords/core/sm2.test.ts`. Remove the entry when the lists agree.
+// `keywords/core/sm2.test.ts`. Remove the entry when the lists agree. Story 3.11
+// recorded the AI lists (`cached/keywords.json`); they do not equal the Answer
+// keys either (see the table in the decision file), and this test is about the
+// code-only engine, so the entry stays.
 const expectedToFail = new Set(["held-out-regnskap-kvale"]);
 
 describe("FR-7 analyse over the Fixtures", () => {

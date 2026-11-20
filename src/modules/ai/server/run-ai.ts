@@ -157,6 +157,7 @@ export async function runAi<T>(
     // unhandled rejection.
     const pending = (async () =>
       adapter.generate({
+        task: request.task,
         prompt,
         lookupKey,
         signal: controller.signal,

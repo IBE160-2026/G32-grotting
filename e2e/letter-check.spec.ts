@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { expect, type Page, test } from "@playwright/test";
 import {
   analysisCalls,
-  EXAMPLE_KEY,
+  EXAMPLE_SCORE,
   failure,
   LETTER_ROUTE,
   letterAnswer,
@@ -383,7 +383,7 @@ test.describe("AD-6 the rerun of phase 1 from the check is adopted", () => {
     await submitExample(page);
 
     await expect(
-      page.getByText(`${EXAMPLE_KEY.score - 10} % samsvar`),
+      page.getByText(`${EXAMPLE_SCORE - 10} % samsvar`),
     ).toBeVisible();
     await expect(page.locator("#live-action")).toHaveText(
       /^Samsvaret er oppdatert: \d+ %, .+, \d+ av \d+ nøkkelord\.$/,

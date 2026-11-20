@@ -9,11 +9,11 @@ import {
   confirmCv,
   cvField,
   EXAMPLE_AD,
-  EXAMPLE_KEY,
   EXAMPLE_MATCHED,
   EXAMPLE_META,
   EXAMPLE_MISSING,
   EXAMPLE_PARAGRAPHS,
+  EXAMPLE_SCORE,
   EXAMPLE_SENTENCE,
   EXAMPLE_TOTAL,
   exampleFile,
@@ -56,13 +56,12 @@ test.describe("FR-7, FR-8 Søknad result", () => {
     await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText(
       EXAMPLE_SENTENCE,
     );
-    const verdict =
-      EXAMPLE_KEY.score >= 70 ? "Sterkt samsvar" : "Bør forbedres";
+    const verdict = EXAMPLE_SCORE >= 70 ? "Sterkt samsvar" : "Bør forbedres";
     await expect(page.getByText(verdict, { exact: true })).toBeVisible();
     await expect(page.getByText("Formel", { exact: true })).toBeVisible();
     await expect(
       page.getByText(
-        `${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord funnet = ${EXAMPLE_KEY.score} %`,
+        `${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord funnet = ${EXAMPLE_SCORE} %`,
       ),
     ).toBeVisible();
     await expect(
@@ -111,10 +110,9 @@ test.describe("FR-7, FR-8 Søknad result", () => {
     });
     await fillExample(page);
     await page.getByRole("button", { name: SUBMIT }).click();
-    const verdict =
-      EXAMPLE_KEY.score >= 70 ? "sterkt samsvar" : "bør forbedres";
+    const verdict = EXAMPLE_SCORE >= 70 ? "sterkt samsvar" : "bør forbedres";
     await expect(page.locator("#live-phase")).toHaveText(
-      `Samsvaret er klart: ${EXAMPLE_KEY.score} %, ${verdict}, ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord. Søknadsbrevet skrives nå.`,
+      `Samsvaret er klart: ${EXAMPLE_SCORE} %, ${verdict}, ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord. Søknadsbrevet skrives nå.`,
     );
     release();
   });

@@ -5,22 +5,25 @@ import { messages } from "@/shared/ui/messages.nb";
 import { type RunMode, RunModeProvider } from "@/shared/ui/run-mode";
 import { AiNotice } from "./ai-notice";
 
-const runMode = (retentionDays: number | null): RunMode => ({
+const runMode = (
+  retentionDays: number | null,
+  keywordFallback = false,
+): RunMode => ({
   testMode: false,
   hosted: false,
   features: {
     accounts: false,
     gaps: false,
     rewording: false,
-    keywordFallback: false,
+    keywordFallback,
   },
   aiNotice: { version: "v", providerName: "openrouter", retentionDays },
 });
 
-const render = (retentionDays: number | null = null) =>
+const render = (retentionDays: number | null = null, keywordFallback = false) =>
   renderToStaticMarkup(
     RunModeProvider({
-      value: runMode(retentionDays),
+      value: runMode(retentionDays, keywordFallback),
       children: createElement(AiNotice, {
         open: false,
         onAccept: () => {},
@@ -60,6 +63,16 @@ describe("FR-24 AI notice content (UX-DR17)", () => {
     );
     expect(html).toContain("Du blir bare spurt denne ene gangen");
     expect(html.match(/<li /g)).toHaveLength(5);
+  });
+
+  it("FR-5b, FR-26 says that the Job ad, never the CV, is sent for Keywords, only while the fallback is on", () => {
+    const sentence =
+      "For å hente ut nøkkelord sendes bare stillingsannonsen, aldri CV-en.";
+    const on = render(null, true);
+    expect(on).toContain(sentence);
+    expect(on.match(/<li /g)).toHaveLength(6);
+    expect(render(null, false)).not.toContain(sentence);
+    expect(sentence).toBe(messages.aiNotice.points.keywords);
   });
 
   it("names the retention period when one is configured, else says at once", () => {

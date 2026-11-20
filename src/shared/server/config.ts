@@ -7,7 +7,9 @@ export const FEATURE_DEFAULTS = {
   accounts: false,
   gaps: false,
   rewording: false,
-  keywordFallback: false,
+  // On since Story 3.11 (FR-5b applies, decided 17 Nov): AI proposes the Keyword
+  // list of a new Job ad. Never on Hosted, which has no AI (D23).
+  keywordFallback: true,
 } as const;
 
 export type Features = Record<keyof typeof FEATURE_DEFAULTS, boolean>;
@@ -146,8 +148,11 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     accounts: e.FEATURE_ACCOUNTS ?? FEATURE_DEFAULTS.accounts,
     gaps: e.FEATURE_GAPS ?? FEATURE_DEFAULTS.gaps,
     rewording: e.FEATURE_REWORDING ?? FEATURE_DEFAULTS.rewording,
-    keywordFallback:
-      e.FEATURE_KEYWORD_FALLBACK ?? FEATURE_DEFAULTS.keywordFallback,
+    // Hosted is the frozen skeleton with no AI and no Student data (D23), so
+    // the Keyword fallback is off there whatever the environment says.
+    keywordFallback: hosted
+      ? false
+      : (e.FEATURE_KEYWORD_FALLBACK ?? FEATURE_DEFAULTS.keywordFallback),
   };
   const providerName = e.AI_PROVIDER ?? "none";
   const retentionDays = e.AI_RETENTION_DAYS ?? null;
@@ -168,8 +173,10 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     aiNotice: {
       version: [
         // Bump this prefix whenever the notice text in messages.nb.ts changes
-        // (Story 3.6 wrote the first text; Story 3.11 adds the keyword sentence), so earlier consents stop counting.
-        "notice-2",
+        // (Story 3.6 wrote the first text; Story 3.11 added the sentence that
+        // the Job ad, never the CV, is sent for Keywords), so earlier consents
+        // stop counting.
+        "notice-3",
         encodeURIComponent(providerName),
         retentionDays === null ? "unknown" : String(retentionDays),
         features.keywordFallback ? "fallback" : "no-fallback",

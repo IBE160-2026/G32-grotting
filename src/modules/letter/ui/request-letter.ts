@@ -81,6 +81,7 @@ export async function requestLetter(
   const rerun = await io.analyse({
     applicationId: job.applicationId,
     inputs: job.inputs,
+    consent,
   });
   if (!rerun.ok) return { answer: rerun };
   return { answer: await send(rerun.data.fingerprint), rerun: rerun.data };

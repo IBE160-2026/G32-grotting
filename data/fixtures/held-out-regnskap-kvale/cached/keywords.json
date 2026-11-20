@@ -1,0 +1,33 @@
+{
+  "data": {
+    "keywords": [
+      "regnskap",
+      "fagskole",
+      "bachelor i økonomi og administrasjon",
+      "bokføring",
+      "avstemming av bank og reskontro",
+      "mva-regelverket",
+      "mva-oppgjør",
+      "mva-melding",
+      "lønnskjøring",
+      "Altinn",
+      "Visma",
+      "regnskapssystem",
+      "Excel",
+      "Power BI",
+      "årsavslutning",
+      "skatteoppgjør for aksjeselskaper",
+      "årsoppgjør",
+      "norskkunnskaper",
+      "automatisering av rutiner",
+      "autorisert regnskapsfører"
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "keywords-1",
+    "createdAt": "2026-11-20T09:19:28.395Z"
+  }
+}

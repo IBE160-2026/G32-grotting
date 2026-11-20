@@ -100,8 +100,20 @@ describe("AD-6 ANALYSIS_STALE for the check", () => {
     expect(analyseMock).toHaveBeenCalledWith({
       applicationId: job.applicationId,
       inputs: job.inputs,
+      consent: null,
     });
     expect(sent.map((body) => body.fingerprint)).toEqual(["fp-1", "fp-2"]);
+  });
+
+  it("FR-5b sends the job's consent with the silent phase-1 rerun", async () => {
+    const { port, analyseMock } = io([stale, good]);
+    const consent = { noticeVersion: "notice-3:openrouter:unknown:fallback" };
+    await requestLetterCheck({ ...job, consent }, letter, port);
+    expect(analyseMock).toHaveBeenCalledWith({
+      applicationId: job.applicationId,
+      inputs: job.inputs,
+      consent,
+    });
   });
 
   it("answers with the second ANALYSIS_STALE instead of looping", async () => {

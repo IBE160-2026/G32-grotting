@@ -89,8 +89,10 @@ describe("FR-11 checkLetter: Unsupported claims", () => {
     );
   });
 
-  it("flags nothing for a Keyword that is not in the vocabulary", () => {
-    expect(check("Jeg kan Rust.", { missing: [{ term: "Rust" }] })).toEqual([]);
+  it("FR-5b flags a Missing keyword that is not in the vocabulary, as an AI-proposed one is", () => {
+    const flags = check("Jeg kan Rust.", { missing: [{ term: "Rust" }] });
+    expect(flags.map((flag) => flag.term)).toEqual(["Rust"]);
+    expect(flags[0]?.spans).toEqual([{ start: 8, end: 12 }]);
   });
 });
 

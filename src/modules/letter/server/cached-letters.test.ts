@@ -56,7 +56,10 @@ async function matchedTermsOf(inputs: {
   jobTitle: string;
   employer: string;
 }) {
-  const analysed = analyseInputs(inputs, await loadVocabulary());
+  // The Letters were recorded with the code-only list in the prompt.
+  const analysed = await analyseInputs(inputs, await loadVocabulary(), {
+    keywordFallback: false,
+  });
   if (!analysed.ok) throw new Error("the Example pair must analyse");
   return analysed.value.result.matched.map(({ term }) => term);
 }

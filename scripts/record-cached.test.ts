@@ -12,6 +12,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { aiResultMetaSchema } from "@/modules/ai/contracts";
 import { createMockAdapter } from "@/modules/ai/server/adapters/mock";
 import { analyseInputs } from "@/modules/application";
+import { PROMPT_VERSION as KEYWORDS_PROMPT_VERSION } from "@/modules/keywords/server/prompts/keywords";
 import { PROMPT_VERSION } from "@/modules/letter/server/prompts/letter";
 import { vocabularySchema } from "@/shared/core/vocabulary";
 import { parseArgs, RecordUsageError, recordCached } from "./record-cached";
@@ -56,11 +57,24 @@ describe("FR-27 record-cached arguments", () => {
     expect(parseArgs([EXAMPLE])).toEqual({
       fixtureId: EXAMPLE,
       tone: undefined,
+      keywords: false,
     });
     expect(parseArgs([EXAMPLE, "--tone", "Direkte"])).toEqual({
       fixtureId: EXAMPLE,
       tone: "Direkte",
+      keywords: false,
     });
+  });
+
+  it("FR-5b takes --keywords, but not together with --tone", () => {
+    expect(parseArgs([EXAMPLE, "--keywords"])).toEqual({
+      fixtureId: EXAMPLE,
+      tone: undefined,
+      keywords: true,
+    });
+    expect(() =>
+      parseArgs([EXAMPLE, "--keywords", "--tone", "Direkte"]),
+    ).toThrow(/cannot be combined/);
   });
 
   it("refuses no id, two ids, a bad Tone and an unknown flag", () => {
@@ -77,7 +91,7 @@ describe("FR-27 recordCached", () => {
   it("writes one raw Cached Letter per Tone with its meta, and nothing else", async () => {
     const { adapter, fixturesDir } = setup();
     const files = await recordCached({
-      args: { fixtureId: EXAMPLE, tone: undefined },
+      args: { fixtureId: EXAMPLE, tone: undefined, keywords: false },
       env: {},
       fixturesDir,
       now: NOW,
@@ -123,7 +137,7 @@ describe("FR-27 recordCached", () => {
   it("keeps a raw answer that breaks a rule: it is the tests that judge it", async () => {
     const { adapter, fixturesDir } = setup(() => ({ text: "Kort." }));
     await recordCached({
-      args: { fixtureId: EXAMPLE, tone: "Formell" },
+      args: { fixtureId: EXAMPLE, tone: "Formell", keywords: false },
       env: {},
       fixturesDir,
       now: NOW,
@@ -141,7 +155,7 @@ describe("FR-27 recordCached", () => {
   it("makes the prompt of generateLetter: the Tone, the Matched keywords, no contact details", async () => {
     const { adapter, prompts, fixturesDir } = setup();
     await recordCached({
-      args: { fixtureId: EXAMPLE, tone: undefined },
+      args: { fixtureId: EXAMPLE, tone: undefined, keywords: false },
       env: {},
       fixturesDir,
       now: NOW,
@@ -152,7 +166,8 @@ describe("FR-27 recordCached", () => {
       JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
     );
     const folder = `data/fixtures/${EXAMPLE}`;
-    const analysed = analyseInputs(
+    // The Letters were recorded with the code-only list.
+    const analysed = await analyseInputs(
       {
         cvText: readFileSync(`${folder}/cv.txt`, "utf8"),
         jobAd: readFileSync(`${folder}/ad.txt`, "utf8"),
@@ -160,6 +175,7 @@ describe("FR-27 recordCached", () => {
         employer: "Nordic Digital",
       },
       vocabulary,
+      { keywordFallback: false },
     );
     if (!analysed.ok) throw new Error("expected ok");
     const matched = analysed.value.result.matched.map(({ term }) => term);
@@ -184,7 +200,7 @@ describe("FR-27 recordCached", () => {
   it("records one Tone when asked", async () => {
     const { adapter, prompts, fixturesDir } = setup();
     await recordCached({
-      args: { fixtureId: EXAMPLE, tone: "Personlig" },
+      args: { fixtureId: EXAMPLE, tone: "Personlig", keywords: false },
       env: {},
       fixturesDir,
       now: NOW,
@@ -207,7 +223,7 @@ describe("FR-27 recordCached", () => {
     });
     await expect(
       recordCached({
-        args: { fixtureId: EXAMPLE, tone: undefined },
+        args: { fixtureId: EXAMPLE, tone: undefined, keywords: false },
         env: {},
         fixturesDir,
         now: NOW,
@@ -223,7 +239,7 @@ describe("FR-27 recordCached", () => {
     const { adapter, fixturesDir } = setup(() => ({ nope: 1 }));
     await expect(
       recordCached({
-        args: { fixtureId: EXAMPLE, tone: undefined },
+        args: { fixtureId: EXAMPLE, tone: undefined, keywords: false },
         env: {},
         fixturesDir,
         now: NOW,
@@ -234,8 +250,100 @@ describe("FR-27 recordCached", () => {
   });
 });
 
+describe("FR-5b recordCached --keywords", () => {
+  const keywordArgs = { fixtureId: EXAMPLE, tone: undefined, keywords: true };
+  const answer = { keywords: ["React", "TypeScript", "Git"] };
+
+  it("makes one request with the Job ad and no CV, and writes the raw answer to keywords.json", async () => {
+    const { adapter, prompts, fixturesDir } = setup(() => answer);
+    const files = await recordCached({
+      args: keywordArgs,
+      env: {},
+      fixturesDir,
+      now: NOW,
+      adapter,
+    });
+    expect(prompts).toHaveLength(1);
+    const folder = `data/fixtures/${EXAMPLE}`;
+    expect(prompts[0]).toContain(
+      readFileSync(`${folder}/ad.txt`, "utf8").trim().slice(0, 60),
+    );
+    // The CV never goes into the Keyword request (FR-26).
+    const cvLines = readFileSync(`${folder}/cv.txt`, "utf8")
+      .split("\n")
+      .filter((line) => line.trim().length > 40);
+    expect(cvLines.length).toBeGreaterThan(0);
+    for (const line of cvLines) expect(prompts[0]).not.toContain(line.trim());
+    expect(
+      files.map((file) => file.replace(/\\/g, "/").split("/").pop()),
+    ).toEqual(["keywords.json"]);
+    const written = JSON.parse(
+      readFileSync(
+        join(fixturesDir, EXAMPLE, "cached", "keywords.json"),
+        "utf8",
+      ),
+    );
+    expect(written.data).toEqual(answer);
+    expect(written.meta).toEqual({
+      source: "live",
+      provider: "mock",
+      model: "mock-1",
+      promptVersion: KEYWORDS_PROMPT_VERSION,
+      createdAt: "2026-11-19T12:00:00.000Z",
+    });
+    expect(aiResultMetaSchema.safeParse(written.meta).success).toBe(true);
+    expect(readdirSync(join(fixturesDir, EXAMPLE, "cached"))).toEqual([
+      "keywords.json",
+    ]);
+  });
+
+  it("keeps a term the ad does not contain: the raw answer is judged later", async () => {
+    const { adapter, fixturesDir } = setup(() => ({
+      keywords: ["Kubernetes-som-ikke-står-i-annonsen"],
+    }));
+    await recordCached({ args: keywordArgs, env: {}, fixturesDir, adapter });
+    const written = JSON.parse(
+      readFileSync(
+        join(fixturesDir, EXAMPLE, "cached", "keywords.json"),
+        "utf8",
+      ),
+    );
+    expect(written.data.keywords).toEqual([
+      "Kubernetes-som-ikke-står-i-annonsen",
+    ]);
+  });
+
+  it("refuses an answer with no keywords and writes nothing", async () => {
+    const { adapter, fixturesDir } = setup(() => ({ nope: 1 }));
+    await expect(
+      recordCached({ args: keywordArgs, env: {}, fixturesDir, adapter }),
+    ).rejects.toThrow("no keywords");
+    expect(existsSync(join(fixturesDir, EXAMPLE, "cached"))).toBe(false);
+  });
+
+  it("refuses an empty list and writes nothing", async () => {
+    const { adapter, fixturesDir } = setup(() => ({ keywords: [] }));
+    await expect(
+      recordCached({ args: keywordArgs, env: {}, fixturesDir, adapter }),
+    ).rejects.toThrow("no keywords");
+    expect(existsSync(join(fixturesDir, EXAMPLE, "cached"))).toBe(false);
+  });
+
+  it("is refused in a test run, like the Letters", async () => {
+    const { adapter, fixturesDir } = setup(() => answer);
+    await expect(
+      recordCached({
+        args: keywordArgs,
+        env: { VITEST: "true" },
+        fixturesDir,
+        adapter,
+      }),
+    ).rejects.toThrow(/test run/);
+  });
+});
+
 describe("FR-27 recordCached refuses what it must", () => {
-  const args = { fixtureId: EXAMPLE, tone: undefined };
+  const args = { fixtureId: EXAMPLE, tone: undefined, keywords: false };
 
   it.each([
     ["VITEST", { VITEST: "true" }],
@@ -287,7 +395,7 @@ describe("FR-27 recordCached refuses what it must", () => {
       const { adapter, fixturesDir } = setup();
       await expect(
         recordCached({
-          args: { fixtureId, tone: undefined },
+          args: { fixtureId, tone: undefined, keywords: false },
           env: {},
           fixturesDir,
           adapter,
@@ -300,7 +408,11 @@ describe("FR-27 recordCached refuses what it must", () => {
     const { adapter, fixturesDir } = setup();
     await expect(
       recordCached({
-        args: { fixtureId: "no-such-fixture", tone: undefined },
+        args: {
+          fixtureId: "no-such-fixture",
+          tone: undefined,
+          keywords: false,
+        },
         env: {},
         fixturesDir,
         adapter,

@@ -9,8 +9,12 @@ import {
   AiProviderError,
   createLiveAdapter,
 } from "@/modules/ai/server/adapters/live";
-import { splitParagraphs } from "@/modules/keywords/core";
-import { resolveKeywords } from "@/modules/keywords/server/keyword-source";
+import { extractKeywords, splitParagraphs } from "@/modules/keywords/core";
+import {
+  PROMPT_VERSION as KEYWORDS_PROMPT_VERSION,
+  keywordsOutputSchema,
+  keywordsPromptBuilder,
+} from "@/modules/keywords/server/prompts/keywords";
 import { TONES, type Tone } from "@/modules/letter/contracts";
 import {
   letterPromptBuilder,
@@ -20,12 +24,13 @@ import { analyse } from "@/modules/match";
 import { fixtureMetaSchema } from "@/shared/core/answer-key";
 import { vocabularySchema } from "@/shared/core/vocabulary";
 
-// Records the Cached Letters of one Fixture (Story 3.5, FR-27, AD-15): one live
-// request per Tone, written raw, before `normaliseLetter` or any guard, to
-// `data/fixtures/<id>/cached/letter-<tone>.json`. This is the only writer of
-// `cached/`; a Cached file is never edited by hand. It is run by Helene with
-// her own key from `.env`; no test ever runs it live.
-// Usage: npm run fixtures:record -- <fixture-id> [--tone Formell|Personlig|Direkte]
+// Records the Cached responses of one Fixture (Story 3.5, FR-27, AD-15): one
+// live request per Tone, written raw, before `normaliseLetter` or any guard, to
+// `data/fixtures/<id>/cached/letter-<tone>.json`; with `--keywords` one request
+// for the Keyword list (Story 3.11, FR-5b), written raw to `cached/keywords.json`.
+// This is the only writer of `cached/`; a Cached file is never edited by hand.
+// It is run by Helene with her own key from `.env`; no test ever runs it live.
+// Usage: npm run fixtures:record -- <fixture-id> [--tone Formell|Personlig|Direkte | --keywords]
 
 const FIXTURES_DIR = fileURLToPath(
   new URL("../data/fixtures", import.meta.url),
@@ -46,11 +51,14 @@ export type RecordArgs = {
   readonly fixtureId: string;
   // Every Tone when undefined: a rerun of one Tone names it.
   readonly tone: Tone | undefined;
+  // Only the Keyword list (FR-5b), and no Letter.
+  readonly keywords: boolean;
 };
 
 export function parseArgs(argv: readonly string[]): RecordArgs {
   let fixtureId: string | undefined;
   let tone: Tone | undefined;
+  let keywords = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--tone") {
@@ -60,6 +68,8 @@ export function parseArgs(argv: readonly string[]): RecordArgs {
         throw new RecordUsageError(`--tone takes one of ${TONES.join(", ")}`);
       }
       tone = found;
+    } else if (arg === "--keywords") {
+      keywords = true;
     } else if (arg !== undefined && !arg.startsWith("--")) {
       if (fixtureId !== undefined) {
         throw new RecordUsageError("Give one Fixture id");
@@ -72,7 +82,10 @@ export function parseArgs(argv: readonly string[]): RecordArgs {
   if (fixtureId === undefined) {
     throw new RecordUsageError("Usage: record-cached <fixture-id>");
   }
-  return { fixtureId, tone };
+  if (keywords && tone !== undefined) {
+    throw new RecordUsageError("--keywords and --tone cannot be combined");
+  }
+  return { fixtureId, tone, keywords };
 }
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -112,8 +125,50 @@ function liveAdapter(env: Env): AiAdapterPort {
 
 const SAFE_ID = /^[a-z0-9][a-z0-9-]*$/;
 
+// The one request for the Keyword list. The prompt holds the Job ad and nothing
+// else: the CV is never part of it. The answer is written raw, before
+// `proposeKeywords` checks it against the ad.
+async function recordKeywords(
+  adapter: AiAdapterPort,
+  folder: string,
+  jobAd: string,
+  now: Date | undefined,
+): Promise<string> {
+  const generated = await adapter.generate({
+    prompt: keywordsPromptBuilder({ jobAd })(""),
+    lookupKey: "record-cached",
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    maxRetries: 0,
+    schema: keywordsOutputSchema,
+  });
+  const parsed = keywordsOutputSchema.safeParse(generated.output);
+  if (!parsed.success || parsed.data.keywords.length === 0) {
+    throw new Error("The answer had no keywords");
+  }
+  const content = {
+    data: { keywords: parsed.data.keywords },
+    meta: {
+      source: "live",
+      provider: adapter.provider,
+      model: adapter.model,
+      promptVersion: KEYWORDS_PROMPT_VERSION,
+      createdAt: (now ?? new Date()).toISOString(),
+    },
+  };
+  await mkdir(join(folder, "cached"), { recursive: true });
+  const file = join(folder, "cached", "keywords.json");
+  await writeFile(
+    file,
+    `${JSON.stringify(content, null, 2)}
+`,
+    "utf8",
+  );
+  return file;
+}
+
 /**
- * Records the Cached Letters and returns the files written. The request is the
+ * Records the Cached Letters, or with `--keywords` the Cached Keyword list, and
+ * returns the files written. The request is the
  * one `generateLetter` makes: the same prompt, from the stripped CV and the
  * Matched keywords of the phase-1 analysis. Settings are checked before
  * anything is read or written; a failed request writes nothing for its Tone.
@@ -143,14 +198,18 @@ export async function recordCached(options: RecordOptions): Promise<string[]> {
   const meta = fixtureMetaSchema.parse(JSON.parse(metaText));
   const vocabulary = vocabularySchema.parse(JSON.parse(vocabularyText));
 
-  // Phase 1 as `analyseInputs` does it, so the prompt names the Keywords the
-  // app would name.
-  const resolved = resolveKeywords(jobAd, { vocabulary });
-  if (!resolved.ok) {
+  if (args.keywords) {
+    return [await recordKeywords(adapter, folder, jobAd, options.now)];
+  }
+
+  // Phase 1 with the code-only list, as the Letters were recorded before the
+  // saved lists existed: the Letter prompt names the Matched keywords.
+  const extracted = extractKeywords(jobAd, vocabulary);
+  if (!extracted.ok) {
     throw new RecordUsageError(`${args.fixtureId}: too few Keywords in ad.txt`);
   }
-  const analysis = analyse(cvText, resolved.value.keywords, vocabulary, {
-    keywordSource: resolved.value.keywordSource,
+  const analysis = analyse(cvText, extracted.value, vocabulary, {
+    keywordSource: "code",
     adParagraphs: splitParagraphs(jobAd).length,
   });
   const matchedTerms = analysis.matched.map(({ term }) => term);

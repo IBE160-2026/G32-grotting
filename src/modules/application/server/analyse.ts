@@ -1,22 +1,33 @@
-import { resolveKeywords } from "@/modules/keywords";
+import { type ResolveOptions, resolveKeywords } from "@/modules/keywords";
 import { splitParagraphs } from "@/modules/keywords/core";
 import { analyse } from "@/modules/match";
 import type { AnalysisResult } from "@/modules/match/contracts";
 import { err, ok, type Result } from "@/shared/core/result";
 import type { Vocabulary } from "@/shared/core/vocabulary";
+import { getConfig } from "@/shared/server/config";
 import { loadExamplePair, loadVocabulary } from "@/shared/server/data-files";
 import type { AnalysisInputs } from "../contracts";
 import { fingerprintOf } from "../core/fingerprint";
 
 /**
- * Phase 1 of an analysis: Keywords by code, score, fingerprint. No AI request,
- * no network, nothing stored.
+ * Phase 1 of an analysis: Keywords, score, fingerprint. The CV is scored by
+ * code alone and never leaves the app. The Keywords come from
+ * `KeywordSource.resolve` (FR-5b): with `ai` the list for a new ad may be
+ * proposed by one AI request (the Job ad only); without it only a saved list is
+ * read, which is what phase 2 and the integrity check do so that they never
+ * spend a request and find the list phase 1 saved.
  */
-export function analyseInputs(
+export async function analyseInputs(
   inputs: AnalysisInputs,
   vocabulary: Vocabulary,
-): Result<{ result: AnalysisResult; fingerprint: string }, "TOO_FEW_KEYWORDS"> {
-  const resolved = resolveKeywords(inputs.jobAd, { vocabulary });
+  options: Pick<ResolveOptions, "ai" | "keywordFallback"> = {},
+): Promise<
+  Result<{ result: AnalysisResult; fingerprint: string }, "TOO_FEW_KEYWORDS">
+> {
+  const resolved = await resolveKeywords(inputs.jobAd, {
+    vocabulary,
+    ...options,
+  });
   if (!resolved.ok) return err(resolved.error);
   const { keywords, keywordSource } = resolved.value;
 
@@ -60,7 +71,14 @@ export async function analyseExample(): Promise<ExampleAnalysis> {
     loadExamplePair(),
     loadVocabulary(),
   ]);
-  const analysed = analyseInputs(pair, vocabulary);
+  // In Test mode the Example ad is answered from its Cached Keyword list, as
+  // in phase 1, so the plot cannot differ from the result. Outside Test mode
+  // Hjem asks no AI: a saved list, else code.
+  const analysed = await analyseInputs(pair, vocabulary, {
+    ai: getConfig().testMode
+      ? { ctx: { studentId: null, consent: null } }
+      : undefined,
+  });
   if (!analysed.ok) throw new Error(`Example pair: ${analysed.error}`);
   const { matched, missing } = analysed.value.result;
   return {

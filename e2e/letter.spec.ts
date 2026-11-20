@@ -2,12 +2,14 @@ import { expect, type Page, test } from "@playwright/test";
 import {
   analysisCalls,
   EXAMPLE_AD,
-  EXAMPLE_KEY,
+  EXAMPLE_CODE_SENTENCE,
   EXAMPLE_META,
+  EXAMPLE_SCORE,
   EXAMPLE_SENTENCE,
   failure,
   failureBox,
   fillExample,
+  LESS_PRECISE,
   LETTER_ROUTE,
   letterCalls,
   openForm,
@@ -413,7 +415,7 @@ test.describe("AD-6 a silent rerun that changes the score", () => {
       /^Samsvaret er oppdatert: \d+ %, .+, \d+ av \d+ nøkkelord\.$/,
     );
     await expect(
-      page.getByText(`${EXAMPLE_KEY.score - 10} % samsvar`),
+      page.getByText(`${EXAMPLE_SCORE - 10} % samsvar`),
     ).toBeVisible();
   });
 });
@@ -598,7 +600,10 @@ Vi tilbyr også fleksibel arbeidstid.`,
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       EXAMPLE_META.employer,
     );
-    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+    // No Cached Keyword list exists for this ad either (FR-5b): the score is
+    // built on the code-only list and says so.
+    await expect(page.getByText(EXAMPLE_CODE_SENTENCE)).toBeVisible();
+    await expect(page.getByText(LESS_PRECISE)).toBeVisible();
     await expect(page.locator("#live-phase")).toHaveText(
       "Søknadsbrevet er ikke tilgjengelig i testmodus.",
     );

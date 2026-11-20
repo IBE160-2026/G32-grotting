@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Locator, type Page } from "@playwright/test";
+import { findKeyword, proposeKeywords } from "../../src/modules/keywords/core";
+import { scoreOf } from "../../src/modules/match/core";
+import { vocabularySchema } from "../../src/shared/core/vocabulary";
 
 export const WIDE = { width: 1280, height: 800 };
 export const PHONE = { width: 360, height: 800 };
@@ -33,8 +36,8 @@ export const TEXT_PDF = `${FILES}text-cv.pdf`;
 export const SCANNED_PDF = `${FILES}scanned.pdf`;
 export const DOCX = `${FILES}cv.docx`;
 
-// The Example pair and its Answer key: the counts the result must show come
-// from the key, not from numbers typed here (SM-2).
+// The Example pair and its Answer key: the counts the code-only list must show
+// come from the key, not from numbers typed here (SM-2).
 export const EXAMPLE = fileURLToPath(
   new URL("../../data/fixtures/example-nordic-digital/", import.meta.url),
 );
@@ -52,13 +55,39 @@ export const EXAMPLE_AD = exampleFile("ad.txt");
 export const EXAMPLE_PARAGRAPHS = EXAMPLE_AD.replace(/\r\n?/g, "\n")
   .split(/\n(?:[^\S\n]*\n)+/)
   .filter((paragraph) => paragraph.trim() !== "").length;
-export const EXAMPLE_MATCHED = EXAMPLE_KEY.keywords.matched.length;
-export const EXAMPLE_MISSING = EXAMPLE_KEY.keywords.missing.length;
-export const EXAMPLE_TOTAL = EXAMPLE_MATCHED + EXAMPLE_MISSING;
-export const EXAMPLE_SENTENCE = `${EXAMPLE_KEY.score} % samsvar – ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord`;
+
+// In Test mode the Example ad is answered from its Cached Keyword list
+// (FR-5b), not by the code alone, so the counts the screen shows come from that
+// list: checked against the ad and looked up in the CV by the Keyword engine.
+// The Answer key still anchors the code-only list (`EXAMPLE_KEY`, SM-2).
+const VOCABULARY = vocabularySchema.parse(
+  JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
+);
+const CACHED_KEYWORDS = (
+  JSON.parse(exampleFile("cached/keywords.json")) as {
+    data: { keywords: string[] };
+  }
+).data.keywords;
+const SAVED_LIST = proposeKeywords(EXAMPLE_AD, CACHED_KEYWORDS, VOCABULARY);
+const SAVED_FOUND = SAVED_LIST.filter(
+  (keyword) =>
+    findKeyword(exampleFile("cv.txt"), keyword, VOCABULARY).length > 0,
+);
+export const EXAMPLE_MATCHED = SAVED_FOUND.length;
+export const EXAMPLE_TOTAL = SAVED_LIST.length;
+export const EXAMPLE_MISSING = EXAMPLE_TOTAL - EXAMPLE_MATCHED;
+export const EXAMPLE_SCORE = scoreOf(EXAMPLE_MATCHED, EXAMPLE_TOTAL);
+export const EXAMPLE_SENTENCE = `${EXAMPLE_SCORE} % samsvar – ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord`;
+// The code-only list, for a server that has the Keyword fallback off.
+export const EXAMPLE_CODE_SENTENCE = `${EXAMPLE_KEY.score} % samsvar – ${EXAMPLE_KEY.keywords.matched.length} av ${EXAMPLE_KEY.keywords.matched.length + EXAMPLE_KEY.keywords.missing.length} nøkkelord`;
 // Words of no use as Keywords, long enough to pass the length check.
 export const NO_KEYWORDS =
   "Vi er et selskap som holder til i Oslo og har kontor. ".repeat(6);
+// FR-5b: the line under the formula for code-only Keywords, and the unannounced
+// progress line while phase 1 waits for the Keyword request.
+export const LESS_PRECISE =
+  "Mindre presist: nøkkelordene er hentet ut uten KI.";
+export const KEYWORD_PROGRESS = "Henter nøkkelord fra annonsen …";
 export const AD_UNCLEAR =
   "Annonsen er for kort eller uklar til å analyseres. Lim inn hele stillingsannonsen, også kravene.";
 

@@ -91,6 +91,12 @@ export type CachedLetterFile = {
   readonly content: unknown;
 };
 
+/** `cached/keywords.json` (FR-5b), as parsed JSON: `ai` validates it. */
+export type CachedKeywordsFile = {
+  readonly file: string;
+  readonly content: unknown;
+};
+
 /** The files of one Fixture folder that a Test-mode run needs. */
 export type FixtureFiles = {
   readonly id: string;
@@ -102,6 +108,8 @@ export type FixtureFiles = {
   readonly employer: string;
   /** The Cached Letters that exist, in Tone order. */
   readonly cachedLetters: readonly CachedLetterFile[];
+  /** The Cached Keyword list, when the Fixture has one. */
+  readonly cachedKeywords?: CachedKeywordsFile;
 };
 
 const isMissing = (error: unknown) =>
@@ -140,13 +148,34 @@ async function loadCachedLetters(
   return cachedLetters;
 }
 
+// `cached/keywords.json` of one folder, or nothing. Same JSON rule as a letter.
+async function loadCachedKeywords(
+  folder: string,
+  id: string,
+): Promise<CachedKeywordsFile | undefined> {
+  const file = "keywords.json";
+  const text = await readOptional(() =>
+    readFile(join(folder, "cached", file), "utf8"),
+  );
+  if (text === undefined) return undefined;
+  try {
+    return { file, content: JSON.parse(text) };
+  } catch {
+    throw new Error(`Invalid Cached response ${id}/${file}: not JSON`);
+  }
+}
+
 async function loadFixtureFiles(
   root: string,
   id: string,
 ): Promise<FixtureFiles | undefined> {
   const folder = join(root, id);
   const cachedLetters = await loadCachedLetters(folder, id);
-  if (cachedLetters.length === 0) return undefined;
+  const cachedKeywords = await loadCachedKeywords(folder, id);
+  // A folder with neither is not a Test-mode source.
+  if (cachedLetters.length === 0 && cachedKeywords === undefined) {
+    return undefined;
+  }
   const [cvText, jobAd, metaText, cvPdf] = await Promise.all([
     readFile(join(folder, "cv.txt"), "utf8"),
     readFile(join(folder, "ad.txt"), "utf8"),
@@ -168,13 +197,21 @@ async function loadFixtureFiles(
       .join("; ");
     throw new Error(`Invalid Fixture ${id}: ${problems}`);
   }
-  return { id, cvText, cvPdf, jobAd, ...meta.data, cachedLetters };
+  return {
+    id,
+    cvText,
+    cvPdf,
+    jobAd,
+    ...meta.data,
+    cachedLetters,
+    ...(cachedKeywords === undefined ? {} : { cachedKeywords }),
+  };
 }
 
 /**
  * Every Fixture folder under `data/fixtures/` that does not start with `_`
  * (`_planted` is for tests), with `cv.txt`, `cv.pdf` when present, `ad.txt`,
- * `meta.json` and its Cached Letters. Sorted by id. Throws when a file a
+ * `meta.json`, its Cached Letters and its Cached Keyword list. Sorted by id. Throws when a file a
  * Fixture needs is missing or when `meta.json` or a Cached file is not valid.
  */
 export async function loadFixtures(): Promise<FixtureFiles[]> {

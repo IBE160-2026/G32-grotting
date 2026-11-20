@@ -99,11 +99,11 @@ describe("NFR-5, AD-16 client session", () => {
 
   it("FR-24 keeps the accepted noticeVersion through edits and a dropped id", () => {
     const storage = memoryStorage();
-    writeSession({ noticeVersion: "notice-2:a:unknown:no-fallback" }, storage);
+    writeSession({ noticeVersion: "notice-3:a:unknown:no-fallback" }, storage);
     writeSession({ applicationId: "id-1", inputs: { jobAd: "a" } }, storage);
     writeSession({ applicationId: null, inputs: { jobAd: "b" } }, storage);
     expect(readSession(storage).noticeVersion).toBe(
-      "notice-2:a:unknown:no-fallback",
+      "notice-3:a:unknown:no-fallback",
     );
   });
 

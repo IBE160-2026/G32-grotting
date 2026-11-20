@@ -87,8 +87,24 @@ describe("FR-7 score block", () => {
     );
   });
 
-  it("shows no fallback notice, since phase 1 always uses code", () => {
+  it("FR-5b shows no less-precise line for code-only or saved Keywords", () => {
     expect(text(scoreHtml(result))).not.toContain("Mindre presist");
+    expect(
+      text(scoreHtml({ ...result, keywordSource: "saved" })),
+    ).not.toContain("Mindre presist");
+  });
+
+  it("FR-5b shows «Mindre presist: nøkkelordene er hentet ut uten KI.» under the formula for code-fallback Keywords", () => {
+    const html = scoreHtml({ ...result, keywordSource: "code-fallback" });
+    expect(text(html)).toContain(
+      "Mindre presist: nøkkelordene er hentet ut uten KI.",
+    );
+    expect(html.indexOf("Mindre presist")).toBeGreaterThan(
+      html.indexOf(" av ") + 1,
+    );
+    expect(html.indexOf("Mindre presist")).toBeGreaterThan(
+      html.indexOf("Et anslag"),
+    );
   });
 });
 

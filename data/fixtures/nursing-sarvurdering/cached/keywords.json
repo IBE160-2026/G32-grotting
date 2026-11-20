@@ -1,0 +1,30 @@
+{
+  "data": {
+    "keywords": [
+      "sykepleier",
+      "autorisasjon",
+      "sårvurdering",
+      "trykksår",
+      "diabetessår",
+      "sårstell",
+      "bandasjer",
+      "legemiddelhåndtering",
+      "dobbeltkontroll",
+      "smertelindring",
+      "forskning",
+      "pasientjournal",
+      "infeksjonsforebygging",
+      "norskkunnskaper",
+      "demens",
+      "tverrfaglig samarbeid",
+      "langtidsavdeling"
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "keywords-1",
+    "createdAt": "2026-11-20T09:19:22.702Z"
+  }
+}
