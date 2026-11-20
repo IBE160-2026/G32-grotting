@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-20-2026 21:47
+last_updated: 11-20-2026 21:52
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -185,7 +185,7 @@ action_items:
     action: "Decide before Story 5.1 how the next Gaps recording gets the app Missing
       list so Test mode shows Rewordable gaps for all Fixtures"
     owner: "Helene / dev loop"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-11-20.md"
   - id: "epic-4-retro-item-11-reconcile-experience-md-and-ac-4-4-on-wh"
     epic: 4

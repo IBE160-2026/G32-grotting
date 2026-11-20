@@ -1776,7 +1776,7 @@ I want a concrete new phrasing for each CV line that covers a gap,
 So that I can say what I've done in the employer's words.
 
 **Covers:** FR-16, SC6, AD-7 (unchanged `Gap` shape), AD-15 (one gaps prompt, re-recorded once)
-**Code:** extends the gaps prompt in `gaps/server/prompts/` (new `PROMPT_VERSION`); re-records `gaps.json` for every Fixture
+**Code:** extends the gaps prompt in `gaps/server/prompts/` (new `PROMPT_VERSION`); re-records `gaps.json` for every Fixture; the recorder asks about the Missing keywords of both lists (see the last criterion)
 
 **Acceptance Criteria:**
 
@@ -1796,6 +1796,12 @@ So that I can say what I've done in the employer's words.
 **Given** the new `PROMPT_VERSION`
 **When** `scripts/record-cached.ts` re-records `gaps.json` for every Fixture
 **Then** CI passes the prompt-version check, and the Story 4.3 structure tests still pass
+
+**Given** the recording asks about Missing keywords
+**When** `scripts/record-cached.ts` builds the list for a Fixture
+**Then** it is the Answer key's Missing list plus any Missing keyword the app's phase 1 finds for that Fixture in Test mode (the saved AI Keyword list), without duplicates and Answer key words first, in one request per Fixture
+**And** in Test mode every Missing keyword the app shows for the Example pair and the Fixtures has a Gap from the recording, and the `it.fails` in `test/gaps-test-mode.test.ts` is removed because the two lists no longer disagree
+**And** `qa:compare` still judges G2 on the Answer key's must-never-suggest keywords
 
 ### Story 5.2: Discard suggestions that invent or upgrade
 
