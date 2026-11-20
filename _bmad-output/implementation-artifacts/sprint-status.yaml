@@ -83,7 +83,7 @@ development_status:
   4-2-check-every-citation-against-the-cv-text: done
   4-3-record-cached-gaps-for-every-fixture: done
   4-4-read-the-gapanalyse-on-søknad: done
-  4-5-let-the-letter-use-gaps-the-cv-supports: backlog
+  4-5-let-the-letter-use-gaps-the-cv-supports: done
   4-6-switch-on-gap-analysis: backlog
   epic-4-retrospective: optional
 

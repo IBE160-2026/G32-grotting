@@ -5,6 +5,7 @@ import {
   exampleFile,
   failure,
   LETTER_ROUTE,
+  letterAnswer,
   letterCalls,
   openForm,
   PHONE,
@@ -554,6 +555,195 @@ test.describe("Story 4.4 with the flag on", () => {
     await page.getByRole("button", { name: SUBMIT }).click();
     await expect(gapItems(page)).toHaveCount(total);
     expect(gaps).toHaveLength(2);
+  });
+});
+
+// The planted Letter of the Example pair (Real-gap «TypeScript», Upgrade word
+// «ledet») with one more sentence that names the Rewordable gap «pull requests».
+const WITH_TESTING = (
+  JSON.parse(exampleFile("../_planted/letter-flags.json")) as {
+    data: { text: string };
+  }
+).data.text.replace(
+  "\n\nMed vennlig hilsen",
+  "\n\nJeg har brukt pull requests i prosjektet mitt.\n\nMed vennlig hilsen",
+);
+const CHECK_ROUTE = "**/api/analyses/*/letter-check";
+
+type CheckBody = {
+  gaps: { keyword: string; kind: string; citation: string | null }[] | null;
+  letterRev: number;
+  gapsRev: number;
+};
+
+// The check requests the browser sends, with their bodies.
+function checkCalls(page: Page): CheckBody[] {
+  const calls: CheckBody[] = [];
+  page.on("request", (request) => {
+    if (/\/api\/analyses\/[^/]+\/letter-check$/.test(request.url())) {
+      calls.push(request.postDataJSON() as CheckBody);
+    }
+  });
+  return calls;
+}
+
+const plantLetter = (page: Page) =>
+  page.route(LETTER_ROUTE, (route) =>
+    route.fulfill({ json: letterAnswer("Formell", WITH_TESTING) }),
+  );
+
+const warningItems = (page: Page) =>
+  page
+    .getByRole("region", { name: "Sjekk av brevet mot CV-en" })
+    .getByRole("listitem");
+
+test.describe("Story 4.5 the Letter check with the Gap analysis", () => {
+  test.use({ baseURL: GAPS });
+
+  test("sends one check when the Letter and the Gaps have arrived, and does not flag the Rewordable gap's Keyword", async ({
+    page,
+  }) => {
+    const checks = checkCalls(page);
+    await plantLetter(page);
+    await submitExample(page);
+    await expect(gapItems(page).first()).toBeVisible();
+    // «TypeScript» (a Real gap) and «ledet» (Upgrade word) stay; «pull requests» is
+    // a Rewordable gap whose citation the server checked again.
+    await expect(warningItems(page)).toHaveCount(2);
+    await expect(warningItems(page).first()).toContainText("TypeScript");
+    await expect(warningItems(page).nth(1)).toContainText("ledet");
+    await expect(
+      page.getByRole("region", { name: "Sjekk av brevet mot CV-en" }),
+    ).not.toContainText("pull requests");
+    expect(checks).toHaveLength(1);
+    expect(checks[0]?.gapsRev).toBe(1);
+    expect(checks[0]?.letterRev).toBe(1);
+    expect(checks[0]?.gaps?.map((gap) => gap.keyword)).toEqual(
+      expect.arrayContaining(["pull requests", "TypeScript"]),
+    );
+    // Only what the check reads goes over the wire.
+    expect(Object.keys(checks[0]?.gaps?.[0] ?? {}).sort()).toEqual([
+      "citation",
+      "keyword",
+      "kind",
+    ]);
+  });
+
+  test("waits for the Gaps: no check is sent while they are pending", async ({
+    page,
+  }) => {
+    const checks = checkCalls(page);
+    await plantLetter(page);
+    const release = await hold(page, GAPS_ROUTE);
+    await submitExample(page);
+    await expect(article(page)).toBeVisible();
+    await page.waitForTimeout(500);
+    expect(checks).toHaveLength(0);
+    release();
+    await expect(warningItems(page)).toHaveCount(2);
+    expect(checks).toHaveLength(1);
+  });
+
+  test("sends gaps: null when the Gap analysis failed, then again with the Gaps after a successful retry", async ({
+    page,
+  }) => {
+    const checks = checkCalls(page);
+    await plantLetter(page);
+    let first = true;
+    await page.route(GAPS_ROUTE, async (route) => {
+      if (first) {
+        first = false;
+        await route.fulfill({ json: failure("AI_PROVIDER_ERROR", true) });
+        return;
+      }
+      await route.continue();
+    });
+    await submitExample(page);
+    // Without the Gaps, «pull requests» is an Unsupported claim too.
+    await expect(warningItems(page)).toHaveCount(3);
+    expect(checks).toHaveLength(1);
+    expect(checks[0]?.gaps).toBeNull();
+    expect(checks[0]?.gapsRev).toBe(0);
+
+    await gapsSection(page).getByRole("button", { name: "Prøv igjen" }).click();
+    await expect(warningItems(page)).toHaveCount(2);
+    expect(checks).toHaveLength(2);
+    expect(checks[1]?.gapsRev).toBe(1);
+    expect(checks[1]?.gaps).not.toBeNull();
+  });
+
+  test("a Gaps retry that fails again sends no new check", async ({ page }) => {
+    const checks = checkCalls(page);
+    await plantLetter(page);
+    await page.route(GAPS_ROUTE, (route) =>
+      route.fulfill({ json: failure("AI_PROVIDER_ERROR", true) }),
+    );
+    await submitExample(page);
+    await expect(warningItems(page)).toHaveCount(3);
+    await gapsSection(page).getByRole("button", { name: "Prøv igjen" }).click();
+    await expect(
+      gapsSection(page).getByRole("button", { name: "Prøv igjen" }),
+    ).toBeVisible();
+    expect(checks).toHaveLength(1);
+    await expect(warningItems(page)).toHaveCount(3);
+  });
+
+  test("«Lag nytt utkast» sends the check again with the Gaps and their rev", async ({
+    page,
+  }) => {
+    const checks = checkCalls(page);
+    await plantLetter(page);
+    await submitExample(page);
+    await expect(warningItems(page)).toHaveCount(2);
+    await page.getByRole("button", { name: "Lag nytt utkast" }).click();
+    await expect.poll(() => checks.length).toBe(2);
+    expect(checks[1]?.gapsRev).toBe(1);
+    expect(checks[1]?.gaps).not.toBeNull();
+    await expect(warningItems(page)).toHaveCount(2);
+  });
+
+  test("«Sjekk igjen» sends the Gaps and their rev too", async ({ page }) => {
+    const checks = checkCalls(page);
+    await plantLetter(page);
+    let failing = true;
+    await page.route(CHECK_ROUTE, async (route) => {
+      if (failing) {
+        failing = false;
+        await route.fulfill({ status: 500, json: failure("UNEXPECTED") });
+        return;
+      }
+      await route.continue();
+    });
+    await submitExample(page);
+    await expect(gapItems(page).first()).toBeVisible();
+    await page.getByRole("button", { name: "Sjekk igjen" }).click();
+    await expect(warningItems(page)).toHaveCount(2);
+    expect(checks).toHaveLength(2);
+    expect(checks[1]?.gapsRev).toBe(1);
+    expect(checks[1]?.gaps).not.toBeNull();
+    await expect(
+      page.getByRole("region", { name: "Sjekk av brevet mot CV-en" }),
+    ).not.toContainText("pull requests");
+  });
+
+  test("drops a result for another Gap analysis rev", async ({ page }) => {
+    const checks = checkCalls(page);
+    await plantLetter(page);
+    // The first check answers late, as if for an earlier Gap analysis: its
+    // rev does not match the one shown, so it is not used.
+    let answered = 0;
+    await page.route(CHECK_ROUTE, async (route) => {
+      answered += 1;
+      const response = await route.fetch();
+      const json = await response.json();
+      if (answered === 1) json.data.gapsRev = 7;
+      await route.fulfill({ response, json });
+    });
+    await submitExample(page);
+    await expect(article(page)).toBeVisible();
+    await expect.poll(() => checks.length).toBe(1);
+    await page.waitForTimeout(500);
+    await expect(warningItems(page)).toHaveCount(0);
   });
 });
 
