@@ -67,3 +67,5 @@ Hjelpe med de manuelle feiltestene i `letter-manual-checks.md` (rad 8–17), fø
 - Helene: kjør rad 17 på nytt med skjermleser etter at serveren er bygd på nytt med rettelsen; rettelsen er en antakelse om årsaken.
 - Rad 13 med skjermleser (hva som faktisk leses opp) er ikke gjort.
 - `fix/check-retry-announcement` og `chore/qa-stub-proxy` er ikke pushet eller merget.
+
+Rad 17 kjørt på nytt av Helene etter rettelsen (kl. 18): bestått. Årsaken er dermed den målte timingen (live-linja 20 ms etter fokus), ikke bare en antakelse. Ført i `letter-manual-checks.md` (ukommittert sammen med Helenes øvrige rader). Åpent: `fix/check-retry-announcement` må pushes og merges.
