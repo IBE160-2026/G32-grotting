@@ -47,3 +47,25 @@ UJ-1 på telefon: appen åpnet seg på `http://192.168.68.121:3000`, men «Analy
 ### Åpne punkter
 - Serveren på port 3000 kjører gammelt bygg: `next build` og restart (`npm run serve`) før telefonen prøves på nytt.
 - Rettelsen er ikke pushet eller merget (PR gjenstår).
+
+## 2026-11-20 kl. 17:30 — Helise-26
+
+### Oppgave
+Hjelpe med de manuelle feiltestene i `letter-manual-checks.md` (rad 8–17), føre rad 13 som bestått uten skjermleser, og se på Helenes test av rad 17.
+
+### Plan
+- Stubbe feilene med en proxy foran appen i stedet for nettverkspanelet (`scripts/qa-stub-proxy.ts`, how-to i `docs/qa/stubbed-failure-checks-howto.md`).
+- Kjøre rad 13 i nettleser, og måle rad 17 (fokus mot live-region) i nettleser.
+
+### Resultat
+- Proxy og how-to er committet lokalt på `chore/qa-stub-proxy` (ikke pushet). Alle moduser ble kjørt mot appen i Test mode i nettleser; rad 13-oppskriften (endre `vocabularyVersion` til `v1-00000013`, fjern «Git», kodeliste uten fallback) ga 64 til 62 % og linja «Samsvaret er oppdatert: 62 % …».
+- Rad 13 ført i `letter-manual-checks.md`: bestått uten skjermleser, tester Claude (nettleserkjøring). Ikke committet (filene i `docs/qa` har Helenes ubekreftede endringer).
+- Rad 17 (Helenes resultat: «Fant …»-linja ble ikke lest, og «Brevet er ikke sjekket mot CV-en.» ble lest igjen i stedet for «… fortsatt …»): ført som feil, med den ødelagte teksten i resultatcella skrevet om uten tegnfeil. Målt i nettleser: live-linja ble satt 20 ms etter at fokus kom til «Søknadsbrev»-overskriften i «igjen»-tilfellet (237 ms ved vellykket sjekk), mot 464 ms for «Prøv igjen» (rad 9, bestått). Antatt årsak: skjermleseren avbrøt linja til fordel for fokus-opplesingen.
+- Rettelse på `fix/check-retry-announcement` (commit `c3e5cd1`, lokal): utfallet av «Sjekk igjen» holdes til 600 ms etter klikket (`CHECK_RETRY_SPEECH_MS`), som fase 2-linja holdes bak fase 1-linja. Målt etterpå: linja kommer ca. 595 ms etter klikket. Biome grønn, 59 e2e (letter-check, letter, letter-actions) grønne. Skjermleser ikke prøvd.
+
+### Åpne punkter
+- Helene: kjør rad 17 på nytt med skjermleser etter at serveren er bygd på nytt med rettelsen; rettelsen er en antakelse om årsaken.
+- Rad 13 med skjermleser (hva som faktisk leses opp) er ikke gjort.
+- `fix/check-retry-announcement` og `chore/qa-stub-proxy` er ikke pushet eller merget.
+
+Rad 17 kjørt på nytt av Helene etter rettelsen (kl. 18): bestått. Årsaken er dermed den målte timingen (live-linja 20 ms etter fokus), ikke bare en antakelse. Ført i `letter-manual-checks.md` (ukommittert sammen med Helenes øvrige rader). Åpent: `fix/check-retry-announcement` må pushes og merges.

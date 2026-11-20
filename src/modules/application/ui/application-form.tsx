@@ -89,6 +89,11 @@ function storedTone(): Tone {
 // The phase-1 line is spoken first; the phase-2 line waits until it has had
 // time to be read, so a Letter that arrives at once does not cut it off.
 const PHASE_LINE_GAP_MS = 1500;
+// «Sjekk igjen» moves focus to the section heading, and a screen reader that is
+// still speaking the heading drops a polite line set at the same moment. The
+// check answers in about 100 ms, so its outcome is held until this long after
+// the click (measured: the line came 20 ms after focus and was not read).
+const CHECK_RETRY_SPEECH_MS = 600;
 
 // Which request phase 2 is sending: the first Letter, «Prøv igjen» after it
 // failed, or «Lag nytt utkast» (the old Letter stays). The mode decides where
@@ -607,6 +612,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     if (base === null) return;
     checkSeq.current += 1;
     const seq = checkSeq.current;
+    const asked = Date.now();
     setCheck({
       rev: letter.rev,
       status: manual ? "retrying" : "running",
@@ -630,7 +636,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       // The result is for the Letter shown, with no Gap analysis yet.
       if (letterRev !== shownRev.current || gapsRev !== 0) return;
       setCheck({ rev: letter.rev, status: "done", flags });
-      if (manual) {
+      if (manual && (await spokenAfterFocus(seq, asked))) {
         say(
           flags.length > 0
             ? messages.letter.check.live.found(formatCount(flags.length))
@@ -640,7 +646,20 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       return;
     }
     setCheck({ rev: letter.rev, status: "failed", flags: NONE });
-    if (manual) say(messages.letter.check.live.still);
+    if (manual && (await spokenAfterFocus(seq, asked))) {
+      say(messages.letter.check.live.still);
+    }
+  }
+
+  // Waits until the screen reader has had time to speak the heading that focus
+  // moved to, then says whether this check is still the current one.
+  async function spokenAfterFocus(
+    seq: number,
+    asked: number,
+  ): Promise<boolean> {
+    const wait = CHECK_RETRY_SPEECH_MS - (Date.now() - asked);
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+    return seq === checkSeq.current;
   }
 
   // «Sjekk igjen»: only the check is sent again; focus follows to the section
