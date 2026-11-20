@@ -124,6 +124,24 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
         "Invalid configuration: TEST_MODE cannot be true on Hosted",
       );
     }
+    // Hosted is the frozen skeleton with no AI (D23). An AI setting there is
+    // either a mistake or a half-set live config, so it fails at startup and
+    // names the setting, never its value.
+    if (e.AI_PROVIDER !== undefined && e.AI_API_KEY === undefined) {
+      throw new Error(
+        "Invalid configuration: AI_API_KEY is required when AI_PROVIDER is set on Hosted",
+      );
+    }
+    if (e.AI_PROVIDER === undefined && e.AI_API_KEY !== undefined) {
+      throw new Error(
+        "Invalid configuration: AI_PROVIDER is required when AI_API_KEY is set on Hosted",
+      );
+    }
+    if (e.AI_PROVIDER === undefined && e.AI_MODEL !== undefined) {
+      throw new Error(
+        "Invalid configuration: AI_PROVIDER is required when AI_MODEL is set on Hosted",
+      );
+    }
   }
 
   const url = e.DATABASE_URL ?? LOCAL_DATABASE_URL;

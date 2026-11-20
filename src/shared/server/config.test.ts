@@ -230,6 +230,42 @@ describe("NFR-7 startup fails on bad Hosted config (AD-3)", () => {
     );
   });
 
+  it("fails on Hosted when AI_PROVIDER is set without AI_API_KEY", () => {
+    expect(() =>
+      parseConfig({ ...hostedEnv, AI_PROVIDER: "openrouter" }),
+    ).toThrow(/AI_API_KEY/);
+    expect(() =>
+      parseConfig({
+        ...hostedEnv,
+        AI_PROVIDER: "openrouter",
+        AI_MODEL: "m",
+      }),
+    ).toThrow(/AI_API_KEY/);
+  });
+
+  it("fails on Hosted when AI_API_KEY is set without AI_PROVIDER", () => {
+    expect(() => parseConfig({ ...hostedEnv, AI_API_KEY: "k" })).toThrow(
+      /AI_PROVIDER/,
+    );
+  });
+
+  it("fails on Hosted when AI_MODEL is set without AI_PROVIDER", () => {
+    expect(() => parseConfig({ ...hostedEnv, AI_MODEL: "m" })).toThrow(
+      /AI_PROVIDER/,
+    );
+  });
+
+  it("never prints an AI value in the Hosted AI errors", () => {
+    expect(() =>
+      parseConfig({ ...hostedEnv, AI_API_KEY: "secret-key-value" }),
+    ).toThrow(/^(?!.*secret-key-value)/);
+  });
+
+  it("keeps the local AI settings working outside Hosted", () => {
+    expect(() => parseConfig({ AI_PROVIDER: "openrouter" })).not.toThrow();
+    expect(() => parseConfig({ AI_API_KEY: "k" })).not.toThrow();
+  });
+
   it("fails on an unknown APP_ENV or DATABASE_URL scheme", () => {
     expect(() => parseConfig({ APP_ENV: "staging" })).toThrow(/APP_ENV/);
     expect(() => parseConfig({ DATABASE_URL: "mysql://h/d" })).toThrow(
