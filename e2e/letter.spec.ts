@@ -10,6 +10,7 @@ import {
   failureBox,
   fillExample,
   LESS_PRECISE,
+  LETTER_ONLY,
   LETTER_ROUTE,
   letterCalls,
   openForm,
@@ -115,6 +116,10 @@ test.describe("FR-10 Tone choice on Søknad", () => {
 });
 
 test.describe("UJ-1 «Bruk eksempelet» in Test mode: the score, then the Letter", () => {
+  // The Letter alone: with the Gap analysis on (the default) phase 2 has two
+  // sections, which e2e/gaps.spec.ts covers.
+  test.use({ baseURL: LETTER_ONLY });
+
   for (const tone of TONES) {
     test(`shows the score and the ${tone} Letter, and the Tone shown is the Tone requested`, async ({
       page,
@@ -265,6 +270,10 @@ test.describe("UJ-1 «Bruk eksempelet» in Test mode: the score, then the Letter
 });
 
 test.describe("NFR-4 phase 2 while the Letter is written", () => {
+  // The Letter alone: with the Gap analysis on (the default) phase 2 has two
+  // sections, which e2e/gaps.spec.ts covers.
+  test.use({ baseURL: LETTER_ONLY });
+
   test("shows the progress line and the «Søknadsbrev» placeholder, then the Letter", async ({
     page,
   }) => {
@@ -421,6 +430,10 @@ test.describe("AD-6 a silent rerun that changes the score", () => {
 });
 
 test.describe("NFR-5 a Letter that cannot be written keeps the score", () => {
+  // The Letter alone: with the Gap analysis on (the default) phase 2 has two
+  // sections, which e2e/gaps.spec.ts covers.
+  test.use({ baseURL: LETTER_ONLY });
+
   test("the failure is spoken once: the box is silent, the first live region names the section", async ({
     page,
   }) => {
@@ -611,6 +624,10 @@ Vi tilbyr også fleksibel arbeidstid.`,
 });
 
 test.describe("NFR-5 a double submit and a refresh while the Letter is written", () => {
+  // The Letter alone: with the Gap analysis on (the default) phase 2 has two
+  // sections, which e2e/gaps.spec.ts covers.
+  test.use({ baseURL: LETTER_ONLY });
+
   test("a double click on submit starts one Application and one Letter request", async ({
     page,
   }) => {

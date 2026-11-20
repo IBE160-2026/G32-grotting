@@ -15,10 +15,11 @@ const LIVE_PORT = 3102;
 // FR-5b). Its phase-1 and phase-2 requests are answered in the browser, so the
 // made-up key is never used and nothing reaches a provider.
 const FALLBACK_PORT = 3103;
-// A fifth server is the default one with the Gap analysis switched on (Story 4.4):
-// Test mode answers both phase-2 requests from the Cached files. The default
-// server keeps it off, so the Letter-only specs stay as they are.
-const GAPS_PORT = 3104;
+// A fifth server is the default one with the Gap analysis switched off
+// (FEATURE_GAPS=false). The Gap analysis is on by default since Story 4.6, so
+// the default server runs the Gaps and Letter requests together; this one keeps
+// the Letter-only phase 2 under test.
+const LETTER_ONLY_PORT = 3104;
 // Repeated in e2e/access.spec.ts.
 const HOSTED_ACCESS_CODE = "e2e-access-code-0123456789";
 
@@ -67,6 +68,9 @@ export default defineConfig({
         AI_MODEL: "anthropic/claude-sonnet-5.5",
         AI_API_KEY: "e2e-not-a-real-key",
         FEATURE_KEYWORD_FALLBACK: "false",
+        // The tests answer only the Letter request in the browser, and the key
+        // is made up, so the Gap analysis (on by default) stays off here.
+        FEATURE_GAPS: "false",
       },
     },
     {
@@ -81,18 +85,21 @@ export default defineConfig({
         AI_PROVIDER: "openrouter",
         AI_MODEL: "anthropic/claude-sonnet-5.5",
         AI_API_KEY: "e2e-not-a-real-key",
+        // As on the live server: only the phase-1 and Letter requests are
+        // answered in the browser.
+        FEATURE_GAPS: "false",
       },
     },
     {
-      command: `next start -p ${GAPS_PORT}`,
-      url: `http://localhost:${GAPS_PORT}`,
+      command: `next start -p ${LETTER_ONLY_PORT}`,
+      url: `http://localhost:${LETTER_ONLY_PORT}`,
       reuseExistingServer: false,
       timeout: 60_000,
       env: {
         TEST_MODE: "true",
         APP_ENV: "local",
         DATABASE_URL: "pglite://memory",
-        FEATURE_GAPS: "true",
+        FEATURE_GAPS: "false",
         E2E: "1",
       },
     },

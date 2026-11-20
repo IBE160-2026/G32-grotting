@@ -5,7 +5,7 @@ import { loadVocabulary } from "@/shared/server/data-files";
 
 vi.mock("@/shared/server/log", () => ({ log: vi.fn() }));
 
-// Tests set the flag on explicitly: it is off by default until Story 4.6.
+// Tests set the flag on explicitly, so they do not depend on its default.
 const flags = vi.hoisted(() => ({ gaps: true }));
 vi.mock("@/shared/server/config", async (importOriginal) => {
   const actual =

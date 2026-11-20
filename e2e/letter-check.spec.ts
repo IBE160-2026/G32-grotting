@@ -143,14 +143,16 @@ test.describe("FR-11 flags in the Letter", () => {
         .join(""),
     );
 
-    // One check request for the one Letter, no consent, no Gap analysis.
+    // One check request for the one Letter, no consent. The Gap analysis is on
+    // by default (Story 4.6), so it carries the Gaps the Student sees: one per
+    // Missing keyword.
     expect(calls).toHaveLength(1);
     expect(calls[0]).toMatchObject({
-      gaps: null,
       letterRev: 1,
-      gapsRev: 0,
+      gapsRev: 1,
       letter: { rev: 1 },
     });
+    expect(Array.isArray(calls[0]?.gaps)).toBe(true);
     expect(calls[0]).not.toHaveProperty("consent");
   });
 
@@ -378,7 +380,11 @@ test.describe("AD-6 the rerun of phase 1 from the check is adopted", () => {
       await route.fulfill({
         json: {
           ok: true,
-          data: { flags: [], letterRev: body.letterRev, gapsRev: 0 },
+          data: {
+            flags: [],
+            letterRev: body.letterRev,
+            gapsRev: body.gapsRev,
+          },
         },
       });
     });
