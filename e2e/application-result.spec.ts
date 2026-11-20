@@ -112,7 +112,7 @@ test.describe("FR-7, FR-8 Søknad result", () => {
     await page.getByRole("button", { name: SUBMIT }).click();
     const verdict = EXAMPLE_SCORE >= 70 ? "sterkt samsvar" : "bør forbedres";
     await expect(page.locator("#live-phase")).toHaveText(
-      `Samsvaret er klart: ${EXAMPLE_SCORE} %, ${verdict}, ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord. Søknadsbrevet skrives nå.`,
+      `Samsvaret er klart: ${EXAMPLE_SCORE} %, ${verdict}, ${EXAMPLE_MATCHED} av ${EXAMPLE_TOTAL} nøkkelord. Gapanalysen og søknadsbrevet skrives nå.`,
     );
     release();
   });

@@ -22,7 +22,7 @@ describe("FR-27 mode detection", () => {
     expect(config.hosted).toBe(false);
     expect(config.features).toEqual({
       accounts: false,
-      gaps: false,
+      gaps: true,
       rewording: false,
       keywordFallback: true,
     });
@@ -121,6 +121,22 @@ describe("FR-27 mode detection", () => {
       keywordFallback: false,
     });
     expect(() => parseConfig({ FEATURE_GAPS: "yes" })).toThrow(/FEATURE_GAPS/);
+  });
+
+  it("Story 4.6 switches the Gap analysis on by default and lets FEATURE_GAPS turn it off", () => {
+    expect(FEATURE_DEFAULTS.gaps).toBe(true);
+    expect(parseConfig({}).features.gaps).toBe(true);
+    expect(parseConfig({ FEATURE_GAPS: "false" }).features.gaps).toBe(false);
+  });
+
+  it("keeps the Gap analysis off on Hosted, which has no AI (D23), whatever the environment says", () => {
+    expect(parseConfig(hostedEnv).features.gaps).toBe(false);
+    expect(
+      parseConfig({ ...hostedEnv, FEATURE_GAPS: "true" }).features.gaps,
+    ).toBe(false);
+    expect(
+      parseConfig({ ...hostedEnv, FEATURE_GAPS: "false" }).features.gaps,
+    ).toBe(false);
   });
 
   it("FR-5b switches the Keyword fallback on by default (Story 3.11)", () => {

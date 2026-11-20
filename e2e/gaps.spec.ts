@@ -4,6 +4,7 @@ import {
   EXAMPLE_SENTENCE,
   exampleFile,
   failure,
+  LETTER_ONLY,
   LETTER_ROUTE,
   letterAnswer,
   letterCalls,
@@ -13,11 +14,10 @@ import {
   seriousFindings,
 } from "./support/application";
 
-// The fifth server: Test mode with FEATURE_GAPS on (playwright.config.ts). The
-// Example pair's Cached Gaps are 2 Real and 3 Rewordable.
-const GAPS = "http://localhost:3104";
-// The default server keeps the Gap analysis off.
-const DEFAULT = "http://localhost:3100";
+// The tests run on the default server: Test mode with the Gap analysis on by
+// default (Story 4.6). The Example pair's Cached Gaps cover only some of its
+// Missing keywords, so the tests read the counts from the Missing list on
+// screen.
 const GAPS_ROUTE = "**/api/analyses/*/gaps";
 
 type CachedGap = {
@@ -134,9 +134,7 @@ async function recordPhaseRegion(page: Page) {
 const spoken = (page: Page) =>
   page.evaluate(() => (window as unknown as { spoken: string[] }).spoken);
 
-test.describe("Story 4.4 with the flag on", () => {
-  test.use({ baseURL: GAPS });
-
+test.describe("Story 4.4 with the flag on (the default)", () => {
   test("phase 2 sends both requests in parallel, with one progress line and two placeholders", async ({
     page,
   }) => {
@@ -174,6 +172,39 @@ test.describe("Story 4.4 with the flag on", () => {
     await expect(gapItems(page)).toHaveCount(total);
     await expect(page.locator("[aria-busy=true]")).toHaveCount(0);
     await expect(page.getByText(PROGRESS)).toHaveCount(0);
+  });
+
+  test("UJ-1 with the Example pair: the Gapanalyse shows Rewordable and Real gaps, «Se gapanalysen» moves focus, and the axe scan passes", async ({
+    page,
+  }) => {
+    await submitExample(page);
+    const { total, real, rewordable } = await expected(page);
+    // The Cached Gaps cover only some of the Missing keywords in Test mode, but
+    // both kinds are there: a Rewordable gap with its citation, and a Real gap
+    // with the no-copy note.
+    expect(rewordable.length).toBeGreaterThan(0);
+    expect(real.length).toBeGreaterThan(0);
+    const section = gapsSection(page);
+    await expect(
+      section.getByRole("heading", { level: 2, name: "Gapanalyse" }),
+    ).toBeVisible();
+    await expect(gapItems(page)).toHaveCount(total);
+    await expect(section.getByText("Omformulerbart gap")).toHaveCount(
+      rewordable.length,
+    );
+    await expect(section.locator("blockquote")).toHaveCount(rewordable.length);
+    await expect(section.getByText(NO_COPY)).toHaveCount(real.length);
+
+    // The link on a Missing entry moves focus to its Gap.
+    const target = rewordable[0];
+    if (target === undefined) throw new Error("no Rewordable gap");
+    await page
+      .getByRole("link", { name: `Se gapanalysen for ${target.keyword}` })
+      .click();
+    await expect(gapHeading(section, target.keyword)).toBeFocused();
+
+    await expect(article(page)).toBeVisible();
+    expect(await seriousFindings(page)).toEqual([]);
   });
 
   test("shows each Gap with its strip, citation, hedge and no-copy note", async ({
@@ -598,8 +629,6 @@ const warningItems = (page: Page) =>
     .getByRole("listitem");
 
 test.describe("Story 4.5 the Letter check with the Gap analysis", () => {
-  test.use({ baseURL: GAPS });
-
   test("sends one check when the Letter and the Gaps have arrived, and does not flag the Rewordable gap's Keyword", async ({
     page,
   }) => {
@@ -748,7 +777,7 @@ test.describe("Story 4.5 the Letter check with the Gap analysis", () => {
 });
 
 test.describe("Story 4.4 with the flag off", () => {
-  test.use({ baseURL: DEFAULT });
+  test.use({ baseURL: LETTER_ONLY });
 
   test("keeps the Letter-only phase 2: no Gaps request, no section, no link", async ({
     page,

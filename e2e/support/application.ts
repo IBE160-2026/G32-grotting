@@ -6,6 +6,9 @@ import { findKeyword, proposeKeywords } from "../../src/modules/keywords/core";
 import { scoreOf } from "../../src/modules/match/core";
 import { vocabularySchema } from "../../src/shared/core/vocabulary";
 
+// The fifth server (playwright.config.ts): Test mode with FEATURE_GAPS=false, so
+// phase 2 is the Letter alone. The default server runs the Gap analysis too.
+export const LETTER_ONLY = "http://localhost:3104";
 export const WIDE = { width: 1280, height: 800 };
 export const PHONE = { width: 360, height: 800 };
 export const NARROW = { width: 320, height: 800 };
