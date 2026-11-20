@@ -28,3 +28,6 @@ Funn: de tre Cached Letters til Example-paret gir null flagg (testet). Etter gje
 - Fyll ut rad 14 til 17 i `docs/qa/letter-manual-checks.md` (skjermleser ved flaggliste, lenke fra ord til linje, mislykket sjekk, «Sjekk igjen»).
 - EXPERIENCE.md spesifiserer ingen live-region-linje for flagg eller for en mislykket automatisk sjekk; ingenting leses opp (utfallet av «Sjekk igjen» leses i andre region). Bekreft med Helene/UX at det er riktig.
 - Epic 4: `checkLetter` tar `gaps: null` nå og må lempes slik at Rewordable gaps som består siteringssjekken slipper gjennom; kontrakten `gaps: z.null()` utvides da.
+
+### Merge (2026-11-20)
+PR #60 (`story/3.10-flag-claims-in-the-letter`) er merget til `main` etter grønn `ci` (første forsøk). Gjennomgangen (fire lag) ga fire medium- og én lav-retting (heltord for tittel og arbeidsgiver, «ansvar for», to e2e-hull, `issues.md`), ingenting utsatt. Sluttall: Vitest 91 filer og 1020 grønne (2 forventet feil), Playwright 195 grønne, `docker compose run --rm --build test` exit 0 (195 grønne). `sprint-status.yaml`: 3-10 er `done`. Åpne punkter er uendret og ligger i `issues.md`, i tillegg er story 3.4-punktet om kjøretidsvalidering av brevet (lengde, språk, restplassholdere) holdt åpent.
