@@ -27,6 +27,7 @@ import {
 } from "@/modules/gaps/ui";
 import { splitParagraphs } from "@/modules/keywords/core";
 import {
+  type CheckGap,
   type Letter,
   type LetterFlagWire,
   TONES,
@@ -201,6 +202,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   const [gapsFocus, setGapsFocus] = useState(0);
   const gapsBusy = useRef(false);
   const gapsActive = useRef(false);
+  // The rev of the Gap analysis shown: it counts the ones that arrived, and is
+  // 0 while there is none (flag off, or it failed). The Letter check is sent
+  // with it and a result for another rev is dropped (FR-11, AD-8).
+  const gapsRev = useRef(0);
+  const checkedGaps = useRef<GapsPhase | null>(null);
   const repromptedGaps = useRef(false);
   const pendingGaps = useRef<{ job: GapsJob; mode: GapsMode } | null>(null);
   // How each AI section of phase 2 settled, and whether the phase-2 line has
@@ -289,17 +295,25 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     if (gapsFocus > 0) gapsHeadingRef.current?.focus();
   }, [gapsFocus]);
 
-  // One check per Letter that has arrived: the first, «Prøv igjen» and «Lag
-  // nytt utkast» (FR-11). The Letter is on screen already; flags follow.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: starts once per arrived Letter; runCheck reads refs and sets state only
+  // One check per Letter that has arrived and per Gap analysis it can lean on
+  // (FR-11): it starts when the Letter is there and the Gaps have settled, with
+  // the Gaps (or none when they failed or are off). So it is sent again after a
+  // successful Gaps retry and after «Lag nytt utkast». A Gaps retry that fails
+  // again changes nothing. The Letter is on screen already; flags follow.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: starts once per arrived Letter and Gap analysis; runCheck reads refs and sets state only
   useEffect(() => {
     if (letterPhase?.kind !== "done") return;
+    if (gapsPhase?.kind === "pending") return;
     const { letter: arrived } = letterPhase;
-    if (checkedLetter.current === arrived) return;
+    const usable = gapsPhase?.kind === "done" ? gapsPhase : null;
+    if (checkedLetter.current === arrived && checkedGaps.current === usable) {
+      return;
+    }
     checkedLetter.current = arrived;
+    checkedGaps.current = usable;
     shownRev.current = arrived.rev;
     void runCheck(arrived, false);
-  }, [letterPhase]);
+  }, [letterPhase, gapsPhase]);
 
   const refs: Record<
     InputField,
@@ -564,6 +578,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     });
     setRegen("idle");
     resetCheck();
+    gapsRev.current = 0;
     shownResult.current = answer.result;
     updateNote.current = null;
     // The Gap analysis needs the flag and at least one Missing keyword; the
@@ -708,6 +723,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   function resetCheck() {
     checkSeq.current += 1;
     checkedLetter.current = null;
+    checkedGaps.current = null;
     shownRev.current = null;
     setCheck(null);
   }
@@ -722,6 +738,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     checkSeq.current += 1;
     const seq = checkSeq.current;
     const asked = Date.now();
+    // The Gap analysis the Student sees now, or none when it failed or is off.
+    const shownGaps: readonly CheckGap[] | null =
+      gapsPhase?.kind === "done" ? gapsPhase.gaps : null;
+    // `gaps: null` always goes with rev 0, whatever the counter says now.
+    const askedGapsRev = shownGaps === null ? 0 : gapsRev.current;
     setCheck({
       rev: letter.rev,
       status: manual ? "retrying" : "running",
@@ -731,6 +752,8 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       {
         ...base,
         consent: consentFor(runMode, readSession().noticeVersion),
+        gaps: shownGaps,
+        gapsRev: askedGapsRev,
       },
       letter,
     );
@@ -741,9 +764,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     }
     const { answer } = outcome;
     if (answer.ok) {
-      const { flags, letterRev, gapsRev } = answer.data;
-      // The result is for the Letter shown, with no Gap analysis yet.
-      if (letterRev !== shownRev.current || gapsRev !== 0) return;
+      const { flags, letterRev, gapsRev: answerGapsRev } = answer.data;
+      // The result is for the Letter and the Gap analysis shown.
+      if (letterRev !== shownRev.current || answerGapsRev !== gapsRev.current) {
+        return;
+      }
       setCheck({ rev: letter.rev, status: "done", flags });
       if (manual && (await spokenAfterFocus(seq, asked))) {
         say(
@@ -840,6 +865,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   // The Gap analysis settled: the first outcome joins the Letter's in the
   // phase-2 line, a retry after it is spoken in the second live region.
   function settleGaps(phase: GapsPhase) {
+    if (phase.kind === "done") gapsRev.current += 1;
     setGapsPhase(phase);
     if (phase.kind === "pending") return;
     const kind = kindOfPhase(phase);
@@ -915,6 +941,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     setGapsPhase(null);
     gapsActive.current = false;
     gapsBusy.current = false;
+    gapsRev.current = 0;
     letterBusy.current = false;
     shownResult.current = null;
     setRegen("idle");

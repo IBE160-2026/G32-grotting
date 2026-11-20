@@ -1,5 +1,6 @@
 import { findKeyword, stem, tokenise } from "@/modules/keywords/core";
 import type { Vocabulary } from "@/shared/core/vocabulary";
+import { type CheckableGap, checkCitation } from "./check-citation";
 import { UPGRADE_WORD_CV_FORMS, UPGRADE_WORDS } from "./word-lists";
 
 export type LetterFlagKind = "UNSUPPORTED_CLAIM" | "UPGRADE_WORD";
@@ -26,9 +27,11 @@ export type CheckLetterInput = {
   readonly employer: string;
   // The Missing keywords of the server's own phase-1 analysis.
   readonly missing: readonly { readonly term: string }[];
-  // Gap analysis does not exist before Epic 4: every Missing keyword in the
-  // Letter is an Unsupported claim.
-  readonly gaps: null;
+  // The Gap analysis the Student sees, or `null` when it failed or is off: then
+  // every Missing keyword in the Letter is an Unsupported claim. With it, a
+  // Missing keyword that is a Rewordable gap whose citation passes
+  // `checkCitation` against `cvText` again is let through (FR-11, FR-15).
+  readonly gaps: readonly CheckableGap[] | null;
   readonly vocabulary: Vocabulary;
 };
 
@@ -111,10 +114,23 @@ function cvHas(cvStems: readonly string[], wordStems: readonly string[]) {
   return false;
 }
 
+// The Gap analysis stands behind a keyword only when it is a Rewordable gap
+// whose citation is found in the CV text word for word, checked now (FR-15).
+function supportedByCv(
+  term: string,
+  gaps: readonly CheckableGap[] | null,
+  cvText: string,
+): boolean {
+  if (gaps === null) return false;
+  return gaps.some((gap) => gap.keyword === term && checkCitation(gap, cvText));
+}
+
 /**
  * The integrity guard on the Letter (FR-11, AD-14). Flags every Missing keyword
- * the Letter names (an Unsupported claim) and every Upgrade word it uses that
- * the CV text holds in no form (a bigger role than the CV shows). The job
+ * the Letter names (an Unsupported claim), unless the Gap analysis holds it as
+ * a Rewordable gap whose citation passes `checkCitation` again, and every
+ * Upgrade word it uses that the CV text holds in no form (a bigger role than
+ * the CV shows). The job
  * title, the employer and the sign-off are skipped. Flags only; the Letter is
  * never changed. One flag per term, ordered by its first span. Pure.
  */
@@ -131,6 +147,7 @@ export function checkLetter(input: CheckLetterInput): LetterFlag[] {
   const lines = linesOf(scanned);
 
   for (const { term } of input.missing) {
+    if (supportedByCv(term, input.gaps, input.cvText)) continue;
     const hits = findKeyword(scanned, { term }, input.vocabulary);
     if (hits.length === 0) continue;
     const spans = hits.map((hit) => {

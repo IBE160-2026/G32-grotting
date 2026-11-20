@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Vocabulary } from "@/shared/core/vocabulary";
 import { loadVocabulary } from "@/shared/server/data-files";
+import { type CheckableGap, checkCitation } from "./check-citation";
 import { checkLetter } from "./check-letter";
 import { UPGRADE_WORDS } from "./word-lists";
 
@@ -307,4 +308,121 @@ describe("FR-11 the Example pair's Cached Letters", () => {
       expect(flags).toEqual([]);
     },
   );
+});
+
+describe("FR-11 checkLetter: Rewordable gaps the CV supports (Example pair)", () => {
+  const dir = "data/fixtures/example-nordic-digital";
+  const cvText = readFileSync(`${dir}/cv.txt`, "utf8");
+  const meta = JSON.parse(readFileSync(`${dir}/meta.json`, "utf8")) as {
+    jobTitle: string;
+    employer: string;
+  };
+  const key = JSON.parse(readFileSync(`${dir}/answer-key.json`, "utf8")) as {
+    keywords: { missing: string[] };
+  };
+  type PlantedGaps = { data: { gaps: CheckableGap[] } };
+  const read = (path: string) =>
+    (JSON.parse(readFileSync(path, "utf8")) as PlantedGaps).data.gaps;
+  // The recorded Cached Gaps: «testing» is Rewordable with a citation that
+  // stands in the CV; the planted «one word changed» response has the same
+  // Keyword Rewordable with a citation that does not.
+  const cached = read(`${dir}/cached/gaps.json`);
+  const failing = read(
+    "data/fixtures/_planted/gaps-citation-one-word-changed.json",
+  );
+  const planted = (
+    JSON.parse(
+      readFileSync("data/fixtures/_planted/letter-flags.json", "utf8"),
+    ) as { data: { text: string } }
+  ).data.text;
+  // The planted Letter, with one more sentence that names «testing».
+  const letter = planted.replace(
+    "\n\nMed vennlig hilsen",
+    "\n\nJeg har skrevet tester for skjemaer, og testing liker jeg.\n\nMed vennlig hilsen",
+  );
+
+  async function flagsWith(gaps: readonly CheckableGap[] | null) {
+    return checkLetter({
+      letter,
+      cvText,
+      jobTitle: meta.jobTitle,
+      employer: meta.employer,
+      missing: key.keywords.missing.map((term) => ({ term })),
+      gaps,
+      vocabulary: await loadVocabulary(),
+    });
+  }
+  const terms = (flags: { term: string }[]) => flags.map((flag) => flag.term);
+
+  it("the fixture holds what the tests lean on", () => {
+    expect(letter).not.toBe(planted);
+    const passing = cached.find((gap) => gap.keyword === "testing");
+    const bad = failing.find((gap) => gap.keyword === "testing");
+    expect(passing?.kind).toBe("rewordable");
+    expect(bad?.kind).toBe("rewordable");
+    expect(checkCitation(passing as CheckableGap, cvText)).toBe(true);
+    expect(checkCitation(bad as CheckableGap, cvText)).toBe(false);
+  });
+
+  it("flags «testing» as an Unsupported claim without Gap analysis", async () => {
+    expect(terms(await flagsWith(null))).toEqual([
+      "TypeScript",
+      "ledet",
+      "testing",
+    ]);
+  });
+
+  it("does not flag «testing» when it is a Rewordable gap whose citation passes again", async () => {
+    expect(terms(await flagsWith(cached))).toEqual(["TypeScript", "ledet"]);
+  });
+
+  it("flags «testing» when the same Keyword is Rewordable with a citation that fails", async () => {
+    expect(terms(await flagsWith(failing))).toEqual([
+      "TypeScript",
+      "ledet",
+      "testing",
+    ]);
+  });
+
+  it("keeps the Real-gap Keyword, the Upgrade word and the job title as without Gap analysis", async () => {
+    const flags = await flagsWith(cached);
+    expect(flags.map((flag) => [flag.kind, flag.term])).toEqual([
+      ["UNSUPPORTED_CLAIM", "TypeScript"],
+      ["UPGRADE_WORD", "ledet"],
+    ]);
+    expect(planted).toContain(meta.jobTitle);
+  });
+
+  it("flags a Real gap even when it carries a citation that stands in the CV", async () => {
+    const forged = cached.map((gap) =>
+      gap.keyword === "TypeScript"
+        ? { ...gap, citation: "Jeg skrev enkle tester for skjemaene våre." }
+        : gap,
+    );
+    expect(terms(await flagsWith(forged))).toContain("TypeScript");
+  });
+
+  it("flags a Rewordable gap with no or an empty citation, and one for another Keyword", async () => {
+    const none = cached.map((gap) =>
+      gap.keyword === "testing" ? { ...gap, citation: null } : gap,
+    );
+    const empty = cached.map((gap) =>
+      gap.keyword === "testing" ? { ...gap, citation: "" } : gap,
+    );
+    const other = cached.map((gap) =>
+      gap.keyword === "testing" ? { ...gap, keyword: "enhetstesting" } : gap,
+    );
+    for (const gaps of [none, empty, other]) {
+      expect(terms(await flagsWith(gaps))).toContain("testing");
+    }
+  });
+
+  it("clears the Keyword for a citation that differs only in case and white space", async () => {
+    const reflowed = cached.map((gap) =>
+      gap.keyword === "testing"
+        ? { ...gap, citation: "JEG skrev  enkle\ntester for skjemaene våre." }
+        : gap,
+    );
+    expect(terms(await flagsWith(reflowed))).not.toContain("testing");
+  });
 });

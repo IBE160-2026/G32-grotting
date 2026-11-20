@@ -1,6 +1,8 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import type { LetterFlag } from "@/modules/integrity/core";
+import type { CheckableGap, LetterFlag } from "@/modules/integrity/core";
 import {
+  type CheckGap,
+  LETTER_CHECK_GAPS_MAX,
   LETTER_CHECK_TEXT_MAX,
   type LetterFlagWire,
   letterCheckRequestSchema,
@@ -29,6 +31,11 @@ describe("FR-11 letter-check wire shapes", () => {
     expectTypeOf<LetterFlagWire>().toEqualTypeOf<LetterFlag>();
   });
 
+  it("keeps the check's Gap schema assignable to integrity/core's CheckableGap", () => {
+    expectTypeOf<CheckGap>().toExtend<CheckableGap>();
+    expectTypeOf<CheckableGap>().toExtend<CheckGap>();
+  });
+
   it("accepts a request and an answer", () => {
     expect(letterCheckRequestSchema.safeParse(request).success).toBe(true);
     expect(
@@ -46,9 +53,38 @@ describe("FR-11 letter-check wire shapes", () => {
     expect(parsed.error?.issues[0]?.path).toEqual(["letterRev"]);
   });
 
-  it("takes gaps as null only", () => {
+  it("takes gaps as null or a list of keyword, kind and citation", () => {
+    const gap = { keyword: "testing", kind: "rewordable", citation: "Tester." };
+    const parse = (gaps: unknown) =>
+      letterCheckRequestSchema.safeParse({ ...request, gaps });
+    expect(parse(null).success).toBe(true);
+    expect(parse([]).success).toBe(true);
+    expect(parse([gap, { ...gap, kind: "real", citation: null }]).success).toBe(
+      true,
+    );
+    expect(parse({}).success).toBe(false);
+    expect(parse([{ ...gap, kind: "other" }]).success).toBe(false);
+    expect(parse([{ keyword: "testing", kind: "real" }]).success).toBe(false);
+  });
+
+  it("drops what the check does not read, and caps the list", () => {
+    const gap = {
+      keyword: "testing",
+      kind: "rewordable",
+      citation: "Tester.",
+      explanation: { text: "x" },
+      suggestion: null,
+    };
+    const parsed = letterCheckRequestSchema.parse({
+      ...request,
+      gaps: [gap],
+    });
+    expect(parsed.gaps).toEqual([
+      { keyword: "testing", kind: "rewordable", citation: "Tester." },
+    ]);
+    const many = Array.from({ length: LETTER_CHECK_GAPS_MAX + 1 }, () => gap);
     expect(
-      letterCheckRequestSchema.safeParse({ ...request, gaps: {} }).success,
+      letterCheckRequestSchema.safeParse({ ...request, gaps: many }).success,
     ).toBe(false);
   });
 

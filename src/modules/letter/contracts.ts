@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { aiResultMetaSchema } from "@/modules/ai/contracts";
 import { analysisInputsSchema } from "@/modules/application/contracts";
+import { CV_MAX } from "@/modules/cv/contracts";
 
 // The three Tones of the Letter (FR-10). «Formell» is the default in the UI.
 export const TONES = ["Formell", "Personlig", "Direkte"] as const;
@@ -65,9 +66,26 @@ export const LETTER_CHECK_TEXT_MAX = 20_000;
 
 const revSchema = z.number().int().nonnegative().max(1_000_000);
 
+// What the check reads of a Gap (FR-11, FR-15): its keyword, its kind and its
+// citation. The explanation and the suggestion are not sent. A type test keeps
+// this shape equal to `integrity/core`'s `CheckableGap`.
+export const LETTER_CHECK_GAPS_MAX = 200;
+// A citation is a piece of the CV, so it can be as long as the CV may be.
+export const LETTER_CHECK_CITATION_MAX = CV_MAX;
+
+export const checkGapSchema = z.object({
+  keyword: z.string().max(200),
+  kind: z.enum(["rewordable", "real"]),
+  citation: z.string().max(LETTER_CHECK_CITATION_MAX).nullable(),
+});
+
+export type CheckGap = z.infer<typeof checkGapSchema>;
+
 // `POST /api/analyses/[id]/letter-check`. The server takes no Missing keywords
-// from the client: it recomputes phase 1 from `inputs`. `gaps` is `null` until
-// Epic 4 widens it. `letter.rev` must equal `letterRev`.
+// from the client: it recomputes phase 1 from `inputs`. `gaps` is `null` when
+// Gap analysis failed or is off; the server re-checks every citation, so the
+// client's word that a Gap is Rewordable is never taken as it stands.
+// `letter.rev` must equal `letterRev`.
 export const letterCheckRequestSchema = z
   .object({
     applicationId: z.uuid(),
@@ -78,7 +96,7 @@ export const letterCheckRequestSchema = z
       tone: z.enum(TONES),
       rev: revSchema,
     }),
-    gaps: z.null(),
+    gaps: z.array(checkGapSchema).max(LETTER_CHECK_GAPS_MAX).nullable(),
     letterRev: revSchema,
     gapsRev: revSchema,
   })

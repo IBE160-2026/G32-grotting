@@ -50,7 +50,7 @@ const regenerateButton = (page: Page) =>
 type CheckBody = {
   fingerprint: string;
   letter: { text: string; rev: number };
-  gaps: null;
+  gaps: null | unknown[];
   letterRev: number;
   gapsRev: number;
   consent?: unknown;

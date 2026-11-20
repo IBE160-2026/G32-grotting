@@ -77,6 +77,45 @@ describe("FR-11 the Letter check request", () => {
     expect(sent[0]).not.toHaveProperty("consent");
   });
 
+  it("sends the Gaps, only what the check reads, with their rev", async () => {
+    const { port, sent } = io([{ ...good, data: { ...checked, gapsRev: 2 } }]);
+    const gaps = [
+      {
+        keyword: "testing",
+        kind: "rewordable" as const,
+        citation: "Jeg skrev tester.",
+        explanation: { text: "x" },
+        suggestion: null,
+      },
+    ];
+    await requestLetterCheck({ ...job, gaps, gapsRev: 2 }, letter, port);
+    expect(sent[0]?.gaps).toEqual([
+      { keyword: "testing", kind: "rewordable", citation: "Jeg skrev tester." },
+    ]);
+    expect(sent[0]?.gapsRev).toBe(2);
+    expect(sent[0]?.letterRev).toBe(3);
+  });
+
+  it("sends null gaps and rev 0 when Gap analysis failed (gaps: null)", async () => {
+    const { port, sent } = io([good]);
+    await requestLetterCheck({ ...job, gaps: null, gapsRev: 0 }, letter, port);
+    expect(sent[0]?.gaps).toBeNull();
+    expect(sent[0]?.gapsRev).toBe(0);
+  });
+
+  it("sends the same Gaps again with the new fingerprint after ANALYSIS_STALE", async () => {
+    const { port, sent } = io([stale, good]);
+    const gaps = [
+      { keyword: "testing", kind: "real" as const, citation: null },
+    ];
+    await requestLetterCheck({ ...job, gaps, gapsRev: 1 }, letter, port);
+    expect(sent.map((body) => [body.fingerprint, body.gapsRev])).toEqual([
+      ["fp-1", 1],
+      ["fp-2", 1],
+    ]);
+    expect(sent[1]?.gaps).toEqual(sent[0]?.gaps);
+  });
+
   it("passes any other failure on without a second request", async () => {
     const failure: ApiResult<LetterCheck> = {
       ok: false,

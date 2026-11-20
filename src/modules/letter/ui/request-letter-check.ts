@@ -5,6 +5,7 @@ import type {
 } from "@/modules/application/contracts";
 import { type ApiResult, callApi } from "@/shared/ui/api-client";
 import {
+  type CheckGap,
   type Letter,
   type LetterCheck,
   type LetterCheckRequest,
@@ -21,6 +22,10 @@ export type LetterCheckJob = {
   // Only for the silent phase-1 rerun after ANALYSIS_STALE: the check itself
   // asks no AI.
   readonly consent?: AnalyseRequest["consent"];
+  // The Gap analysis the check may lean on (FR-11) and its rev: `null` and 0
+  // when it failed or is off. The owner sends them once the Gaps have settled.
+  readonly gaps?: readonly CheckGap[] | null;
+  readonly gapsRev?: number;
 };
 
 // How the request reaches the server; tests give their own.
@@ -48,11 +53,18 @@ export type LetterCheckOutcome = {
   readonly rerun?: AnalyseResponse;
 };
 
-// Gap analysis does not exist before Epic 4: `gaps` is null and its rev is 0.
-const NO_GAPS_REV = 0;
+// Only what the check reads goes over the wire: no explanation, no suggestion.
+function forWire(gaps: readonly CheckGap[]): CheckGap[] {
+  return gaps.map(({ keyword, kind, citation }) => ({
+    keyword,
+    kind,
+    citation,
+  }));
+}
 
 /**
- * One integrity check of a Letter (FR-11, AD-6). Like `requestLetter`:
+ * One integrity check of a Letter (FR-11, AD-6) with the Gap analysis that
+ * stands beside it (or none). Like `requestLetter`:
  * `ANALYSIS_STALE` reruns phase 1 once and sends the check again with the new
  * fingerprint; a second one is the answer, so it never loops. It is no AI
  * request: no consent, no cap.
@@ -62,15 +74,17 @@ export async function requestLetterCheck(
   letter: Letter,
   io: LetterCheckIo = browserLetterCheckIo,
 ): Promise<LetterCheckOutcome> {
+  const gaps =
+    job.gaps === undefined || job.gaps === null ? null : forWire(job.gaps);
   const send = (fingerprint: string) =>
     io.sendCheck({
       applicationId: job.applicationId,
       fingerprint,
       inputs: job.inputs,
       letter,
-      gaps: null,
+      gaps,
       letterRev: letter.rev,
-      gapsRev: NO_GAPS_REV,
+      gapsRev: job.gapsRev ?? 0,
     });
 
   const first = await send(job.fingerprint);

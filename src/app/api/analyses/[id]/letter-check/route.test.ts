@@ -141,11 +141,65 @@ describe("FR-11 POST /api/analyses/[id]/letter-check", () => {
     });
   });
 
-  it("answers 400 for gaps that are not null", async () => {
+  it("answers 400 for gaps that are not a list or null", async () => {
     await failure(await post(await body({ gaps: { real: [] } })), 400, {
       code: "INVALID_INPUT",
       field: "gaps",
       retryable: false,
+    });
+  });
+
+  describe("FR-11 with Gap analysis (Cached Gaps of the Example pair)", () => {
+    const cached = (
+      JSON.parse(readFileSync(`${dir}/cached/gaps.json`, "utf8")) as {
+        data: { gaps: { keyword: string; citation: string | null }[] };
+      }
+    ).data.gaps;
+    const withTesting = {
+      text: planted.replace(
+        "\n\nMed vennlig hilsen",
+        "\n\nJeg har skrevet tester for skjemaer, og testing liker jeg.\n\nMed vennlig hilsen",
+      ),
+      tone: "Formell",
+      rev: 2,
+    };
+    const terms = async (response: Response) =>
+      (await response.json()).data.flags.map(
+        (flag: { term: string }) => flag.term,
+      );
+
+    it("does not flag a Rewordable gap whose citation passes on the server, and keeps the rest", async () => {
+      const gaps = cached;
+      const json = await post(
+        await body({ letter: withTesting, gaps, gapsRev: 1 }),
+      );
+      expect(await terms(json.clone())).toEqual(["TypeScript", "ledet"]);
+      expect((await json.json()).data.gapsRev).toBe(1);
+    });
+
+    it("flags the same Keyword when the client sends a citation the CV does not hold", async () => {
+      const gaps = cached.map((gap) =>
+        gap.keyword === "testing"
+          ? { ...gap, citation: "Jeg skrev enkle tester for skjemaene dine." }
+          : gap,
+      );
+      expect(
+        await terms(
+          await post(await body({ letter: withTesting, gaps, gapsRev: 1 })),
+        ),
+      ).toEqual(["TypeScript", "ledet", "testing"]);
+    });
+
+    it("flags every Missing keyword as before for gaps: null", async () => {
+      expect(
+        await terms(await post(await body({ letter: withTesting }))),
+      ).toEqual(["TypeScript", "ledet", "testing"]);
+    });
+
+    it("makes no AI or network request with Gaps either", async () => {
+      await post(await body({ letter: withTesting, gaps: cached, gapsRev: 1 }));
+      expect(runAi).not.toHaveBeenCalled();
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 
