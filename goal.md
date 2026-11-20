@@ -15,6 +15,14 @@ Regler per story:
 - Push, åpne PR, og merge når `ci` er grønn. Har `ci` feilet, rett og push på nytt. Maks 3 forsøk, deretter stopp og skriv det til `.logs/helise-26/issues.md`.
 - Etter hver merge: oppdater `sprint-status.yaml` (`epic-4` forblir `in-progress` til 4.6 er `done`), bruk `sesjonslogg` (logg + `issues.md`, commit), og gå til neste story fra `main`.
 
+Regler til underagenten (ta dem ordrett inn i prompten for hver story):
+
+- Aldri kjør `git checkout -- .`, `git reset --hard` eller andre kommandoer som kaster uncommittede endringer. I 4.4 gikk uncommittede endringer tapt slik.
+- Underagenten kjører ikke `sesjonslogg` og skriver eller committer ingen fil i `.logs/`. Det gjør hovedløkka. Er den blokkert, kan den legge en ukommittet linje i `.logs/helise-26/issues.md`.
+- `sprint-status.yaml` (storyen satt til `done`, `epic-<n>` uendret) ligger i samme PR som storyen, ikke i en oppfølger-PR.
+- Underagenten venter til `ci` er ferdig (`gh pr checks --watch`) før den merger og før den svarer. Den kommer ikke tilbake mens `ci` fortsatt kjører.
+- Reviewlagene i `bmad-build-auto` kjøres ikke i bakgrunnen: vent på alle fire før triage.
+
 Harde grenser:
 
 - Ikke deploy til, eller endre variabler/innstillinger på, Hosted (Vercel). Hosted er frosset (D23, valg a, `main: false` i `vercel.json`). Aldri sett `AI_*`, `FEATURE_*` eller `ENCRYPTION_KEY` der.
