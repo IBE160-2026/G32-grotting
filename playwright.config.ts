@@ -15,6 +15,10 @@ const LIVE_PORT = 3102;
 // FR-5b). Its phase-1 and phase-2 requests are answered in the browser, so the
 // made-up key is never used and nothing reaches a provider.
 const FALLBACK_PORT = 3103;
+// A fifth server is the default one with the Gap analysis switched on (Story 4.4):
+// Test mode answers both phase-2 requests from the Cached files. The default
+// server keeps it off, so the Letter-only specs stay as they are.
+const GAPS_PORT = 3104;
 // Repeated in e2e/access.spec.ts.
 const HOSTED_ACCESS_CODE = "e2e-access-code-0123456789";
 
@@ -77,6 +81,19 @@ export default defineConfig({
         AI_PROVIDER: "openrouter",
         AI_MODEL: "anthropic/claude-sonnet-5.5",
         AI_API_KEY: "e2e-not-a-real-key",
+      },
+    },
+    {
+      command: `next start -p ${GAPS_PORT}`,
+      url: `http://localhost:${GAPS_PORT}`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: {
+        TEST_MODE: "true",
+        APP_ENV: "local",
+        DATABASE_URL: "pglite://memory",
+        FEATURE_GAPS: "true",
+        E2E: "1",
       },
     },
   ],

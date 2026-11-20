@@ -12,29 +12,43 @@ export function AiPlaceholder({
   title,
   headingId,
   headingRef,
+  strip,
   children,
 }: {
   title: string;
   headingId: string;
   // Lets the owner move focus to the heading by script (a retry).
   headingRef?: Ref<HTMLHeadingElement>;
+  // Shown beside the `h2` (the sand «Skrevet med KI» strip); without it the
+  // markup is the plain heading.
+  strip?: ReactNode;
   // The settled section: the answer, or its failure.
   children?: ReactNode;
 }) {
   const pending = children === undefined;
+  const heading = (
+    <h2
+      ref={headingRef}
+      id={headingId}
+      tabIndex={headingRef ? -1 : undefined}
+      className={`${strip === undefined ? "mb-3" : "m-0"} text-heading ${pending ? "text-ink-2" : "text-ink"}`}
+    >
+      {title}
+    </h2>
+  );
   return (
     <section
       aria-labelledby={headingId}
       aria-busy={pending ? "true" : undefined}
     >
-      <h2
-        ref={headingRef}
-        id={headingId}
-        tabIndex={headingRef ? -1 : undefined}
-        className={`mb-3 text-heading ${pending ? "text-ink-2" : "text-ink"}`}
-      >
-        {title}
-      </h2>
+      {strip === undefined ? (
+        heading
+      ) : (
+        <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-2">
+          {heading}
+          {strip}
+        </div>
+      )}
       {pending ? (
         <div className="border border-rule px-5 py-4">
           <CodeStrip kind="outline">{messages.letter.pendingStrip}</CodeStrip>

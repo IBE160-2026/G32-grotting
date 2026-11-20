@@ -1,5 +1,6 @@
 import { CodeStrip } from "@/shared/ui/components/code-strip";
 import { EvidenceQuote } from "@/shared/ui/components/evidence-quote";
+import { Link } from "@/shared/ui/components/link";
 import { messages } from "@/shared/ui/messages.nb";
 import type { MatchedKeyword, MissingKeyword } from "../contracts";
 
@@ -43,10 +44,37 @@ function MatchedEntry({ entry }: { entry: MatchedKeyword }) {
   );
 }
 
+// «Se gapanalysen»: moves focus to the `h3` of the Gap of this Keyword. The
+// target is given by the owner of the page; this slice knows nothing of Gaps.
+function GapLink({ term, target }: { term: string; target: string }) {
+  return (
+    <p className="mt-3 mb-0 text-body">
+      <Link
+        kind="standalone"
+        href={`#${target}`}
+        onClick={(event) => {
+          // A click that opens the link elsewhere is left to the browser.
+          if (event.button !== 0 || event.metaKey || event.ctrlKey) return;
+          const element = document.getElementById(target);
+          if (element === null) return;
+          event.preventDefault();
+          element.focus();
+        }}
+      >
+        {messages.result.missing.gapLink}
+        <span className="sr-only">
+          {messages.result.missing.gapLinkFor(term)}
+        </span>
+      </Link>
+    </p>
+  );
+}
+
 function MissingEntry({
   entry,
   adParagraphs,
-}: { entry: MissingKeyword } & EntryProps) {
+  target,
+}: { entry: MissingKeyword; target?: string } & EntryProps) {
   const [position] = entry.positions;
   const adLine = position ? adParagraphs[position.paragraph] : undefined;
   const number = paragraphNumber(position);
@@ -72,6 +100,9 @@ function MissingEntry({
           />
         </div>
       ) : null}
+      {target === undefined ? null : (
+        <GapLink term={entry.term} target={target} />
+      )}
     </li>
   );
 }
@@ -81,7 +112,13 @@ export function KeywordList(
   props: EntryProps &
     (
       | { kind: "matched"; entries: readonly MatchedKeyword[] }
-      | { kind: "missing"; entries: readonly MissingKeyword[] }
+      | {
+          kind: "missing";
+          entries: readonly MissingKeyword[];
+          // The `id` of the element each Missing keyword links to, by term.
+          // Without a target there is no link.
+          gapTargets?: Readonly<Record<string, string>>;
+        }
     ),
 ) {
   if (props.entries.length === 0) return null;
@@ -104,6 +141,12 @@ export function KeywordList(
                 key={entry.term}
                 entry={entry}
                 adParagraphs={props.adParagraphs}
+                target={
+                  props.gapTargets !== undefined &&
+                  Object.hasOwn(props.gapTargets, entry.term)
+                    ? props.gapTargets[entry.term]
+                    : undefined
+                }
               />
             ))}
       </ul>

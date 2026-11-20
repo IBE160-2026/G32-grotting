@@ -212,6 +212,48 @@ export const messages = {
       REAL_GAP: (keyword: string) =>
         `Annonsen ber om «${keyword}». CV-en din viser ikke dette, og vi fant ingen linje i den som dekker det.`,
     },
+    heading: "Gapanalyse",
+    // The progress line while the Gap analysis and the Letter are written.
+    progress: "Skriver gapanalyse og søknadsbrev … dette tar under ett minutt.",
+    aiStrip: "Skrevet med KI",
+    strip: { rewordable: "Omformulerbart gap", real: "Reelt gap" },
+    citationSource: "Sitert ordrett fra CV-en din · sjekket mot CV-teksten",
+    hedge: "Linjen din dekker trolig dette – vurder å ta det med.",
+    noCopy:
+      "Ingen tekst å kopiere. Vi skriver ikke tekst for det CV-en ikke viser.",
+    failed: "Gapanalysen kunne ikke lages. Samsvaret over er fortsatt riktig.",
+    retry: "Prøv igjen",
+    // The outcome of «Prøv igjen», in the second live region.
+    live: {
+      done: "Gapanalysen er klar.",
+      failed: "Gapanalysen kunne ikke lages. Samsvaret står fortsatt.",
+      cap: "Dagens grense for KI er nådd. Samsvaret står fortsatt.",
+      testMode: "Gapanalysen er ikke tilgjengelig i testmodus.",
+    },
+  },
+  // The phase-2 line when the Gap analysis and the Letter settle together,
+  // spoken once in the first live region (NFR-2).
+  phaseTwo: {
+    both: {
+      done: "Gapanalysen og søknadsbrevet er klare.",
+      failed:
+        "Gapanalysen og søknadsbrevet kunne ikke lages. Samsvaret står fortsatt.",
+      cap: "Dagens grense for KI er nådd. Samsvaret står fortsatt.",
+      testMode:
+        "Gapanalysen og søknadsbrevet er ikke tilgjengelige i testmodus.",
+    },
+    letter: {
+      done: "Søknadsbrevet er klart.",
+      failed: "Søknadsbrevet kunne ikke lages.",
+      cap: "Dagens grense for KI er nådd.",
+      testMode: "Søknadsbrevet er ikke tilgjengelig i testmodus.",
+    },
+    gaps: {
+      done: "Gapanalysen er klar.",
+      failed: "Gapanalysen kunne ikke lages.",
+      cap: "Dagens grense for KI er nådd.",
+      testMode: "Gapanalysen er ikke tilgjengelig i testmodus.",
+    },
   },
   // The phase-1 result on Søknad (FR-7, FR-8). Percent sign with a space and
   // sjevroner for quotes, as in EXPERIENCE.md, Key strings.
@@ -250,6 +292,8 @@ export const messages = {
     // The phase-1 line (NFR-2): the score and the Verdict. When the Letter is
     // being written (before S4), `liveAiNext` ends it.
     liveAiNext: "Søknadsbrevet skrives nå.",
+    // The same, when the Gap analysis is written with the Letter.
+    liveAiNextWithGaps: "Gapanalysen og søknadsbrevet skrives nå.",
     live: (score: number, verdict: string, matched: number, total: number) =>
       `Samsvaret er klart: ${score} %, ${verdict.toLowerCase()}, ${matched} av ${total} nøkkelord.`,
     // Spoken in the second live region when a silent rerun of phase 1 (the
@@ -277,6 +321,9 @@ export const messages = {
         `Annonsen ber om «${keyword}». CV-en din viser det ikke ennå.`,
       // «Fra annonsen · avsnitt 08»
       source: (paragraph: string) => `Fra annonsen · avsnitt ${paragraph}`,
+      // The link to the Gap of this Keyword; the suffix is for screen readers.
+      gapLink: "Se gapanalysen",
+      gapLinkFor: (keyword: string) => ` for ${keyword}`,
     },
   },
   // The pulse plot (FR-8, UX-DR22). The state words are written in capitals
