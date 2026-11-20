@@ -1,6 +1,6 @@
 # Core-flow checkpoint (Story 3.12, PRD §5.2, 24 Nov)
 
-Assessed on the local app on **2026-11-20** (four days before the date), by the dev loop for the parts a machine can do. The parts that need a person are listed at the end and are **not** marked done. Wording of SM-1 and SM-2 follows decision D25 (`fr-5b-decision.md`): the Answer key is the oracle for the code-only list; a stored AI list is judged by the found-in-the-ad check.
+Assessed on the local app on **2026-11-20** (four days before the date), by the dev loop for the parts a machine can do. The parts that needed a person are in section 6; what is still open is in section 7. Wording of SM-1 and SM-2 follows decision D25 (`fr-5b-decision.md`): the Answer key is the oracle for the code-only list; a stored AI list is judged by the found-in-the-ad check.
 
 State of the code: branch `story/3.12-checkpoint-and-sm-decision`, based on `main` at `7e7ea25`. Vocabulary `v1-bbb32bad`. Hosted is frozen (D23); nothing here touched it.
 
@@ -60,11 +60,17 @@ Changes, on 2026-11-20:
 
 Not changed: the Personlig and Direkte Letters (no flags), and the prompt. Only the Example pair has Cached Letters; a second probe of every Cached Letter against its Fixture's saved AI list gave no flag for any of the three Tones.
 
-## 6. Not done here: a person has to do these
+## 6. Done by a person
 
-Listed in `.logs/helise-26/issues.md` and not marked as passed anywhere:
+| Date | Who | What | Result |
+| --- | --- | --- | --- |
+| 2026-11-20 | Helene | UJ-1 (without accounts) on a laptop, against the local app | **pass**, works as expected |
+| 2026-11-20 | Helene | UJ-1 (without accounts) on a real phone, against the local app on the same network (plain http at the laptop's address) | **pass**, works as expected, after the fix in #68. The first try on the phone failed: «Analyser og skriv utkast» did nothing, because `crypto.randomUUID` is missing on a page that is not https or localhost. Fixed with `newId()` (#68) and tried again after a rebuild |
+| 2026-11-20 | Helene | Manual rows for Stories 3.6 to 3.10 | filled in `ai-notice-manual-checks.md` and `letter-manual-checks.md`. Row 17 failed first with Windows Narrator and passed after the fix in #69. Row 13 was run in a browser without a screen reader |
+| 2026-11-20 | Helene | Vercel dashboard row, `hosted-deployment.md` section 3 | filled in as «pass», without a date written in the row |
 
-- UJ-1 (without accounts) on a laptop, and on a real phone against the local app on the same network (Helene).
-- The Vercel dashboard row in `hosted-deployment.md` section 3: a draft is written and marked unconfirmed; Helene confirms it with her own look.
-- The manual rows for Stories 3.6 to 3.11 (screen reader, 360 px, .docx in Word, clipboard on a phone) in `ai-notice-manual-checks.md` and `letter-manual-checks.md`.
-- The decision on what «SM-1 passes» needs on the screen with a live key (the browser, all three Tones), if Helene wants more than the API-level run above.
+## 7. Still open
+
+- Row 13 of `letter-manual-checks.md` with a screen reader (it was run without one).
+- A date on the Vercel row in `hosted-deployment.md` section 3.
+- The decision on what «SM-1 passes» needs on the screen with a live key (the browser, all three Tones), if Helene wants more than the API-level run in section 2.
