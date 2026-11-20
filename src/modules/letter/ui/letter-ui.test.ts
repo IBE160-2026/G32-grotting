@@ -73,7 +73,12 @@ describe("FR-9 Letter view", () => {
 describe("UX-DR30 Letter section", () => {
   const render = (phase: Parameters<typeof LetterSection>[0]["phase"]) =>
     renderToStaticMarkup(
-      createElement(LetterSection, { phase, onRetry: () => {} }),
+      createElement(LetterSection, {
+        phase,
+        onRetry: () => {},
+        employer: "Nordic Digital",
+        onRegenerate: () => {},
+      }),
     );
 
   it("while pending shows the progress line, the real h2, «Skrives» and aria-busy", () => {

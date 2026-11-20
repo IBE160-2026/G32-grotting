@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import { messages } from "@/shared/ui/messages.nb";
 import type { Letter } from "../contracts";
 import { renderLetter } from "../core/render-letter";
@@ -9,7 +10,14 @@ export const LETTER_LABEL_ID = "letter-ai-label";
 // heading and to the AI label, never a textarea or `contenteditable`, so the
 // Student edits it in their own program. The sign-off is rendered here by
 // `renderLetter`; before accounts there is no name, so the placeholder shows.
-export function LetterView({ letter }: { letter: Letter }) {
+export function LetterView({
+  letter,
+  articleRef,
+}: {
+  letter: Letter;
+  // Lets the owner select the text when the clipboard is blocked (FR-12).
+  articleRef?: Ref<HTMLElement>;
+}) {
   const paragraphs = renderLetter(letter.text, null)
     .split(/\n{2,}/)
     .filter((paragraph) => paragraph.trim() !== "");
@@ -19,6 +27,7 @@ export function LetterView({ letter }: { letter: Letter }) {
         {messages.letter.aiLabel}
       </p>
       <article
+        ref={articleRef}
         aria-labelledby={LETTER_HEADING_ID}
         aria-describedby={LETTER_LABEL_ID}
         className="flex max-w-letter flex-col gap-4 border border-rule bg-lift px-10 py-9 text-letter max-640:px-[18px] max-640:py-5"

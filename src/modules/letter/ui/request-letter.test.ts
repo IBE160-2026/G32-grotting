@@ -122,3 +122,15 @@ describe("AD-6 ANALYSIS_STALE", () => {
     expect(sent).toHaveLength(1);
   });
 });
+
+describe("FR-12 «Lag nytt utkast» sends the rev it last saw", () => {
+  it("sends previousRev from the job, and 0 for a first draft", async () => {
+    const again = io([good]);
+    await requestLetter({ ...job, previousRev: 3 }, null, again.port);
+    expect(again.sent[0]?.previousRev).toBe(3);
+
+    const first = io([good]);
+    await requestLetter(job, null, first.port);
+    expect(first.sent[0]?.previousRev).toBe(0);
+  });
+});

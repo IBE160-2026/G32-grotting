@@ -174,6 +174,7 @@ export type LetterBody = {
   fingerprint: string;
   tone: string;
   consent: { noticeVersion: string } | null;
+  previousRev?: number;
   inputs: { employer: string };
 };
 

@@ -22,6 +22,9 @@ export type LetterJob = {
   readonly tone: Tone;
   // The fingerprint phase 1 answered with (AD-6).
   readonly fingerprint: string;
+  // The rev of the Letter now shown; «Lag nytt utkast» sends it so the server
+  // answers with the next one. 0 for the first draft.
+  readonly previousRev?: number;
 };
 
 // How the request reaches the server; tests give their own.
@@ -68,9 +71,7 @@ export async function requestLetter(
       inputs: job.inputs,
       tone: job.tone,
       consent,
-      // The first draft of this Application. «Lag nytt utkast» (Story 3.8) will
-      // send the rev it last saw.
-      previousRev: 0,
+      previousRev: job.previousRev ?? 0,
     });
 
   const first = await send(job.fingerprint);

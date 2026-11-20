@@ -1,3 +1,4 @@
+export type { RegenState } from "./letter-actions";
 export { type LetterPhase, LetterSection, letterLine } from "./letter-section";
 export { LetterView } from "./letter-view";
 export {
