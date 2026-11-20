@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode, Ref } from "react";
+import { type ReactNode, type Ref, useRef } from "react";
 import type { MessageKey } from "@/shared/core/message-key";
 import { AiPlaceholder } from "@/shared/ui/components/ai-placeholder";
 import { Alert } from "@/shared/ui/components/alert";
@@ -9,6 +9,7 @@ import { Notice } from "@/shared/ui/components/notice";
 import { ProgressLine } from "@/shared/ui/components/progress-line";
 import { messages } from "@/shared/ui/messages.nb";
 import type { Letter } from "../contracts";
+import { LetterActions, type RegenState } from "./letter-actions";
 import { LETTER_HEADING_ID, LetterView } from "./letter-view";
 
 // Where phase 2 stands for the Letter.
@@ -36,21 +37,45 @@ export function LetterSection({
   phase,
   onRetry,
   headingRef,
+  employer,
+  regen = "idle",
+  onRegenerate,
 }: {
   phase: LetterPhase;
   onRetry: () => void;
   headingRef?: Ref<HTMLHeadingElement>;
+  // The file name of the download is built from it (FR-12).
+  employer: string;
+  // «Lag nytt utkast»: the old Letter stays while a new one is written.
+  regen?: RegenState;
+  onRegenerate: () => void;
 }) {
+  const articleRef = useRef<HTMLElement>(null);
   // `undefined` children keep the slot a placeholder (aria-busy, «Skrives»).
   let settled: ReactNode;
-  if (phase.kind === "done") settled = <LetterView letter={phase.letter} />;
-  else if (phase.kind === "failed") {
+  if (phase.kind === "done") {
+    settled = (
+      <>
+        <LetterView letter={phase.letter} articleRef={articleRef} />
+        <LetterActions
+          letter={phase.letter}
+          employer={employer}
+          articleRef={articleRef}
+          regen={regen}
+          onRegenerate={onRegenerate}
+        />
+      </>
+    );
+  } else if (phase.kind === "failed") {
     settled = <FailedLetter code={phase.code} onRetry={onRetry} />;
   }
   return (
     <div className="flex flex-col gap-4">
       {phase.kind === "pending" ? (
         <ProgressLine>{messages.letter.progress}</ProgressLine>
+      ) : null}
+      {phase.kind === "done" && regen === "running" ? (
+        <ProgressLine>{messages.letter.regenerate.progress}</ProgressLine>
       ) : null}
       <AiPlaceholder
         title={messages.letter.heading}

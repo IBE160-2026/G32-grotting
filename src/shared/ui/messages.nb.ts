@@ -111,6 +111,14 @@ export const messages = {
       TOO_LONG: "Maks 200 tegn.",
     },
   },
+  // The copy button (FR-12, UX-DR13): one label, the 1.8 s feedback, the
+  // second live region, and the notice when the clipboard is blocked.
+  copy: {
+    label: "Kopier",
+    copied: "Kopiert",
+    live: "Kopiert til utklippstavlen.",
+    blocked: "Kopier med Ctrl+C, eller hold inne på mobil.",
+  },
   // «Tone i brevet» on Søknad (FR-10, UX-DR25). The name and the hint are one
   // accessible name, «Formell – Høflig og saklig».
   tone: {
@@ -140,6 +148,24 @@ export const messages = {
     failed:
       "Søknadsbrevet kunne ikke lages. Samsvaret over er fortsatt riktig.",
     retry: "Prøv igjen",
+    // The action stack under the Letter (FR-12, UX-DR28).
+    actions: {
+      download: "Last ned (.docx)",
+      downloadFailed:
+        "Filen kunne ikke lages. Kopier brevet i stedet, og lim det inn i ditt eget program.",
+      hint: "Brevet kan ikke redigeres her. Kopier det eller last det ned, og tilpass det i ditt eget program. «Lag nytt utkast» skriver et nytt brev i samme tone.",
+    },
+    // «Lag nytt utkast» (FR-12, UX-DR39): the old Letter stays until the new
+    // one has arrived.
+    regenerate: {
+      label: "Lag nytt utkast",
+      progress: "Skriver et nytt utkast …",
+      live: {
+        done: "Det nye utkastet er klart.",
+        failed:
+          "Det nye utkastet kunne ikke lages. Det forrige brevet står fortsatt.",
+      },
+    },
     cap: {
       label: "Dagens grense",
       text: "Du har brukt dagens 30 KI-forespørsler. Grensen nullstilles ved midnatt.",

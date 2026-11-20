@@ -25,6 +25,7 @@ import {
   type LetterPhase,
   LetterSection,
   letterLine,
+  type RegenState,
   requestLetter,
   ToneChoice,
 } from "@/modules/letter/ui";
@@ -138,11 +139,14 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   const [tone, setTone] = useState<Tone>(DEFAULT_TONE);
   // Phase 2: where the Letter stands, and what a refused request holds back.
   const [letterPhase, setLetterPhase] = useState<LetterPhase | null>(null);
+  // «Lag nytt utkast»: the Letter on screen stays while a new one is written.
+  const [regen, setRegen] = useState<RegenState>("idle");
   const letterHeadingRef = useRef<HTMLHeadingElement>(null);
   const [letterFocus, setLetterFocus] = useState(0);
   const pendingLetter = useRef<LetterJob | null>(null);
   const reprompted = useRef(false);
   const lastJob = useRef<LetterJob | null>(null);
+  const regenerating = useRef(false);
   const phaseOneAt = useRef(0);
   const phaseTwoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -433,17 +437,22 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       date: DATE.format(new Date()),
       adParagraphs: splitParagraphs(inputs.jobAd),
     });
+    setRegen("idle");
     announce("phase", phaseOneLine(answer.result, true));
     phaseOneAt.current = Date.now();
     reprompted.current = false;
     runLetter(job);
   }
 
-  function runLetter(job: LetterJob) {
-    // A line still waiting from an earlier outcome must not be spoken now.
-    clearTimeout(phaseTwoTimer.current);
+  // `again` is «Lag nytt utkast»: the Letter shown stays until the new one has
+  // arrived, and the outcome goes to the second live region (FR-12, UX-DR39).
+  function runLetter(job: LetterJob, again = false) {
+    // A line still waiting from an earlier outcome must not be spoken now; a
+    // new draft leaves the first Letter's line alone.
+    if (!again) clearTimeout(phaseTwoTimer.current);
     lastJob.current = job;
-    setLetterPhase({ kind: "pending" });
+    if (again) setRegen("running");
+    else setLetterPhase({ kind: "pending" });
     letter.mutate(job, {
       onSuccess: ({ answer, rerun }) => {
         // ANALYSIS_STALE was answered by a silent rerun of phase 1: the score
@@ -461,7 +470,18 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
         }
         if (answer.ok) {
           reprompted.current = false;
+          if (again) {
+            setLetterPhase({ kind: "done", letter: answer.data.letter });
+            regenerating.current = false;
+            setRegen("idle");
+            announce("action", messages.letter.regenerate.live.done);
+            return;
+          }
           settleLetter({ kind: "done", letter: answer.data.letter });
+          return;
+        }
+        if (again) {
+          failRegenerate();
           return;
         }
         // The server and this page disagree about the notice (a config change
@@ -477,8 +497,33 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
         reprompted.current = false;
         settleLetter({ kind: "failed", code: answer.error.code });
       },
-      onError: () => settleLetter({ kind: "failed", code: "UNEXPECTED" }),
+      onError: () =>
+        again
+          ? failRegenerate()
+          : settleLetter({ kind: "failed", code: "UNEXPECTED" }),
     });
+  }
+
+  // The old Letter stays; the section shows the alert with «Prøv igjen».
+  function failRegenerate() {
+    regenerating.current = false;
+    setRegen("failed");
+    announce("action", messages.letter.regenerate.live.failed);
+  }
+
+  // «Lag nytt utkast»: one new Letter request with the form's Tone and the rev
+  // of the Letter shown (FR-12, FR-10). Test mode answers with the Cached
+  // Letter again.
+  function regenerate() {
+    const base = lastJob.current;
+    // A ref, not `regen`: two presses before React has rendered the busy
+    // button must not send two requests (each counts toward the Daily cap).
+    if (regenerating.current || letterPhase?.kind !== "done" || base === null) {
+      return;
+    }
+    regenerating.current = true;
+    reprompted.current = false;
+    runLetter({ ...base, tone, previousRev: letterPhase.letter.rev }, true);
   }
 
   // The phase-2 line, once, in the first live region (NFR-2).
@@ -509,6 +554,8 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     letter.reset();
     pendingLetter.current = null;
     setLetterPhase(null);
+    regenerating.current = false;
+    setRegen("idle");
     setHeadingFocus((count) => count + 1);
     setOutcome(null);
   }
@@ -580,6 +627,9 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
             phase={letterPhase ?? { kind: "pending" }}
             onRetry={retryLetter}
             headingRef={letterHeadingRef}
+            employer={outcome.employer}
+            regen={regen}
+            onRegenerate={regenerate}
           />
         </div>
         <AiNotice
