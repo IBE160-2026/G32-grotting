@@ -142,6 +142,29 @@ test.describe("FR-7, FR-8 Søknad result", () => {
     expect(calls).toHaveLength(1);
   });
 
+  test("submits where crypto.randomUUID is missing, as on a phone over plain http", async ({
+    page,
+  }) => {
+    // The browser only has randomUUID on https and localhost; the app is also
+    // opened by the laptop's address on the local network.
+    await page.addInitScript(() => {
+      Object.defineProperty(Crypto.prototype, "randomUUID", {
+        value: undefined,
+        configurable: true,
+      });
+    });
+    const calls = analysisCalls(page);
+    await fillExample(page);
+    expect(await page.evaluate(() => typeof crypto.randomUUID)).toBe(
+      "undefined",
+    );
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      EXAMPLE_META.employer,
+    );
+    expect(calls).toHaveLength(1);
+  });
+
   test("a too-short ad gives the alert at the Job ad field, focus there and no result", async ({
     page,
   }) => {

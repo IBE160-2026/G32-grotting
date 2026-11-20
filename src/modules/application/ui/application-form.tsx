@@ -57,6 +57,7 @@ import { CreditsList } from "@/shared/ui/components/credits-list";
 import { ProgressLine } from "@/shared/ui/components/progress-line";
 import { TextArea, TextField } from "@/shared/ui/components/text-field";
 import { messages } from "@/shared/ui/messages.nb";
+import { newId } from "@/shared/ui/new-id";
 import { useRunMode } from "@/shared/ui/run-mode";
 import {
   type AnalyseRequest,
@@ -403,7 +404,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     // The id lives as long as the inputs do; a second submit reuses it.
     let applicationId = readSession().applicationId;
     if (applicationId === undefined) {
-      applicationId = crypto.randomUUID();
+      applicationId = newId();
       writeSession({ applicationId });
     }
     const request: AnalyseRequest = {
