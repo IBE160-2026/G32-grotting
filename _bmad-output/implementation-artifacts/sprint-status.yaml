@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-20-2026 22:10
+last_updated: 11-20-2026 21:46
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -206,5 +206,5 @@ action_items:
     action: "Carry the subagent rules (no git checkout -- ., no own session log, sprint-status
       inside the PR, wait for ci, no background review layers) into the goal.md template"
     owner: "Helene"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-11-20.md"
