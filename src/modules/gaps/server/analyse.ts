@@ -2,8 +2,10 @@ import { z } from "zod";
 import { type AiContext, type AiFailure, runAi } from "@/modules/ai";
 import type { AiResultMeta } from "@/modules/ai/contracts";
 import type { AnalysisInputs } from "@/modules/application/contracts";
+import { checkCitation } from "@/modules/integrity/core";
 import { canon } from "@/shared/core/canon";
 import { err, ok, type Result } from "@/shared/core/result";
+import { log } from "@/shared/server/log";
 import { type Gap, REAL_GAP_KEY } from "../contracts";
 import { gapsPromptBuilder, PROMPT_VERSION } from "./prompts/gaps";
 
@@ -47,7 +49,7 @@ function gapOf(keyword: string, item: AiGapItem | undefined): Gap {
   }
   if (kind === "rewordable") {
     // A Rewordable gap quotes the CV. Whether the quote is really there is the
-    // FR-15 step (Story 4.2); a missing quote is already not Rewordable.
+    // FR-15 step (`checkGapCitations`); a missing quote is already not Rewordable.
     const citation = item.citation?.trim() ?? "";
     if (citation === "") return templateGap(keyword);
     return {
@@ -80,6 +82,26 @@ export function structureGaps(
   return missingTerms.map((term) => gapOf(term, first.get(keyOf(term))));
 }
 
+/**
+ * FR-15, after the structure step (AD-14): a Rewordable gap whose citation is
+ * not in the CV text word for word (`checkCitation`: case and white space
+ * ignored, nothing looser) becomes the fixed Real-gap template. Its AI
+ * explanation, citation and suggestion are dropped. Real gaps pass unchanged.
+ * `downgraded` is the number of Gaps turned into the template.
+ */
+export function checkGapCitations(
+  gaps: readonly Gap[],
+  sentCvText: string,
+): { gaps: Gap[]; downgraded: number } {
+  let downgraded = 0;
+  const checked = gaps.map((gap) => {
+    if (gap.kind !== "rewordable" || checkCitation(gap, sentCvText)) return gap;
+    downgraded += 1;
+    return templateGap(gap.keyword);
+  });
+  return { gaps: checked, downgraded };
+}
+
 export type AnalyseGapsInput = {
   readonly inputs: AnalysisInputs;
   // The Missing keywords from the server's own phase-1 analysis, in order.
@@ -91,7 +113,9 @@ type RunOptions = Parameters<typeof runAi>[2];
 /**
  * One `runAi` call for the Gap analysis (FR-13, FR-14). With no Missing
  * keyword there is nothing to judge and no request is made. Every `AiFailure`
- * passes through. `options` is the test seam of `runAi`.
+ * passes through. After the structure step every Rewordable citation is
+ * checked against the sent CV text (FR-15) and the downgrades are logged as a
+ * count. `options` is the test seam of `runAi`.
  */
 export async function analyseGaps(
   input: AnalyseGapsInput,
@@ -117,14 +141,19 @@ export async function analyseGaps(
   );
   if (!run.ok) return err(run.error);
 
-  return ok({
-    gaps: structureGaps(
-      missingTerms,
-      run.value.data.gaps.flatMap((item) => {
-        const parsed = itemSchema.safeParse(item);
-        return parsed.success ? [parsed.data] : [];
-      }),
-    ),
-    meta: run.value.meta,
-  });
+  const structured = structureGaps(
+    missingTerms,
+    run.value.data.gaps.flatMap((item) => {
+      const parsed = itemSchema.safeParse(item);
+      return parsed.success ? [parsed.data] : [];
+    }),
+  );
+  // Citations are checked against the CV text that was sent, not the raw one.
+  const { gaps, downgraded } = checkGapCitations(
+    structured,
+    run.value.sentCvText,
+  );
+  // A count only (AD-14): never a keyword, a citation or any CV text.
+  log({ kind: "gaps", downgraded });
+  return ok({ gaps, meta: run.value.meta });
 }
