@@ -31,8 +31,7 @@ export function letterLine(phase: LetterPhase): string | null {
 
 // The «Søknadsbrev» section of the result (before S4: the one AI section). The
 // heading is there in every state. A failure keeps the score on the page and
-// holds either a retry (the provider failed) or a notice (the cap, Test mode);
-// the full failure design is Story 3.9.
+// holds either a retry (the provider failed) or a notice (the cap, Test mode).
 export function LetterSection({
   phase,
   onRetry,
@@ -111,7 +110,8 @@ function FailedLetter({
   }
   return (
     <div className="flex flex-col items-start gap-4">
-      <Alert>{messages.letter.failed}</Alert>
+      {/* Silent: the live region speaks the failure once (UX-DR39). */}
+      <Alert silent>{messages.letter.failed}</Alert>
       <Button variant="secondary" onClick={onRetry}>
         {messages.letter.retry}
       </Button>

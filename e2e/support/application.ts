@@ -180,6 +180,11 @@ export type LetterBody = {
 
 export const LETTER_ROUTE = "**/api/analyses/*/letter";
 
+// The failure box of an AI section. It is silent (no `role="alert"`): a live
+// region speaks the same sentence once (UX-DR39), so it is found by its text.
+export const failureBox = (page: Page, text: string) =>
+  page.locator("section[aria-labelledby=letter-h2] p", { hasText: text });
+
 // The phase-2 requests the browser sends, with their bodies.
 export function letterCalls(page: Page): LetterBody[] {
   const calls: LetterBody[] = [];

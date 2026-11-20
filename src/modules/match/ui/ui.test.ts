@@ -7,7 +7,13 @@ import { answerKeySchema } from "@/shared/core/answer-key";
 import { vocabularySchema } from "@/shared/core/vocabulary";
 import type { AnalysisResult } from "../contracts";
 import { analyse } from "../core/analyse";
-import { KeywordList, phaseOneLine, ScoreBlock } from "./index";
+import {
+  KeywordList,
+  phaseOneLine,
+  resultChanged,
+  ScoreBlock,
+  updatedLine,
+} from "./index";
 
 const vocabulary = vocabularySchema.parse(
   JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
@@ -100,6 +106,38 @@ describe("FR-7 phase-1 live line", () => {
     expect(phaseOneLine(withScore(71, 5, 7), true)).toBe(
       "Samsvaret er klart: 71 %, sterkt samsvar, 5 av 7 nøkkelord. Søknadsbrevet skrives nå.",
     );
+  });
+});
+
+describe("AD-6 the line for a result that a silent rerun changed", () => {
+  it("says the new score and Verdict as an update", () => {
+    expect(updatedLine(withScore(57, 4, 7))).toBe(
+      "Samsvaret er oppdatert: 57 %, bør forbedres, 4 av 7 nøkkelord.",
+    );
+  });
+
+  it("sees a changed score, a changed count or a changed keyword list, and nothing else", () => {
+    expect(resultChanged(result, { ...result })).toBe(false);
+    expect(resultChanged(result, withScore(57, 4, 7))).toBe(true);
+    expect(
+      resultChanged(result, {
+        ...result,
+        matched: result.matched.slice(1),
+      }),
+    ).toBe(true);
+    expect(
+      resultChanged(result, {
+        ...result,
+        missing: [...result.missing].reverse().concat(result.missing),
+      }),
+    ).toBe(true);
+    // Evidence and positions alone are not something the Student reads as a change.
+    expect(
+      resultChanged(result, {
+        ...result,
+        adParagraphs: result.adParagraphs + 1,
+      }),
+    ).toBe(false);
   });
 });
 

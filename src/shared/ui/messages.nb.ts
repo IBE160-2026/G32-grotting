@@ -164,6 +164,9 @@ export const messages = {
         done: "Det nye utkastet er klart.",
         failed:
           "Det nye utkastet kunne ikke lages. Det forrige brevet står fortsatt.",
+        cap: "Dagens grense for KI er nådd. Det forrige brevet står fortsatt.",
+        testMode:
+          "Et nytt utkast er ikke tilgjengelig i testmodus. Det forrige brevet står fortsatt.",
       },
     },
     cap: {
@@ -211,6 +214,15 @@ export const messages = {
     liveAiNext: "Søknadsbrevet skrives nå.",
     live: (score: number, verdict: string, matched: number, total: number) =>
       `Samsvaret er klart: ${score} %, ${verdict.toLowerCase()}, ${matched} av ${total} nøkkelord.`,
+    // Spoken in the second live region when a silent rerun of phase 1 (the
+    // server's inputs had changed since the first answer) gave another result.
+    liveUpdated: (
+      score: number,
+      verdict: string,
+      matched: number,
+      total: number,
+    ) =>
+      `Samsvaret er oppdatert: ${score} %, ${verdict.toLowerCase()}, ${matched} av ${total} nøkkelord.`,
     found: {
       heading: "Funnet i CV-en",
       strip: "Funnet",

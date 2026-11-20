@@ -5,13 +5,15 @@ import { announce } from "@/shared/ui/announce";
 import { Alert } from "@/shared/ui/components/alert";
 import { Button } from "@/shared/ui/components/button";
 import { CopyButton } from "@/shared/ui/components/copy-button";
+import { Notice } from "@/shared/ui/components/notice";
 import { messages } from "@/shared/ui/messages.nb";
 import type { Letter } from "../contracts";
 import { renderLetter } from "../core/render-letter";
 import { downloadLetter } from "./download-letter";
 
 // Where «Lag nytt utkast» stands (FR-12, UX-DR39).
-export type RegenState = "idle" | "running" | "failed";
+// `cap` and `testMode` are notices without a retry; `failed` is the alert.
+export type RegenState = "idle" | "running" | "failed" | "cap" | "testMode";
 
 // Selects what the Letter shows, so Ctrl+C or a long press copies it when the
 // clipboard is blocked.
@@ -76,14 +78,25 @@ export function LetterActions({
     <div className="mt-6 flex max-w-letter flex-col items-start gap-3 max-640:items-stretch">
       {regen === "failed" ? (
         <div className="flex flex-col items-start gap-3 max-640:items-stretch">
-          <Alert>{messages.letter.regenerate.live.failed}</Alert>
+          {/* Silent: the second live region speaks it once (UX-DR39). */}
+          <Alert silent>{messages.letter.regenerate.live.failed}</Alert>
           <Button variant="secondary" onClick={retry}>
             {messages.letter.retry}
           </Button>
         </div>
       ) : null}
+      {regen === "cap" ? (
+        <Notice label={messages.letter.cap.label}>
+          {messages.letter.cap.text}
+        </Notice>
+      ) : null}
+      {regen === "testMode" ? (
+        <Notice label={messages.letter.testMode.label}>
+          {messages.letter.testMode.text}
+        </Notice>
+      ) : null}
       {downloadFailed ? (
-        <Alert>{messages.letter.actions.downloadFailed}</Alert>
+        <Alert silent>{messages.letter.actions.downloadFailed}</Alert>
       ) : null}
       <CopyButton
         text={rendered}

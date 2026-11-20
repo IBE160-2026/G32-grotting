@@ -20,3 +20,18 @@ The automated tests prove the plain-text copy with the sign-off rendered, «Kopi
 | 5 |      |        | Press «Lag nytt utkast» with a screen reader on. | The button is announced as busy or unavailable; when the new Letter is in place «Det nye utkastet er klart.» is read once; focus stays on the button. | |
 | 6 |      |        | Press «Last ned (.docx)» and open the file in Word, LibreOffice and Google Docs. | The file is named `soknadsbrev-<arbeidsgiver>-<år>.docx`, opens without a repair prompt, and holds the Letter paragraphs and «[Navnet ditt]». | |
 | 7 |      |        | On a phone, block clipboard access for the site and press «Kopier». | The Letter text is selected and the notice «Kopier med Ctrl+C, eller hold inne på mobil.» shows. | |
+
+## When the AI part fails (Story 3.9, NFR-5, FR-25, FR-27, UX-DR15, UX-DR39)
+
+The automated tests prove that the score stays in every failure, the silent failure box (no `role="alert"`) next to one spoken line, «Prøv igjen» (one request, focus on the «Søknadsbrev» heading, outcome in the second live region), the «Dagens grense» and «Testmodus» notices with no retry for the first Letter and for a new draft, the AI notice opening again for a new draft, the announcement of a silent rerun that changed the score, and one request for a double click or a refresh (`e2e/letter.spec.ts`, `e2e/letter-actions.spec.ts`, `e2e/ai-notice.spec.ts`). What only a person can judge is recorded here. **A row is a result only when the Date, Tester and Result columns are filled in. A blank Result means open, not passed.**
+
+How to run: a stubbed failure is easiest in the browser's network panel (block `/api/analyses/*/letter`), with a screen reader on.
+
+| # | Date | Tester | Steps | Expected result | Result |
+| - | ---- | ------ | ----- | --------------- | ------ |
+| 8 |      |        | Block the Letter request and submit the example. | Once the score is read, «Søknadsbrevet kunne ikke lages. Samsvaret står fortsatt.» is read once, not twice. The box under «Søknadsbrev» can still be read by moving to it. | |
+| 9 |      |        | Press «Prøv igjen» (request still blocked, then unblocked). | Focus moves to the «Søknadsbrev» heading; the result («Søknadsbrevet kunne ikke lages. Samsvaret står fortsatt.» or «Søknadsbrevet er klart.») is read once. | |
+| 10 |      |        | With a Letter on screen, block the request and press «Lag nytt utkast». | «Det nye utkastet kunne ikke lages. Det forrige brevet står fortsatt.» is read once; the old Letter and «Prøv igjen» are there. | |
+| 11 |      |        | Make the server answer «Dagens grense» (30 requests used) or Test mode with changed inputs; press «Lag nytt utkast» with a Letter on screen. | The notice «Dagens grense» or «Testmodus» shows under the Letter with no «Prøv igjen»; the matching line is read once. | |
+| 12 |      |        | Press «Lag nytt utkast» when the server asks for the AI notice again. | The notice dialog opens with focus on its title; «Godta og fortsett» sends the new draft and «Det nye utkastet er klart.» is read once; «Avbryt» leaves the old Letter and the alert with «Prøv igjen». | |
+| 13 |      |        | After a deploy has changed the vocabulary (the server's phase 1 differs from the first answer), press «Prøv igjen» or «Lag nytt utkast». | The score on screen changes and «Samsvaret er oppdatert: …» is read once, together with the outcome. A sighted Student sees the new score without a banner (accepted: the score is the thing on screen). | |

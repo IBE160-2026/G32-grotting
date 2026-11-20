@@ -101,7 +101,9 @@ describe("UX-DR30 Letter section", () => {
 
   it("a provider failure is an alert with «Prøv igjen»; the cap and Test mode are notices", () => {
     const failed = render({ kind: "failed", code: "AI_TIMEOUT" });
-    expect(failed).toContain('role="alert"');
+    // The first live region speaks the failure; the box is silent.
+    expect(failed).not.toContain('role="alert"');
+    expect(text(failed)).toContain("Feil");
     expect(text(failed)).toContain(
       "Søknadsbrevet kunne ikke lages. Samsvaret over er fortsatt riktig.",
     );
