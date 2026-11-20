@@ -265,6 +265,115 @@ describe("FR-5b the cached adapter answers a Keyword request from keywords.json"
   });
 });
 
+describe("FR-13 the cached adapter answers a Gaps request from gaps.json (AD-15)", () => {
+  const gapsFile = {
+    file: "gaps.json",
+    content: { data: { gaps: [{ keyword: "A" }] }, meta },
+  };
+  // The Gaps key is the CV and the ad alone: no title, employer or tone.
+  const gapsKey = (overrides: { cvText?: string; jobAd?: string } = {}) =>
+    lookupKeyOf({
+      task: "gaps",
+      cvText: "Min CV\nmed to linjer",
+      jobAd: "Annonsen",
+      ...overrides,
+    });
+  const gapsArgs = (lookupKey: string) => ({
+    ...args(lookupKey),
+    task: "gaps",
+  });
+
+  it("finds the Gaps by the CV and the ad, whatever the white space", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ cachedLetters: [], cachedGaps: gapsFile }),
+    ]);
+    const found = await adapter.generate(gapsArgs(gapsKey()));
+    expect(found.output).toEqual({ gaps: [{ keyword: "A" }] });
+    await expect(
+      adapter.generate(
+        gapsArgs(gapsKey({ cvText: "Min CV   med to linjer\r\n" })),
+      ),
+    ).resolves.toBeDefined();
+  });
+
+  it.each([
+    ["cvText", { cvText: "En annen CV" }],
+    ["jobAd", { jobAd: "En annen annonse" }],
+  ])(
+    "throws CachedMissError when %s differs (TEST_MODE_UNAVAILABLE)",
+    async (_name, change) => {
+      const adapter = createCachedAdapter(async () => [
+        fixture({ cachedGaps: gapsFile }),
+      ]);
+      await expect(
+        adapter.generate(gapsArgs(gapsKey(change))),
+      ).rejects.toBeInstanceOf(CachedMissError);
+    },
+  );
+
+  it("does not answer a Gaps request with a Letter, or the reverse", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ cachedGaps: gapsFile }),
+    ]);
+    // The Letter key has a title, an employer and a Tone, so it is another key.
+    await expect(
+      adapter.generate({ ...args(key()), task: "gaps" }),
+    ).rejects.toBeInstanceOf(CachedMissError);
+    await expect(
+      adapter.generate({ ...args(gapsKey()), task: "letter" }),
+    ).rejects.toBeInstanceOf(CachedMissError);
+  });
+
+  it("indexes the text of cv.pdf as well as cv.txt", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ cachedLetters: [], cachedGaps: gapsFile, cvPdf: PDF }),
+    ]);
+    const { extractText, getDocumentProxy } = await import("unpdf");
+    const { text } = await extractText(
+      await getDocumentProxy(new Uint8Array(PDF)),
+      { mergePages: true },
+    );
+    await expect(
+      adapter.generate(gapsArgs(gapsKey({ cvText: text }))),
+    ).resolves.toBeDefined();
+    await expect(adapter.generate(gapsArgs(gapsKey()))).resolves.toBeDefined();
+  });
+
+  it("serves a Fixture that has Gaps and no Cached Letters, and still misses its Letter", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ cachedLetters: [], cachedGaps: gapsFile }),
+    ]);
+    await expect(adapter.generate(gapsArgs(gapsKey()))).resolves.toBeDefined();
+    await expect(
+      adapter.generate({ ...args(key()), task: "letter" }),
+    ).rejects.toBeInstanceOf(CachedMissError);
+  });
+
+  it("names the file, not its content, when gaps.json is not an AI output", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({
+        cachedGaps: { file: "gaps.json", content: { data: "SECRET" } },
+      }),
+    ]);
+    const error = await adapter
+      .generate(gapsArgs(gapsKey()))
+      .catch((e: Error) => e);
+    expect((error as Error).message).toBe(
+      "Invalid Cached response f/gaps.json: not an AI output",
+    );
+  });
+
+  it("refuses two Fixtures with the same CV and ad", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ id: "one", cachedGaps: gapsFile }),
+      fixture({ id: "two", cachedGaps: gapsFile }),
+    ]);
+    await expect(adapter.generate(gapsArgs(gapsKey()))).rejects.toThrow(
+      "Duplicate Cached key: two/gaps.json",
+    );
+  });
+});
+
 describe("AD-3 createAdapter cached", () => {
   it("returns the shared cached adapter, also in a test run", () => {
     const first = createAdapter("cached", { isTestRun: true });

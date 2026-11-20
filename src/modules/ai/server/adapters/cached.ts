@@ -2,7 +2,7 @@ import { extractText, getDocumentProxy } from "unpdf";
 import { z } from "zod";
 import { type FixtureFiles, loadFixtures } from "@/shared/server/data-files";
 import { aiResultMetaSchema } from "../../contracts";
-import { KEYWORDS_TASK, lookupKeyOf } from "../../core/lookup-key";
+import { GAPS_TASK, KEYWORDS_TASK, lookupKeyOf } from "../../core/lookup-key";
 import type { AiAdapterPort, AiUsage } from "./factory";
 
 // No Cached response answers this request: it is not an input of a recorded
@@ -14,8 +14,8 @@ export class CachedMissError extends Error {
   }
 }
 
-// What `cached/letter-<tone>.json` holds: a raw `AiOutput<T>` (AD-3). Counts
-// are optional; the recorder does not write them.
+// What `cached/letter-<tone>.json` and `cached/gaps.json` hold: a raw
+// `AiOutput<T>` (AD-3). Counts are optional; the recorder does not write them.
 const cachedFileSchema = z.object({
   data: z.unknown(),
   meta: aiResultMetaSchema,
@@ -67,6 +67,49 @@ async function buildKeywordIndex(load: LoadFixtures): Promise<Index> {
   return index;
 }
 
+// The CV texts a Fixture is indexed under: `cv.txt` and, where one exists, the
+// text of `cv.pdf`.
+async function cvTextsOf(fixture: FixtureFiles): Promise<string[]> {
+  const cvTexts = [fixture.cvText];
+  if (fixture.cvPdf !== undefined) cvTexts.push(await pdfText(fixture.cvPdf));
+  return cvTexts;
+}
+
+// Every Cached Gaps file, under the lookup key of the request that asks for it
+// (AD-15): the CV and the ad, with no title, employer or tone. A Fixture is
+// indexed under the text of `cv.txt` and of `cv.pdf`, as the Letters are.
+async function buildGapsIndex(load: LoadFixtures): Promise<Index> {
+  const index = new Map<string, Entry>();
+  for (const fixture of await load()) {
+    const gaps = fixture.cachedGaps;
+    if (gaps === undefined) continue;
+    const parsed = cachedFileSchema.safeParse(gaps.content);
+    if (!parsed.success) {
+      throw new Error(
+        `Invalid Cached response ${fixture.id}/${gaps.file}: not an AI output`,
+      );
+    }
+    const entry: Entry = {
+      data: parsed.data.data,
+      usage: parsed.data.usage ?? NO_USAGE,
+    };
+    for (const cvText of await cvTextsOf(fixture)) {
+      const key = lookupKeyOf({
+        task: GAPS_TASK,
+        cvText,
+        jobAd: fixture.jobAd,
+      });
+      // The same CV text from cv.txt and cv.pdf is one entry; another Fixture
+      // under the same key would hide a Cached Gaps file.
+      if (index.get(key) !== undefined && index.get(key) !== entry) {
+        throw new Error(`Duplicate Cached key: ${fixture.id}/${gaps.file}`);
+      }
+      index.set(key, entry);
+    }
+  }
+  return index;
+}
+
 // Every Cached Letter, under the lookup key of the request that asks for it.
 // A Fixture is indexed once under the text of `cv.txt` and once under the text
 // of `cv.pdf`, so a pasted CV, an uploaded PDF and «Bruk eksempelet» all find
@@ -75,8 +118,7 @@ async function buildIndex(load: LoadFixtures): Promise<Index> {
   const index = new Map<string, Entry>();
   for (const fixture of await load()) {
     if (fixture.cachedLetters.length === 0) continue;
-    const cvTexts = [fixture.cvText];
-    if (fixture.cvPdf !== undefined) cvTexts.push(await pdfText(fixture.cvPdf));
+    const cvTexts = await cvTextsOf(fixture);
     for (const letter of fixture.cachedLetters) {
       const parsed = cachedFileSchema.safeParse(letter.content);
       if (!parsed.success) {
@@ -111,9 +153,10 @@ async function buildIndex(load: LoadFixtures): Promise<Index> {
 
 /**
  * The cached adapter (AD-3, AD-15): answers from `data/fixtures/<id>/cached/`
- * by the request's lookup key and makes no network call. The index is built on
- * the first request and kept; a failed build is tried again next time. A key
- * without a file throws `CachedMissError`.
+ * by the request's lookup key and makes no network call. A Letter, a Keyword
+ * list and Gaps each have their own index, chosen by the request's task. An
+ * index is built on its first request and kept; a failed build is tried again
+ * next time. A key without a file throws `CachedMissError`.
  */
 export function createCachedAdapter(
   load: LoadFixtures = loadFixtures,
@@ -135,15 +178,27 @@ export function createCachedAdapter(
     return keywordIndex;
   };
 
+  let gapsIndex: Promise<Index> | undefined;
+  const getGapsIndex = (): Promise<Index> => {
+    gapsIndex ??= buildGapsIndex(load).catch((error: unknown) => {
+      gapsIndex = undefined;
+      throw error;
+    });
+    return gapsIndex;
+  };
+  const indexFor = (task: string | undefined): Promise<Index> =>
+    task === KEYWORDS_TASK
+      ? getKeywordIndex()
+      : task === GAPS_TASK
+        ? getGapsIndex()
+        : getIndex();
+
   return {
     kind: "cached",
     provider: "cached",
     model: "cached",
     async generate(args) {
-      const index =
-        args.task === KEYWORDS_TASK
-          ? await getKeywordIndex()
-          : await getIndex();
+      const index = await indexFor(args.task);
       const entry = index.get(args.lookupKey);
       if (entry === undefined) throw new CachedMissError();
       return { output: entry.data, usage: entry.usage };

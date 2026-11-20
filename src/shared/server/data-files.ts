@@ -97,6 +97,12 @@ export type CachedKeywordsFile = {
   readonly content: unknown;
 };
 
+/** `cached/gaps.json` (FR-13, Story 4.3), as parsed JSON: `ai` validates it. */
+export type CachedGapsFile = {
+  readonly file: string;
+  readonly content: unknown;
+};
+
 /** The files of one Fixture folder that a Test-mode run needs. */
 export type FixtureFiles = {
   readonly id: string;
@@ -110,6 +116,8 @@ export type FixtureFiles = {
   readonly cachedLetters: readonly CachedLetterFile[];
   /** The Cached Keyword list, when the Fixture has one. */
   readonly cachedKeywords?: CachedKeywordsFile;
+  /** The Cached Gaps, when the Fixture has them. */
+  readonly cachedGaps?: CachedGapsFile;
 };
 
 const isMissing = (error: unknown) =>
@@ -148,12 +156,12 @@ async function loadCachedLetters(
   return cachedLetters;
 }
 
-// `cached/keywords.json` of one folder, or nothing. Same JSON rule as a letter.
-async function loadCachedKeywords(
+// `cached/<file>` of one folder, or nothing. Same JSON rule as a letter.
+async function loadCachedFile(
   folder: string,
   id: string,
-): Promise<CachedKeywordsFile | undefined> {
-  const file = "keywords.json";
+  file: "keywords.json" | "gaps.json",
+): Promise<{ file: string; content: unknown } | undefined> {
   const text = await readOptional(() =>
     readFile(join(folder, "cached", file), "utf8"),
   );
@@ -171,9 +179,14 @@ async function loadFixtureFiles(
 ): Promise<FixtureFiles | undefined> {
   const folder = join(root, id);
   const cachedLetters = await loadCachedLetters(folder, id);
-  const cachedKeywords = await loadCachedKeywords(folder, id);
-  // A folder with neither is not a Test-mode source.
-  if (cachedLetters.length === 0 && cachedKeywords === undefined) {
+  const cachedKeywords = await loadCachedFile(folder, id, "keywords.json");
+  const cachedGaps = await loadCachedFile(folder, id, "gaps.json");
+  // A folder with none of them is not a Test-mode source.
+  if (
+    cachedLetters.length === 0 &&
+    cachedKeywords === undefined &&
+    cachedGaps === undefined
+  ) {
     return undefined;
   }
   const [cvText, jobAd, metaText, cvPdf] = await Promise.all([
@@ -205,14 +218,16 @@ async function loadFixtureFiles(
     ...meta.data,
     cachedLetters,
     ...(cachedKeywords === undefined ? {} : { cachedKeywords }),
+    ...(cachedGaps === undefined ? {} : { cachedGaps }),
   };
 }
 
 /**
  * Every Fixture folder under `data/fixtures/` that does not start with `_`
  * (`_planted` is for tests), with `cv.txt`, `cv.pdf` when present, `ad.txt`,
- * `meta.json`, its Cached Letters and its Cached Keyword list. Sorted by id. Throws when a file a
- * Fixture needs is missing or when `meta.json` or a Cached file is not valid.
+ * `meta.json`, its Cached Letters, its Cached Keyword list and its Cached
+ * Gaps. Sorted by id. Throws when a file a Fixture needs is missing or when
+ * `meta.json` or a Cached file is not valid.
  */
 export async function loadFixtures(): Promise<FixtureFiles[]> {
   const root = join(process.cwd(), "data", "fixtures");

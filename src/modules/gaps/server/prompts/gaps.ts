@@ -1,6 +1,25 @@
+import { z } from "zod";
+
+// What the AI must return: an object with a list of items. The model is shown
+// the item shape (fields it must fill, `null` for what does not apply), but a
+// bad item never fails the whole answer: `.catch` turns a malformed item into
+// an empty one, which `gaps/server` drops or answers with the template Real
+// gap. It lives with the prompt so the recorder (`scripts/record-cached.ts`)
+// asks for the same shape without importing server-only code.
+const gapItemSchema = z
+  .object({
+    keyword: z.string().catch(""),
+    kind: z.string().catch(""),
+    explanation: z.string().nullable().catch(null),
+    citation: z.string().nullable().catch(null),
+  })
+  .catch({ keyword: "", kind: "", explanation: null, citation: null });
+
+export const gapsOutputSchema = z.object({ gaps: z.array(gapItemSchema) });
+
 // Bumped whenever the wording below changes: Cached responses are recorded for
 // one version, and CI fails when the Example pair's differs (AD-15, Story 4.3).
-export const PROMPT_VERSION = "gaps-1";
+export const PROMPT_VERSION = "gaps-2";
 
 export type GapsPromptInput = {
   readonly jobAd: string;
@@ -46,10 +65,10 @@ Return a JSON object with one field, "gaps": a list with one item per keyword, i
 - "keyword": the keyword exactly as listed above.
 - "kind": "rewordable" if one entry in the CV already shows what the keyword asks for, in other words. Otherwise "real".
 - "explanation": one or two sentences in Norwegian bokmål, referring to the ad, in this order: what the ad asks for that is missing, why it matters for the job, and (only for "rewordable") the CV entry that covers it.
-- "citation": for "rewordable", the supporting CV entry copied word for word from the CV, as one continuous piece of text, with no changes, no ellipsis and no translation. For "real", null.
+- "citation": for "rewordable", the supporting CV entry copied word for word from the CV, as one continuous piece of text, with no changes, no ellipsis, no translation and no quotation marks around it. For "real", null.
 
 Rules:
-- Use ONLY what the CV text shows. Never invent or upgrade a qualification, tool, employer, date, number or role. When the CV does not clearly show it, the answer is "real".
+- Use ONLY what the CV text shows. Never invent or upgrade a qualification, tool, employer, date, number or role. When the CV does not clearly show it, or you cannot copy a supporting entry exactly as it stands, the answer is "real".
 - A formal requirement (degree, certification, licence, language level, work permit) can be "rewordable" only if the CV states it explicitly. A related course, a similar title or a guess is "real".
 - For "rewordable", hedge the explanation, for example «Linjen din dekker trolig dette – vurder å ta det med.» Do not state it as certain.
 - For "real", say plainly that the CV does not show it. Do not suggest wording to add and do not invite the student to claim it.

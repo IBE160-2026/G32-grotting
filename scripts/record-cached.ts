@@ -3,12 +3,18 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { GAPS_TASK } from "@/modules/ai/core/lookup-key";
 import { stripContactDetails } from "@/modules/ai/core/strip-contact";
 import type { AiAdapterPort } from "@/modules/ai/server/adapters/factory";
 import {
   AiProviderError,
   createLiveAdapter,
 } from "@/modules/ai/server/adapters/live";
+import {
+  PROMPT_VERSION as GAPS_PROMPT_VERSION,
+  gapsOutputSchema,
+  gapsPromptBuilder,
+} from "@/modules/gaps/server/prompts/gaps";
 import { extractKeywords, splitParagraphs } from "@/modules/keywords/core";
 import {
   PROMPT_VERSION as KEYWORDS_PROMPT_VERSION,
@@ -21,16 +27,18 @@ import {
   PROMPT_VERSION,
 } from "@/modules/letter/server/prompts/letter";
 import { analyse } from "@/modules/match";
-import { fixtureMetaSchema } from "@/shared/core/answer-key";
+import { answerKeySchema, fixtureMetaSchema } from "@/shared/core/answer-key";
 import { vocabularySchema } from "@/shared/core/vocabulary";
 
 // Records the Cached responses of one Fixture (Story 3.5, FR-27, AD-15): one
 // live request per Tone, written raw, before `normaliseLetter` or any guard, to
 // `data/fixtures/<id>/cached/letter-<tone>.json`; with `--keywords` one request
 // for the Keyword list (Story 3.11, FR-5b), written raw to `cached/keywords.json`.
+// With `--gaps` one request for the Gaps (Story 4.3, FR-13), written raw to
+// `cached/gaps.json`.
 // This is the only writer of `cached/`; a Cached file is never edited by hand.
 // It is run by Helene with her own key from `.env`; no test ever runs it live.
-// Usage: npm run fixtures:record -- <fixture-id> [--tone Formell|Personlig|Direkte | --keywords]
+// Usage: npm run fixtures:record -- <fixture-id> [--tone Formell|Personlig|Direkte | --keywords | --gaps]
 
 const FIXTURES_DIR = fileURLToPath(
   new URL("../data/fixtures", import.meta.url),
@@ -53,12 +61,15 @@ export type RecordArgs = {
   readonly tone: Tone | undefined;
   // Only the Keyword list (FR-5b), and no Letter.
   readonly keywords: boolean;
+  // Only the Gaps (FR-13), and no Letter.
+  readonly gaps: boolean;
 };
 
 export function parseArgs(argv: readonly string[]): RecordArgs {
   let fixtureId: string | undefined;
   let tone: Tone | undefined;
   let keywords = false;
+  let gaps = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--tone") {
@@ -70,6 +81,8 @@ export function parseArgs(argv: readonly string[]): RecordArgs {
       tone = found;
     } else if (arg === "--keywords") {
       keywords = true;
+    } else if (arg === "--gaps") {
+      gaps = true;
     } else if (arg !== undefined && !arg.startsWith("--")) {
       if (fixtureId !== undefined) {
         throw new RecordUsageError("Give one Fixture id");
@@ -85,7 +98,10 @@ export function parseArgs(argv: readonly string[]): RecordArgs {
   if (keywords && tone !== undefined) {
     throw new RecordUsageError("--keywords and --tone cannot be combined");
   }
-  return { fixtureId, tone, keywords };
+  if (gaps && (keywords || tone !== undefined)) {
+    throw new RecordUsageError("--gaps cannot be combined with another task");
+  }
+  return { fixtureId, tone, keywords, gaps };
 }
 
 type Env = Readonly<Record<string, string | undefined>>;
@@ -166,11 +182,72 @@ async function recordKeywords(
   return file;
 }
 
+// The one request for the Gaps. The Missing keywords are the Answer key's, in
+// its order: the Answer key is the oracle for what is missing, and for the held
+// out Fixture the code-only list is not (the known FR-5b failure). Only the
+// keywords are read from it, never its Gap verdicts or its must-never-suggest
+// list. The prompt is the one `analyseGaps` builds, from the stripped CV. The
+// answer is written raw, before the structure step and FR-15, so the tests
+// judge what the model really wrote. One request, no retry: a failure writes
+// nothing.
+async function recordGaps(
+  adapter: AiAdapterPort,
+  folder: string,
+  fixtureId: string,
+  cvText: string,
+  jobAd: string,
+  now: Date | undefined,
+): Promise<string> {
+  const answerKey = answerKeySchema.parse(
+    JSON.parse(await readFile(join(folder, "answer-key.json"), "utf8")),
+  );
+  const missingTerms = answerKey.keywords.missing;
+  if (missingTerms.length === 0) {
+    throw new RecordUsageError(`${fixtureId}: no Missing keyword to judge`);
+  }
+  // Contact details never go to a provider (FR-26).
+  const prompt = gapsPromptBuilder({ jobAd, missingTerms })(
+    stripContactDetails(cvText),
+  );
+  const generated = await adapter.generate({
+    task: GAPS_TASK,
+    prompt,
+    lookupKey: "record-cached",
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    maxRetries: 0,
+    schema: gapsOutputSchema,
+  });
+  const parsed = gapsOutputSchema.safeParse(generated.output);
+  if (!parsed.success) {
+    throw new Error("The answer had no list of gaps");
+  }
+  // The adapter's output as it came back, not the parsed copy.
+  const content = {
+    data: generated.output,
+    meta: {
+      source: "live",
+      provider: adapter.provider,
+      model: adapter.model,
+      promptVersion: GAPS_PROMPT_VERSION,
+      createdAt: (now ?? new Date()).toISOString(),
+    },
+  };
+  await mkdir(join(folder, "cached"), { recursive: true });
+  const file = join(folder, "cached", "gaps.json");
+  await writeFile(
+    file,
+    `${JSON.stringify(content, null, 2)}
+`,
+    "utf8",
+  );
+  return file;
+}
+
 /**
- * Records the Cached Letters, or with `--keywords` the Cached Keyword list, and
- * returns the files written. The request is the
- * one `generateLetter` makes: the same prompt, from the stripped CV and the
- * Matched keywords of the phase-1 analysis. Settings are checked before
+ * Records the Cached Letters, or with `--keywords` the Cached Keyword list, or
+ * with `--gaps` the Cached Gaps, and returns the files written. A Letter
+ * request is the one `generateLetter` makes: the same prompt, from the
+ * stripped CV and the Matched keywords of the phase-1 analysis. Settings are checked before
  * anything is read or written; a failed request writes nothing for its Tone.
  */
 export async function recordCached(options: RecordOptions): Promise<string[]> {
@@ -198,6 +275,18 @@ export async function recordCached(options: RecordOptions): Promise<string[]> {
   const meta = fixtureMetaSchema.parse(JSON.parse(metaText));
   const vocabulary = vocabularySchema.parse(JSON.parse(vocabularyText));
 
+  if (args.gaps) {
+    return [
+      await recordGaps(
+        adapter,
+        folder,
+        args.fixtureId,
+        cvText,
+        jobAd,
+        options.now,
+      ),
+    ];
+  }
   if (args.keywords) {
     return [await recordKeywords(adapter, folder, jobAd, options.now)];
   }

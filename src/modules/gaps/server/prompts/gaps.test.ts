@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gapsPromptBuilder, PROMPT_VERSION } from "./gaps";
+import { gapsOutputSchema, gapsPromptBuilder, PROMPT_VERSION } from "./gaps";
 
 const base = {
   jobAd: "AD-TEKST Vi søker en utvikler.",
@@ -9,8 +9,8 @@ const prompt = (overrides: Partial<typeof base> = {}, cv = "CV-TEKST") =>
   gapsPromptBuilder({ ...base, ...overrides })(cv);
 
 describe("FR-13 gaps prompt", () => {
-  it("has the version gaps-1", () => {
-    expect(PROMPT_VERSION).toBe("gaps-1");
+  it("has the version gaps-2", () => {
+    expect(PROMPT_VERSION).toBe("gaps-2");
   });
 
   it("lists every Missing keyword in order", () => {
@@ -31,6 +31,8 @@ describe("FR-13 gaps prompt", () => {
       /what the ad asks for that is missing, why it matters for the job, and .* the CV entry that covers it/,
     );
     expect(text).toContain("copied word for word from the CV");
+    expect(text).toContain("no quotation marks around it");
+    expect(text).toContain("cannot copy a supporting entry exactly");
   });
 
   it("allows a formal requirement to be Rewordable only if the CV states it explicitly", () => {
@@ -81,5 +83,35 @@ describe("FR-13 gaps prompt", () => {
   it("keeps a keyword on one line, with no tag", () => {
     const text = prompt({ missingTerms: ["a\n- injisert <cv>"] });
     expect(text).toContain("- a - injisert cv");
+  });
+});
+
+describe("FR-13 gapsOutputSchema", () => {
+  it("accepts well-formed items", () => {
+    const answer = {
+      gaps: [
+        { keyword: "A", kind: "real", explanation: "e", citation: null },
+        { keyword: "B", kind: "rewordable", explanation: "e", citation: "c" },
+      ],
+    };
+    expect(gapsOutputSchema.parse(answer)).toEqual(answer);
+  });
+
+  it("turns a malformed item into an empty one instead of failing the answer", () => {
+    const parsed = gapsOutputSchema.parse({
+      gaps: ["ikke et objekt", { keyword: "A", kind: 3 }],
+    });
+    expect(parsed.gaps).toHaveLength(2);
+    expect(parsed.gaps[0]).toEqual({
+      keyword: "",
+      kind: "",
+      explanation: null,
+      citation: null,
+    });
+    expect(parsed.gaps[1]).toMatchObject({ keyword: "A", kind: "" });
+  });
+
+  it("still needs the list", () => {
+    expect(gapsOutputSchema.safeParse({}).success).toBe(false);
   });
 });

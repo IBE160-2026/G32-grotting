@@ -1,0 +1,55 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "Power BI",
+        "kind": "real",
+        "explanation": "Annonsen nevner Power BI til rapportering som en fordel, og det brukes i rapporteringsarbeidet i stillingen. CV-en viser Excel med pivottabeller, men ikke Power BI eller andre rapporteringsverktøy.",
+        "citation": null
+      },
+      {
+        "keyword": "automatisering av rutiner",
+        "kind": "real",
+        "explanation": "Annonsen nevner erfaring med automatisering av rutiner som et pluss, fordi det kan gjøre kundearbeidet mer effektivt. CV-en viser ikke erfaring med automatisering.",
+        "citation": null
+      },
+      {
+        "keyword": "bokføring",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med bokføring, som er kjernen i arbeidet med kundeporteføljen. Linjen din om løpende regnskap i Visma dekker trolig dette – vurder å ta det med.",
+        "citation": "Førte løpende regnskap for omtrent 40 kunder i regnskapssystemet Visma."
+      },
+      {
+        "keyword": "utdanning innen regnskap",
+        "kind": "rewordable",
+        "explanation": "Annonsen krever utdanning innen regnskap, for eksempel fagskole, som er et grunnkrav for stillingen. Utdanningslinjen din dekker trolig dette – vurder å ta det med.",
+        "citation": "Fagskole i regnskap og økonomi, Rogaland fagskole (fiktiv), 2021–2023"
+      },
+      {
+        "keyword": "norskkunnskaper",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om gode norskkunnskaper, muntlig og skriftlig, siden du følger opp kundene direkte på telefon og e-post. Språklinjen din dekker trolig dette – vurder å ta det med.",
+        "citation": "Norsk (morsmål), engelsk (godt)"
+      },
+      {
+        "keyword": "årsavslutning",
+        "kind": "real",
+        "explanation": "Annonsen ber om kjennskap til årsavslutning, som er en del av ansvaret fra løpende bokføring til årsoppgjør. CV-en viser årsregnskap som emne i utdanningen, men ikke arbeid med årsavslutning.",
+        "citation": null
+      },
+      {
+        "keyword": "skatteoppgjør",
+        "kind": "real",
+        "explanation": "Annonsen ber om kjennskap til skatteoppgjør for aksjeselskaper, som er en del av årsoppgjørsarbeidet for kundene. CV-en viser ikke erfaring eller kunnskap om skatteoppgjør.",
+        "citation": null
+      }
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "gaps-2",
+    "createdAt": "2026-11-20T18:21:47.431Z"
+  }
+}
