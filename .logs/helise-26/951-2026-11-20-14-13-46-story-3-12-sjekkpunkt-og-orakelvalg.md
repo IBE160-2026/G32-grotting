@@ -1,0 +1,32 @@
+# Story 3.12: sjekkpunkt og orakelvalg
+
+## 2026-11-20 kl. 14:15 — Helise-26
+
+### Oppgave
+Helene ba om hjelp til å se hvor prosjektet står (`bmad-help`), valgte alternativ (a) for orakelet (fasiten gjelder bare kode-motoren) og ba om å starte story 3.12 (`bmad-build`). Målet var å gjøre agent-delen av 3.12: føre beslutningen inn i dokumentene, kjøre sjekkpunktet på lokal app og finne ut av den flaky letter-check-testen.
+
+### Plan
+- Spec: `_bmad-output/implementation-artifacts/spec-3-12-freeze-the-hosted-version-and-pass-the-core-flow-checkpoint.md` (godkjent av Helene før koding).
+- Beslutning (a) i PRD (SM-1, SM-2, ny D25), `epics.md`, `docs/qa/fr-5b-decision.md` og Example-sjekklista.
+- Flaky-test: årsaksundersøkelse (CI-logg fra PR #65, probe mot lagret KI-liste), så rettelse av testen og ny innspilling av brevet.
+- Sjekkpunkt: Docker-testkjøring, live-kjøring av én Fixture mot lokal app, SM-2 og feil-input-turen ført i `docs/qa/core-flow-checkpoint-2026-11-20.md`.
+- Menneskesjekker ble ikke gjort, bare listet.
+
+### Resultat
+- Commit `24832b0` på branchen `story/3.12-checkpoint-and-sm-decision` (lokal, ikke pushet): spec, PRD/epics/QA-dokumenter, `data/fixtures/example-nordic-digital/cached/letter-formell.json`, `e2e/letter-check.spec.ts`, sprint-status (3.12 = `review`).
+- **Flaky-testen var et ekte flagg:** det lagrede Formell-brevet nevnte «tilgjengelighet», som er Missing i den lagrede KI-listen for Example-annonsen, så `checkLetter` flagget det. Testen sjekket «ingen liste» før svaret var tegnet. Testen venter nå på svaret og feilet 15 av 15 mot det gamle brevet; brevet er spilt inn på nytt med `fixtures:record` (første forsøk rent, 273 ord), og testen går 20 av 20. Alle tre Cached-brev gir null flagg mot sin lagrede KI-liste.
+- **Beslutning (a)** ført: PRD SM-1 og SM-2 omformulert til kodelisten, ny D25 i §11, sjekkpunkt-teksten, `epics.md`, `fr-5b-decision.md` (datert rad) og en merknad i `example-pair-manual-checks.md`. SM-2 er omformulert ut over SM-1 (held-out-feilen er kjent grunnlag for FR-5b, D24).
+- **Tester:** `docker compose run --rm --build test` grønn (Biome 280 filer; Vitest 96 filer, 1101 bestått, 2 forventet feil, 1 hoppet over fordi `DESIGN.md` ikke ligger i imaget; Playwright 200 bestått). Docker Desktop var av og ble startet av økten.
+- **Live-kjøring (SM-1):** Fixture `nursing-sarvurdering` mot lokal app med nøkkel fra `.env`, på API-nivå: fase 1 39 % (7 Matched, 11 Missing, listen lagret, andre kall gir samme fingeravtrykk og poengsum), brev Formell 267 ord live på 13,6 s, brevsjekk ett flagg («langtidsavdeling»). 4 betalte forespørsler, ca. 0,022 USD lest tilbake fra OpenRouter (0,4263 til 0,4479 USD; måneden står på 0,45 av 20 USD).
+- Utkast til FR-30-rad lagt i `docs/qa/hosted-deployment.md`, merket ubekreftet. Hosted ble ikke rørt.
+- Review var inline (ingen subagenter); logget i spec-ens Review Triage Log.
+- Lukket i `issues.md`: orakelvalget, det formelle brevets flagg og den flaky testen.
+
+### Åpne punkter
+- Helene: bekreft FR-30-raden i `docs/qa/hosted-deployment.md` etter egen titt i Vercel-dashbordet.
+- Helene: UJ-1 på laptop og ekte telefon mot lokal app.
+- Helene: se over SM-2-omformuleringen i PRD.
+- Story 3.12 står som `review` til menneskesjekkene er ført; sett `done` etter det.
+- Valgfritt: live-flyten i nettleseren for alle tre Toner.
+- Review kjørt inline; `bmad-code-review` i ny økt gir uavhengig blikk.
+- De manuelle radene for 3.6–3.11 (skjermleser, 360 px, .docx, utklippstavle) ligger fortsatt åpne fra før.

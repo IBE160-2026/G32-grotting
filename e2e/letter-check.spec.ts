@@ -197,8 +197,23 @@ test.describe("FR-11 flags in the Letter", () => {
     page,
   }) => {
     const calls = checkCalls(page);
+    // Wait for the check's answer, not just its request: a count of 0 before
+    // the answer arrives would pass for a Letter that is about to be flagged.
+    const answered = page.waitForResponse((response) =>
+      /\/api\/analyses\/[^/]+\/letter-check$/.test(response.url()),
+    );
     await submitExample(page);
     await expect.poll(() => calls.length).toBe(1);
+    const answer = await answered;
+    expect(answer.ok()).toBe(true);
+    await answer.finished();
+    // Two frames, so the answer has been rendered before «no list» is asserted.
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
     await expect(article(page)).toContainText(
       shownLetter("Formell").split(/\n{2,}/)[0] ?? "",
     );

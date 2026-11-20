@@ -91,3 +91,16 @@ What this says, for Helene to judge:
 - **The held-out test stays an expected failure.** `sm2.test.ts` and `analyse.test.ts` test the code-only engine against the Answer key, and that engine is unchanged, so the marker stays. The vocabulary and the Answer keys were not changed.
 - **In Test mode the Example pair therefore shows the AI list (63 %), not the Answer key's 64 %.** The e2e tests take the Example counts from the Cached list through the Keyword engine (`e2e/support/application.ts`), and the code-only counts from the Answer key for the one server that has the fallback off. SM-1's «score equals the Answer key» is only true for the code-only list. Decision needed: keep the Answer key as the oracle for code, and accept that a saved list is judged by its own checks (every term in the ad, the same list and score on a second run), or write a second key for the saved lists.
 - Cost: 4 short requests (the ad only, no CV). The spend was not read back from OpenRouter; it is expected to be a few cents in all.
+
+## Decision: the Answer key is the oracle for the code-only engine only (2026-11-20)
+
+| Date | Decided by | Outcome | Note |
+| --- | --- | --- | --- |
+| 2026-11-20 | Helene | Option (a): the Answer key is the oracle for the code-only Keyword engine. A stored AI Keyword list gets no Answer key. | Logged in PRD §11 as D25 |
+
+What this means in practice:
+
+- **SM-1 and SM-2** are judged against the Answer key for the code-only list (PRD SM-1, SM-2, the checkpoint bullets, `epics.md`). A stored AI list is judged by its own checks: every term is found in the Job ad (planted-term test), and the same Job ad gives the same list and score on a second run (NFR-6).
+- **Test mode shows the AI list.** The Example pair shows 63 % in Test mode, not the key's 64 %. This is expected, not a failure.
+- **Reason:** the AI lists differ from every key because the keys were written against what the vocabulary can find. A second key written after the fact would be fitted to the AI's output, which is what the held-out Fixture was made to avoid.
+- **The held-out failure stays.** The code-only lists do not equal the held-out key; that is the recorded basis for FR-5b (D24) and stays pinned as an expected failure in `sm2.test.ts` and `analyse.test.ts`.

@@ -219,7 +219,7 @@ Requirement IDs are the PRD's own (FR-1 to FR-31, FR-5b, NFR-1 to NFR-11) and ar
 - §9.2 manual checklist (L1–L8, G1–G5, R1–R3) on live Fixture runs: first run as soon as S5 works; 3 live runs per Fixture for the final prompt version; outputs committed to `docs/qa/`; `scripts/qa-compare.ts` helps with G2 and G4.
 - §9.3 manual UX checks: keyboard-only UJ-1, real phone once, axe and contrast on every screen, wrong-input tour, language check, UJ-1 on Hosted.
 - `docs/qa/` also holds the AI-steering index, bugs found in AI-generated code, and screenshots or a recording of one live run.
-- Decision points: core-flow checkpoint 24 Nov (tests for FR-1–FR-12 and FR-24–FR-28 pass, SM-1 for the Example pair in Test mode and one live Fixture, SM-2, wrong-input tour); 3 Dec (tests for FR-13–FR-17 pass, one live Fixture run without G2 or R1 failures).
+- Decision points: core-flow checkpoint 24 Nov (tests for FR-1–FR-12 and FR-24–FR-28 pass, SM-1 for the Example pair in Test mode and one live Fixture, SM-2, wrong-input tour; SM-1 and SM-2 are judged against the Answer key for the code-only list only, D25); 3 Dec (tests for FR-13–FR-17 pass, one live Fixture run without G2 or R1 failures).
 
 ### UX Design Requirements
 
@@ -1586,7 +1586,7 @@ So that the build order's checkpoint is met before work starts on S4, and the Ho
 
 **Given** the checkpoint on 24 Nov
 **When** it is assessed on the local app (Docker run, Helene's live key in `.env` for the live Fixture)
-**Then** `docs/qa/` records, with the date: the automated tests for FR-1 to FR-12 and FR-24 to FR-28 pass; SM-1 passes for the Example pair in Test mode and for at least one live Fixture; SM-2 passes; and the wrong-input tour (all 6 inputs, plus a double click and a refresh during phase 2) passes
+**Then** `docs/qa/` records, with the date: the automated tests for FR-1 to FR-12 and FR-24 to FR-28 pass; SM-1 passes for the Example pair in Test mode and for at least one live Fixture; SM-2 passes; (both are worded for the code-only list: the Answer key is the oracle for the code engine only, D25, and a stored AI Keyword list is judged by the found-in-the-ad check); and the wrong-input tour (all 6 inputs, plus a double click and a refresh during phase 2) passes
 **And** UJ-1 (without accounts) is walked through once on a laptop and once on a real phone against the local app on the same network, and recorded (a human step: Helene)
 
 **Given** the checkpoint isn't passed
