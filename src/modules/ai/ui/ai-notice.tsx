@@ -24,7 +24,7 @@ export function AiNotice({
   onCancel,
   returnFocusRef,
 }: AiNoticeProps) {
-  const { aiNotice } = useRunMode();
+  const { aiNotice, features } = useRunMode();
   const { points } = messages.aiNotice;
   const provider =
     messages.aiNotice.provider[aiNotice.providerName] ?? aiNotice.providerName;
@@ -49,6 +49,8 @@ export function AiNotice({
                 messages.aiNotice.hostShort,
                 messages.aiNotice.retention(aiNotice.retentionDays),
               ),
+              // The Job ad, never the CV, is sent for Keywords (FR-5b).
+              ...(features.keywordFallback ? [points.keywords] : []),
               points.sensitive,
               points.once,
             ].map((point) => (

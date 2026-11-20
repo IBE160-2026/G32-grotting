@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { RunMode } from "@/shared/ui/run-mode";
 import { consentFor, noticeRequired } from "./notice-consent";
 
-const run = (testMode: boolean, version = "notice-2:openrouter:unknown:x") =>
+const run = (testMode: boolean, version = "notice-3:openrouter:unknown:x") =>
   ({
     testMode,
     aiNotice: { version, providerName: "openrouter", retentionDays: null },

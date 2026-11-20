@@ -218,6 +218,52 @@ describe("FR-27 loadFixtures (AD-15)", () => {
     ]);
   });
 
+  it("FR-5b reads cached/keywords.json, also for a Fixture with no Cached Letters", async () => {
+    await fixturesWith({
+      a: {
+        "cv.txt": "CV",
+        "ad.txt": "AD",
+        "meta.json": META,
+        "cached/keywords.json": '{"data":{"keywords":["x"]}}',
+      },
+      b: { "cv.txt": "CV", "ad.txt": "AD", "meta.json": META },
+    });
+    const fixtures = await loadFixtures();
+    expect(fixtures.map((fixture) => fixture.id)).toEqual(["a"]);
+    expect(fixtures[0]?.cachedLetters).toEqual([]);
+    expect(fixtures[0]?.cachedKeywords).toEqual({
+      file: "keywords.json",
+      content: { data: { keywords: ["x"] } },
+    });
+  });
+
+  it("FR-5b throws when keywords.json is not JSON, naming the file", async () => {
+    await fixturesWith({
+      a: {
+        "cv.txt": "CV",
+        "ad.txt": "AD",
+        "meta.json": META,
+        "cached/keywords.json": "not json",
+      },
+    });
+    await expect(loadFixtures()).rejects.toThrow(
+      "Invalid Cached response a/keywords.json: not JSON",
+    );
+  });
+
+  it("FR-5b gives every real Fixture a Cached Keyword list", async () => {
+    const fixtures = await loadFixtures();
+    expect(fixtures.map((fixture) => fixture.id)).toEqual([
+      "example-nordic-digital",
+      "held-out-regnskap-kvale",
+      "nursing-sarvurdering",
+      "two-column-fjord-analytics",
+    ]);
+    for (const fixture of fixtures) {
+      expect(fixture.cachedKeywords?.file, fixture.id).toBe("keywords.json");
+    }
+  });
+
   it("throws when a Cached file is not JSON, naming the file", async () => {
     await fixturesWith({
       a: {

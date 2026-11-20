@@ -24,7 +24,7 @@ describe("FR-27 mode detection", () => {
       accounts: false,
       gaps: false,
       rewording: false,
-      keywordFallback: false,
+      keywordFallback: true,
     });
   });
 
@@ -111,16 +111,39 @@ describe("FR-27 mode detection", () => {
   it("lets FEATURE_* override the defaults", () => {
     const config = parseConfig({
       FEATURE_ACCOUNTS: "true",
-      FEATURE_KEYWORD_FALLBACK: "true",
-      FEATURE_GAPS: "false",
+      FEATURE_KEYWORD_FALLBACK: "false",
+      FEATURE_GAPS: "true",
     });
     expect(config.features).toEqual({
       accounts: true,
-      gaps: false,
+      gaps: true,
       rewording: false,
-      keywordFallback: true,
+      keywordFallback: false,
     });
     expect(() => parseConfig({ FEATURE_GAPS: "yes" })).toThrow(/FEATURE_GAPS/);
+  });
+
+  it("FR-5b switches the Keyword fallback on by default (Story 3.11)", () => {
+    expect(FEATURE_DEFAULTS.keywordFallback).toBe(true);
+    expect(parseConfig({}).features.keywordFallback).toBe(true);
+    expect(
+      parseConfig({ FEATURE_KEYWORD_FALLBACK: "false" }).features
+        .keywordFallback,
+    ).toBe(false);
+  });
+
+  it("keeps the Keyword fallback off on Hosted, which has no AI (D23)", () => {
+    expect(parseConfig(hostedEnv).features.keywordFallback).toBe(false);
+    expect(
+      parseConfig({ ...hostedEnv, FEATURE_KEYWORD_FALLBACK: "true" }).features
+        .keywordFallback,
+    ).toBe(false);
+  });
+
+  it("FR-24 starts the notice version with notice-3, which the keyword sentence needs", () => {
+    expect(parseConfig({}).aiNotice.version).toMatch(
+      /^notice-3:none:unknown:fallback$/,
+    );
   });
 
   it("reports hosted on a complete Hosted config", () => {
@@ -161,7 +184,7 @@ describe("FR-24 AI notice config (AD-4)", () => {
       version(base),
       version({ ...base, AI_PROVIDER: "other" }),
       version({ ...base, AI_RETENTION_DAYS: "7" }),
-      version({ ...base, FEATURE_KEYWORD_FALLBACK: "true" }),
+      version({ ...base, FEATURE_KEYWORD_FALLBACK: "false" }),
       version({ AI_PROVIDER: "acme" }),
     ];
     expect(new Set(versions).size).toBe(versions.length);

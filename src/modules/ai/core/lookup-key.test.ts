@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { contentHash } from "@/shared/server/content-hash";
 import { type LookupKeyInputs, lookupKeyOf } from "./lookup-key";
 
 const base: LookupKeyInputs = {
@@ -42,6 +43,17 @@ describe("AD-15 lookupKeyOf", () => {
   it("does not confuse field boundaries", () => {
     expect(lookupKeyOf({ ...base, jobTitle: "A", employer: "B C" })).not.toBe(
       lookupKeyOf({ ...base, jobTitle: "A B", employer: "C" }),
+    );
+  });
+
+  it("FR-5b keys a Keyword request by the ad alone, as contentHash(canon(ad))", () => {
+    const keywords = { task: "keywords", jobAd: "Vi  søker\nutvikler." };
+    expect(lookupKeyOf(keywords)).toBe(contentHash("Vi søker utvikler."));
+    expect(
+      lookupKeyOf({ ...keywords, cvText: "Jeg kan Java.", tone: "Formell" }),
+    ).toBe(lookupKeyOf(keywords));
+    expect(lookupKeyOf({ ...keywords, jobAd: "Vi søker tester." })).not.toBe(
+      lookupKeyOf(keywords),
     );
   });
 });

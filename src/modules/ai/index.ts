@@ -1,6 +1,7 @@
 import "server-only";
 
 export type { AiConsent } from "./contracts";
+export { KEYWORDS_TASK } from "./core/lookup-key";
 export type {
   AiContext,
   AiFailure,

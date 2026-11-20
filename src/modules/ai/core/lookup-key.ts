@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 import { canon } from "@/shared/core/canon";
+import { contentHash } from "@/shared/server/content-hash";
+
+// The Keyword request: only the Job ad is sent, so only the ad is its key.
+export const KEYWORDS_TASK = "keywords";
 
 export type LookupKeyInputs = {
   readonly task: string;
@@ -15,9 +19,12 @@ export type LookupKeyInputs = {
  * inputs, the task and the tone, as `fingerprintOf` does for an analysis. It is
  * made from the unstripped inputs, so the same request always finds the same
  * Cached response (Story 3.5). A JSON array keeps field boundaries from being
- * confused.
+ * confused. The Keyword task is the exception: `contentHash(canon(ad))`.
  */
 export function lookupKeyOf(inputs: LookupKeyInputs): string {
+  // The Keyword request is keyed by the ad alone, `contentHash(canon(ad))`, the
+  // key of a saved list in `keyword_lists` too (AD-15, FR-5b).
+  if (inputs.task === KEYWORDS_TASK) return contentHash(inputs.jobAd);
   const parts = [
     canon(inputs.cvText ?? ""),
     canon(inputs.jobAd),

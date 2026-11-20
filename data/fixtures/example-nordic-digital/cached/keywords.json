@@ -1,0 +1,32 @@
+{
+  "data": {
+    "keywords": [
+      "frontendutvikler",
+      "React",
+      "TypeScript",
+      "HTML",
+      "CSS",
+      "responsive nettsider",
+      "Git",
+      "pull requests",
+      "testing av frontend-kode",
+      "universell utforming",
+      "tilgjengelighet",
+      "REST API-er",
+      "bachelor i informatikk",
+      "webutvikling",
+      "Figma",
+      "Agile",
+      "sprinter",
+      "retrospektiv",
+      "stakeholders"
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "keywords-1",
+    "createdAt": "2026-11-20T09:19:17.921Z"
+  }
+}

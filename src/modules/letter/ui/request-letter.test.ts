@@ -56,7 +56,7 @@ describe("FR-9, FR-10 the phase-2 Letter request", () => {
   it("sends the inputs, fingerprint, Tone and consent in one request", async () => {
     const { port, sent } = io([good]);
     const consent = {
-      noticeVersion: "notice-2:openrouter:unknown:no-fallback",
+      noticeVersion: "notice-3:openrouter:unknown:no-fallback",
     };
     const outcome = await requestLetter(job, consent, port);
     expect(outcome).toEqual({ answer: good });
@@ -96,11 +96,25 @@ describe("AD-6 ANALYSIS_STALE", () => {
     const outcome = await requestLetter(job, null, port);
     expect(outcome).toEqual({ answer: good, rerun });
     expect(analyseMock).toHaveBeenCalledTimes(1);
+    // The rerun carries the consent too, so a new ad may still get its Keyword
+    // list from AI (FR-5b).
     expect(analyseMock).toHaveBeenCalledWith({
       applicationId: job.applicationId,
       inputs: job.inputs,
+      consent: null,
     });
     expect(sent.map((body) => body.fingerprint)).toEqual(["fp-1", "fp-2"]);
+  });
+
+  it("FR-5b sends the consent with the silent phase-1 rerun", async () => {
+    const { port, analyseMock } = io([stale, good]);
+    const consent = { noticeVersion: "notice-3:openrouter:unknown:fallback" };
+    await requestLetter(job, consent, port);
+    expect(analyseMock).toHaveBeenCalledWith({
+      applicationId: job.applicationId,
+      inputs: job.inputs,
+      consent,
+    });
   });
 
   it("answers with the second ANALYSIS_STALE instead of looping", async () => {

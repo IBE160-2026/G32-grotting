@@ -23,7 +23,7 @@ export async function POST(
       throw new ApiError("INVALID_INPUT", { field: "applicationId" });
     }
 
-    const checked = checkLetterFor(parsed, await loadVocabulary());
+    const checked = await checkLetterFor(parsed, await loadVocabulary());
     if (!checked.ok) {
       if (checked.error === "ANALYSIS_STALE") {
         throw new ApiError("ANALYSIS_STALE");

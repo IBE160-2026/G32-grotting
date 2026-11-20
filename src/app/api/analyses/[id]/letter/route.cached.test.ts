@@ -21,7 +21,7 @@ const applicationId = "8d6e1f4a-2b3c-4d5e-8f60-1a2b3c4d5e6f";
 
 async function post(changed: Partial<typeof inputs> = {}, tone = "Formell") {
   const sent = { ...inputs, ...changed };
-  const analysed = analyseInputs(sent, await loadVocabulary());
+  const analysed = await analyseInputs(sent, await loadVocabulary());
   if (!analysed.ok) throw new Error("must analyse");
   return POST(
     new Request(`http://localhost/api/analyses/${applicationId}/letter`, {

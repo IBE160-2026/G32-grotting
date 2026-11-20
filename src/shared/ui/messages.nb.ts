@@ -42,6 +42,10 @@ export const messages = {
       sensitive:
         "Ta ikke med sensitive opplysninger som helse eller fødselsnummer.",
       once: "Du blir bare spurt denne ene gangen i denne nettleserøkten.",
+      // Only while the Keyword fallback is on (FR-5b, FR-26): the ad is also
+      // sent, alone, to pick out its keywords.
+      keywords:
+        "For å hente ut nøkkelord sendes bare stillingsannonsen, aldri CV-en.",
     },
     // `null` or 0: no fixed period is set, and the text goes at once because
     // every request asks only for zero-retention endpoints.
@@ -101,6 +105,9 @@ export const messages = {
     // Fills the form with the Example pair (FR-27).
     useExample: "Bruk eksempelet",
     exampleFilled: "Eksempelet er fylt inn.",
+    // Phase 1 waits for the Keyword request on a new ad (FR-5b). Plain text, not
+    // announced: the first live region speaks the result.
+    keywordProgress: "Henter nøkkelord fra annonsen …",
     // The server judged the ad to hold too few Keywords (FR-4).
     adUnclear:
       "Annonsen er for kort eller uklar til å analyseres. Lim inn hele stillingsannonsen, også kravene.",
@@ -223,6 +230,9 @@ export const messages = {
       "needs-work":
         "Under 70 % gir «Bør forbedres». Se hva som mangler nedenfor.",
     },
+    // Under the formula when the Keywords came from code alone because AI was
+    // not allowed or failed (FR-5b, UX-DR23).
+    lessPrecise: "Mindre presist: nøkkelordene er hentet ut uten KI.",
     formulaLabel: "Formel",
     // «5 av 7 nøkkelord funnet = 71 %»
     formula: (matched: number, total: number, score: number) =>

@@ -1,4 +1,5 @@
 import type {
+  AnalyseRequest,
   AnalyseResponse,
   AnalysisInputs,
 } from "@/modules/application/contracts";
@@ -17,6 +18,9 @@ export type LetterCheckJob = {
   readonly applicationId: string;
   readonly inputs: AnalysisInputs;
   readonly fingerprint: string;
+  // Only for the silent phase-1 rerun after ANALYSIS_STALE: the check itself
+  // asks no AI.
+  readonly consent?: AnalyseRequest["consent"];
 };
 
 // How the request reaches the server; tests give their own.
@@ -76,6 +80,7 @@ export async function requestLetterCheck(
   const rerun = await io.analyse({
     applicationId: job.applicationId,
     inputs: job.inputs,
+    consent: job.consent ?? null,
   });
   if (!rerun.ok) return { answer: rerun };
   return { answer: await send(rerun.data.fingerprint), rerun: rerun.data };

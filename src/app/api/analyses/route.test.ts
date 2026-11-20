@@ -1,14 +1,23 @@
 import { readFileSync } from "node:fs";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { normalise } from "@/modules/keywords/core";
-import { answerKeySchema } from "@/shared/core/answer-key";
+import { sql } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  findKeyword,
+  normalise,
+  proposeKeywords,
+} from "@/modules/keywords/core";
+import { vocabularySchema } from "@/shared/core/vocabulary";
+import { getDb } from "@/shared/server/db";
 import { POST } from "./route";
 
 const dir = "data/fixtures/example-nordic-digital";
 const meta = JSON.parse(readFileSync(`${dir}/meta.json`, "utf8"));
-const key = answerKeySchema.parse(
-  JSON.parse(readFileSync(`${dir}/answer-key.json`, "utf8")),
+const vocabulary = vocabularySchema.parse(
+  JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
 );
+const cachedList = JSON.parse(
+  readFileSync(`${dir}/cached/keywords.json`, "utf8"),
+) as { data: { keywords: string[] } };
 const inputs = {
   cvText: readFileSync(`${dir}/cv.txt`, "utf8"),
   jobAd: readFileSync(`${dir}/ad.txt`, "utf8"),
@@ -40,8 +49,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// Each test starts with no saved list.
+beforeEach(async () => {
+  await (await getDb()).execute(sql`delete from keyword_lists`);
+});
+
 describe("FR-4, FR-7 POST /api/analyses", () => {
-  it("scores the Example pair as the Answer key says, without a network request", async () => {
+  it("FR-5b scores the Example pair on its Cached Keyword list in Test mode, as `saved`, without a network request", async () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
 
@@ -51,15 +65,59 @@ describe("FR-4, FR-7 POST /api/analyses", () => {
     expect(body.ok).toBe(true);
     const { result, fingerprint } = body.data;
     expect(fingerprint).toMatch(/^[0-9a-f]{64}$/);
-    expect(result.score).toBe(key.score);
+    expect(result.keywordSource).toBe("saved");
+    // The engine is the oracle: the Cached list, checked against the ad, then
+    // looked up in the CV.
+    const list = proposeKeywords(
+      inputs.jobAd,
+      cachedList.data.keywords,
+      vocabulary,
+    );
+    const found = (yes: boolean) =>
+      lower(
+        list
+          .filter(
+            (k) => findKeyword(inputs.cvText, k, vocabulary).length > 0 === yes,
+          )
+          .map((k) => k.term),
+      ).sort();
     expect(
       lower(result.matched.map((k: { term: string }) => k.term)).sort(),
-    ).toEqual(lower(key.keywords.matched).sort());
+    ).toEqual(found(true));
     expect(
       lower(result.missing.map((k: { term: string }) => k.term)).sort(),
-    ).toEqual(lower(key.keywords.missing).sort());
+    ).toEqual(found(false));
+    expect(result.score).toBe(
+      Math.round((100 * found(true).length) / list.length),
+    );
     expect(result).not.toHaveProperty("verdict");
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("FR-5b uses the code list, marked `code-fallback`, for an ad that is not a Fixture in Test mode", async () => {
+    const jobAd = `${inputs.jobAd}
+
+Et avsnitt som ikke finnes i noen Fixture.`;
+    const body = await (
+      await post({ applicationId, inputs: { ...inputs, jobAd } })
+    ).json();
+    expect(body.data.result.keywordSource).toBe("code-fallback");
+  });
+
+  it("FR-5b takes a consent in the body, whatever version it names, and refuses one that is no string", async () => {
+    const withConsent = await post({
+      applicationId,
+      inputs,
+      consent: { noticeVersion: "notice-0:old" },
+    });
+    expect(withConsent.status).toBe(200);
+    expect((await post({ applicationId, inputs, consent: null })).status).toBe(
+      200,
+    );
+    await invalid(
+      await post({ applicationId, inputs, consent: { noticeVersion: 3 } }),
+      "consent.noticeVersion",
+    );
   });
 
   it("gives identical bodies for the same post twice", async () => {

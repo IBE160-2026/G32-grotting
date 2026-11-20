@@ -54,6 +54,7 @@ import { Alert } from "@/shared/ui/components/alert";
 import { Button } from "@/shared/ui/components/button";
 import { CatalogueHeading } from "@/shared/ui/components/catalogue-heading";
 import { CreditsList } from "@/shared/ui/components/credits-list";
+import { ProgressLine } from "@/shared/ui/components/progress-line";
 import { TextArea, TextField } from "@/shared/ui/components/text-field";
 import { messages } from "@/shared/ui/messages.nb";
 import { useRunMode } from "@/shared/ui/run-mode";
@@ -446,7 +447,13 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   }
 
   // One request for phase 1: code only, so the result needs no AI (NFR-4).
-  function send(request: AnalyseRequest) {
+  function send(plain: AnalyseRequest) {
+    // The accepted notice goes with phase 1: with it, the Keywords of a new ad
+    // may be proposed by AI (FR-5b). The server checks the version again.
+    const request: AnalyseRequest = {
+      ...plain,
+      consent: consentFor(runMode, readSession().noticeVersion),
+    };
     sending.current = true;
     setAdUnclear(false);
     setFailed(false);
@@ -604,7 +611,13 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       status: manual ? "retrying" : "running",
       flags: NONE,
     });
-    const outcome = await requestLetterCheck(base, letter);
+    const outcome = await requestLetterCheck(
+      {
+        ...base,
+        consent: consentFor(runMode, readSession().noticeVersion),
+      },
+      letter,
+    );
     // A newer Letter, a newer check or the form took over: drop this result.
     if (seq !== checkSeq.current) return;
     if (outcome.rerun) {
@@ -892,6 +905,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
             {messages.application.submit}
           </Button>
         </div>
+        {analysis.isPending &&
+        runMode.features.keywordFallback &&
+        !runMode.testMode ? (
+          <ProgressLine>{messages.application.keywordProgress}</ProgressLine>
+        ) : null}
       </form>
       <AiNotice
         open={noticeOpen}

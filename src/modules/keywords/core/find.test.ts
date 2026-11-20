@@ -146,10 +146,24 @@ describe("FR-6 findKeyword: what must not match", () => {
     ).toEqual([]);
   });
 
-  it("gives nothing for a term that is not in the vocabulary", () => {
+  it("FR-5b finds a term that is not in the vocabulary by its own words, with no aliases", () => {
+    const vocabulary = vocabularyOf(["React"], { React: ["reactjs"] });
     expect(
-      findKeyword("Git", { term: "Git" }, vocabularyOf(["React"])),
+      findKeyword("Vi bruker Altinn.", { term: "Altinn" }, vocabulary),
+    ).toHaveLength(1);
+    expect(
+      findKeyword("Vi bruker Altinnportalen.", { term: "Altinn" }, vocabulary),
     ).toEqual([]);
+    expect(
+      findKeyword("Vi bruker Excel.", { term: "Altinn" }, vocabulary),
+    ).toEqual([]);
+    expect(
+      findKeyword(
+        "Erfaring fra mva-oppgjør.",
+        { term: "MVA oppgjør" },
+        vocabulary,
+      ),
+    ).toHaveLength(1);
   });
 
   it("gives nothing for an empty CV and does not throw", () => {

@@ -13,11 +13,11 @@ import { analyseInputs } from "./analyse";
  * match (else `ANALYSIS_STALE`). The Missing keywords of that analysis are the
  * Unsupported claims to look for. No AI request, nothing stored.
  */
-export function checkLetterFor(
+export async function checkLetterFor(
   request: LetterCheckRequest,
   vocabulary: Vocabulary,
-): Result<LetterCheck, "TOO_FEW_KEYWORDS" | "ANALYSIS_STALE"> {
-  const analysed = analyseInputs(request.inputs, vocabulary);
+): Promise<Result<LetterCheck, "TOO_FEW_KEYWORDS" | "ANALYSIS_STALE">> {
+  const analysed = await analyseInputs(request.inputs, vocabulary);
   if (!analysed.ok) return err(analysed.error);
   if (analysed.value.fingerprint !== request.fingerprint) {
     return err("ANALYSIS_STALE");

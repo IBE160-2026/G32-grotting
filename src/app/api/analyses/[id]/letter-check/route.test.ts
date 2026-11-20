@@ -27,7 +27,7 @@ const planted = (
 const applicationId = "8d6e1f4a-2b3c-4d5e-8f60-1a2b3c4d5e6f";
 
 async function body(overrides: Record<string, unknown> = {}) {
-  const analysed = analyseInputs(inputs, await loadVocabulary());
+  const analysed = await analyseInputs(inputs, await loadVocabulary());
   if (!analysed.ok) throw new Error("fixture must analyse");
   return {
     applicationId,

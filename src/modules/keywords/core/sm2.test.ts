@@ -22,7 +22,10 @@ const ids = readdirSync(root, { withFileTypes: true })
 // FR-5b (decided 2026-11-17, docs/qa/fr-5b-decision.md): code alone fails SM-2
 // on the held-out Fixture. The failure is expected and pinned here with
 // `it.fails`, so it turns red when the lists start to agree (remove the entry
-// then). The vocabulary is not changed to make it pass.
+// then). The vocabulary is not changed to make it pass. Story 3.11 recorded the
+// AI lists (`cached/keywords.json`); they do not equal the Answer keys either
+// (see the table in the decision file), and this test is about the code-only
+// engine, so the entry stays.
 const expectedToFail = new Set(["held-out-regnskap-kvale"]);
 
 function read(id: string, file: string): string {

@@ -10,6 +10,9 @@ export type AiUsage = {
 };
 
 export type AiGenerateArgs = {
+  // What the request is for (`AiRequest.task`): the cached adapter keeps its
+  // Keyword lists apart from its Letters.
+  readonly task?: string;
   readonly prompt: string;
   readonly lookupKey: string;
   readonly signal: AbortSignal;

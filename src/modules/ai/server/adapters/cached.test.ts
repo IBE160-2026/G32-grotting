@@ -178,6 +178,93 @@ describe("FR-27 cached adapter", () => {
   });
 });
 
+describe("FR-5b the cached adapter answers a Keyword request from keywords.json", () => {
+  const keywordFile = {
+    file: "keywords.json",
+    content: { data: { keywords: ["A", "B", "C"] }, meta },
+  };
+  const keywordArgs = (jobAd: string) => ({
+    ...args(lookupKeyOf({ task: "keywords", jobAd })),
+    task: "keywords",
+  });
+
+  it("finds the list by the ad alone, with no CV in the key, and not by another ad", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ cachedKeywords: keywordFile }),
+    ]);
+    const found = await adapter.generate(keywordArgs("Annonsen"));
+    expect(found.output).toEqual({ keywords: ["A", "B", "C"] });
+    // Whitespace in the ad does not matter (canon).
+    await expect(
+      adapter.generate(keywordArgs("  Annonsen \n")),
+    ).resolves.toBeDefined();
+    await expect(
+      adapter.generate(keywordArgs("En annen annonse")),
+    ).rejects.toBeInstanceOf(CachedMissError);
+  });
+
+  it("serves a Fixture that has a Keyword list and no Cached Letters", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ cachedLetters: [], cachedKeywords: keywordFile }),
+    ]);
+    await expect(
+      adapter.generate(keywordArgs("Annonsen")),
+    ).resolves.toBeDefined();
+  });
+
+  it("does not read a PDF to answer a Keyword request", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({
+        cachedKeywords: keywordFile,
+        // Not a PDF: extracting its text would throw.
+        cvPdf: new Uint8Array([1, 2, 3]),
+      }),
+    ]);
+    await expect(
+      adapter.generate(keywordArgs("Annonsen")),
+    ).resolves.toBeDefined();
+  });
+
+  it("does not answer a Letter request with a Keyword list, or the reverse", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ cachedKeywords: keywordFile }),
+    ]);
+    await expect(
+      adapter.generate({ ...args(key()), task: "letter" }),
+    ).resolves.toBeDefined();
+    await expect(
+      adapter.generate({
+        ...args(lookupKeyOf({ task: "keywords", jobAd: "Annonsen" })),
+        task: "letter",
+      }),
+    ).rejects.toBeInstanceOf(CachedMissError);
+  });
+
+  it("names the file, not its content, when keywords.json is not an AI output", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({
+        cachedKeywords: { file: "keywords.json", content: { data: "SECRET" } },
+      }),
+    ]);
+    const error = await adapter
+      .generate(keywordArgs("Annonsen"))
+      .catch((e: Error) => e);
+    expect((error as Error).message).toBe(
+      "Invalid Cached response f/keywords.json: not an AI output",
+    );
+  });
+
+  it("refuses two Fixtures with the same ad", async () => {
+    const adapter = createCachedAdapter(async () => [
+      fixture({ id: "one", cachedKeywords: keywordFile }),
+      fixture({ id: "two", cachedKeywords: keywordFile }),
+    ]);
+    await expect(adapter.generate(keywordArgs("Annonsen"))).rejects.toThrow(
+      "Duplicate Cached key: two/keywords.json",
+    );
+  });
+});
+
 describe("AD-3 createAdapter cached", () => {
   it("returns the shared cached adapter, also in a test run", () => {
     const first = createAdapter("cached", { isTestRun: true });

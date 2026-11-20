@@ -2,7 +2,7 @@ import { extractText, getDocumentProxy } from "unpdf";
 import { z } from "zod";
 import { type FixtureFiles, loadFixtures } from "@/shared/server/data-files";
 import { aiResultMetaSchema } from "../../contracts";
-import { lookupKeyOf } from "../../core/lookup-key";
+import { KEYWORDS_TASK, lookupKeyOf } from "../../core/lookup-key";
 import type { AiAdapterPort, AiUsage } from "./factory";
 
 // No Cached response answers this request: it is not an input of a recorded
@@ -39,6 +39,32 @@ async function pdfText(bytes: Uint8Array): Promise<string> {
   const document = await getDocumentProxy(new Uint8Array(bytes));
   const { text } = await extractText(document, { mergePages: true });
   return text.replace(/\r\n?/g, "\n");
+}
+
+// Every Cached Keyword list, under the lookup key of the request that asks for
+// it. The request carries the ad alone, so the key has no CV in it and the
+// index needs no PDF: a Keyword lookup stays quick (NFR-4).
+async function buildKeywordIndex(load: LoadFixtures): Promise<Index> {
+  const index = new Map<string, Entry>();
+  for (const fixture of await load()) {
+    const keywords = fixture.cachedKeywords;
+    if (keywords === undefined) continue;
+    const parsed = cachedFileSchema.safeParse(keywords.content);
+    if (!parsed.success) {
+      throw new Error(
+        `Invalid Cached response ${fixture.id}/${keywords.file}: not an AI output`,
+      );
+    }
+    const key = lookupKeyOf({ task: KEYWORDS_TASK, jobAd: fixture.jobAd });
+    if (index.has(key)) {
+      throw new Error(`Duplicate Cached key: ${fixture.id}/${keywords.file}`);
+    }
+    index.set(key, {
+      data: parsed.data.data,
+      usage: parsed.data.usage ?? NO_USAGE,
+    });
+  }
+  return index;
 }
 
 // Every Cached Letter, under the lookup key of the request that asks for it.
@@ -100,13 +126,25 @@ export function createCachedAdapter(
     });
     return index;
   };
+  let keywordIndex: Promise<Index> | undefined;
+  const getKeywordIndex = (): Promise<Index> => {
+    keywordIndex ??= buildKeywordIndex(load).catch((error: unknown) => {
+      keywordIndex = undefined;
+      throw error;
+    });
+    return keywordIndex;
+  };
 
   return {
     kind: "cached",
     provider: "cached",
     model: "cached",
     async generate(args) {
-      const entry = (await getIndex()).get(args.lookupKey);
+      const index =
+        args.task === KEYWORDS_TASK
+          ? await getKeywordIndex()
+          : await getIndex();
+      const entry = index.get(args.lookupKey);
       if (entry === undefined) throw new CachedMissError();
       return { output: entry.data, usage: entry.usage };
     },

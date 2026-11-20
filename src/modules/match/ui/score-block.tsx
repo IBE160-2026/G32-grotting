@@ -39,6 +39,11 @@ export function ScoreBlock({ result }: { result: AnalysisResult }) {
           {messages.result.formula(matched, total, score)}
         </p>
         <p className="text-hint text-ink-2">{messages.result.disclaimer}</p>
+        {result.keywordSource === "code-fallback" ? (
+          <p className="m-0 border border-edge px-4 py-3 text-body text-ink">
+            {messages.result.lessPrecise}
+          </p>
+        ) : null}
       </div>
     </section>
   );

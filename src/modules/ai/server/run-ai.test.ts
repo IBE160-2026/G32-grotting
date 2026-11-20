@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { getConfig } from "@/shared/server/config";
+import { contentHash } from "@/shared/server/content-hash";
 import { closeDb, getDb } from "@/shared/server/db";
 import { log } from "@/shared/server/log";
 
@@ -124,6 +125,24 @@ describe("AD-13 runAi success", () => {
     expect(seen.lookupKey).toMatch(/^[0-9a-f]{64}$/);
     expect(seen.maxRetries).toBe(0);
     expect(seen.signal.aborted).toBe(false);
+  });
+
+  it("FR-5b tells the adapter the task, and keys a Keyword request by the ad alone", async () => {
+    const seen: { task?: string; lookupKey: string }[] = [];
+    const adapter = createMockAdapter({
+      respond: (args) => {
+        seen.push(args);
+        return { text: "x" };
+      },
+    });
+    await runAi(request(), CTX, options(adapter));
+    await runAi(
+      request({ task: "keywords", cvText: undefined }),
+      CTX,
+      options(adapter),
+    );
+    expect(seen.map(({ task }) => task)).toEqual(["letter", "keywords"]);
+    expect(seen[1]?.lookupKey).toBe(contentHash(AD_SENTINEL));
   });
 
   it("makes the key from the unstripped inputs", async () => {

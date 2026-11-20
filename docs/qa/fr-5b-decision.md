@@ -71,3 +71,23 @@ After the decision, commit `a518058` (PR #36) changed `data/fixtures/held-out-re
 
 Re-check on 2026-11-18, vocabulary `v1-bbb32bad`, current key: the engine extracts 8 Keywords (Matched: regnskap, skatt og avgift, Visma, Excel; Missing: bachelor i økonomi, rapportering, Power BI, norskkunnskaper). Altinn, mva-oppgjør, lønnskjøring, regnskapsmedarbeider, reskontro and bokføring are in the key and are not extracted from the ad. The held-out list test still fails, so **FR-5b still applies**. Helene decided on 2026-11-18 that Story 3.11 uses this same held-out Fixture, with the key as it stands.
 
+
+## Story 3.11: the AI lists are recorded (2026-11-20)
+
+FR-5b is built: for a new Job ad one `runAi` request proposes the Keyword list, every term must be found in the ad by the Keyword engine (`proposeKeywords`, which uses `findKeyword`) or it is dropped, and the list is saved in `keyword_lists` under `contentHash(canon(ad))`. Without the accepted notice, at the cap, on a failed request, or in Test mode for an ad that is not a Fixture, the code-only list is used and marked `code-fallback`.
+
+Recording: `npm run fixtures:record -- <id> --keywords`, once per Fixture (4 paid requests in all, no retries), model `anthropic/claude-sonnet-5.5` through OpenRouter, prompt version `keywords-1`. The files are `data/fixtures/<id>/cached/keywords.json`, raw and unedited. The held-out Fixture was recorded with the same prompt as the others, and the prompt was not tuned against any Answer key.
+
+| Fixture | Proposed | Kept after the ad check | Dropped | Score on the AI list | Score in the Answer key |
+| --- | --- | --- | --- | --- | --- |
+| `example-nordic-digital` | 19 | 19 | none | 63 % | 64 % |
+| `held-out-regnskap-kvale` | 20 | 20 | none | 40 % | 50 % |
+| `nursing-sarvurdering` | 17 | 17 | none | 41 % | 31 % |
+| `two-column-fjord-analytics` | 14 | 11 | «produktanalyse», «bachelor i statistikk», «bachelor i informatikk» | 82 % | 67 % |
+
+What this says, for Helene to judge:
+
+- **The AI lists do not equal any Answer key.** The keys were written against what the vocabulary can find, and the AI picks other words (for example «frontendutvikler», «sprinter» and «retrospektiv» in the Example ad, which the key lists as «Agile» or marks must-not-match). The held-out list does not reach the key either: the AI proposes «regnskap», «fagskole» and «regnskapssystem» that the key does not list, and splits «avstemming av bank og reskontro» and «skatteoppgjør for aksjeselskaper» into longer phrases than the key's «reskontro» and «skatteoppgjør».
+- **The held-out test stays an expected failure.** `sm2.test.ts` and `analyse.test.ts` test the code-only engine against the Answer key, and that engine is unchanged, so the marker stays. The vocabulary and the Answer keys were not changed.
+- **In Test mode the Example pair therefore shows the AI list (63 %), not the Answer key's 64 %.** The e2e tests take the Example counts from the Cached list through the Keyword engine (`e2e/support/application.ts`), and the code-only counts from the Answer key for the one server that has the fallback off. SM-1's «score equals the Answer key» is only true for the code-only list. Decision needed: keep the Answer key as the oracle for code, and accept that a saved list is judged by its own checks (every term in the ad, the same list and score on a second run), or write a second key for the saved lists.
+- Cost: 4 short requests (the ad only, no CV). The spend was not read back from OpenRouter; it is expected to be a few cents in all.

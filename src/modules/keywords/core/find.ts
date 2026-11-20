@@ -23,19 +23,18 @@ export type KeywordHit = {
  * the term and its aliases from the vocabulary, case ignored, inflections,
  * hyphen and space variants and split compounds accepted. A word that only
  * shares part of a compound does not match. A match sits on one line. Hits come
- * in text order; no hit means the Keyword is Missing, which is also what a term
- * that is not in the vocabulary gives (callers pass Keywords extracted from the
- * same vocabulary). Pure and synchronous.
+ * in text order; no hit means the Keyword is Missing. A term outside the
+ * vocabulary (an AI-proposed Keyword, FR-5b) is searched by its own words, with
+ * no aliases. Pure and synchronous.
  */
 export function findKeyword(
   text: string,
   keyword: { readonly term: string },
   vocabulary: Vocabulary,
 ): KeywordHit[] {
-  const termIndex = vocabulary.terms.indexOf(keyword.term);
-  if (termIndex === -1) return [];
-
-  // The search runs over a vocabulary of this one term and its aliases.
+  // The search runs over a vocabulary of this one term and its aliases. A term
+  // the vocabulary does not hold (an AI-proposed Keyword, FR-5b) has no
+  // aliases and is found by its own words.
   const own: Vocabulary = {
     vocabularyVersion: vocabulary.vocabularyVersion,
     terms: [keyword.term],
