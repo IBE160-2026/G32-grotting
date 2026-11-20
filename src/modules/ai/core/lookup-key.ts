@@ -5,6 +5,10 @@ import { contentHash } from "@/shared/server/content-hash";
 // The Keyword request: only the Job ad is sent, so only the ad is its key.
 export const KEYWORDS_TASK = "keywords";
 
+// The Gaps request: the CV and the ad are its key, with no title, employer or
+// tone (AD-15).
+export const GAPS_TASK = "gaps";
+
 export type LookupKeyInputs = {
   readonly task: string;
   readonly cvText?: string;

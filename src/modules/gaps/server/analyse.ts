@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type AiContext, type AiFailure, runAi } from "@/modules/ai";
+import { type AiContext, type AiFailure, GAPS_TASK, runAi } from "@/modules/ai";
 import type { AiResultMeta } from "@/modules/ai/contracts";
 import type { AnalysisInputs } from "@/modules/application/contracts";
 import { checkCitation } from "@/modules/integrity/core";
@@ -7,18 +7,22 @@ import { canon } from "@/shared/core/canon";
 import { err, ok, type Result } from "@/shared/core/result";
 import { log } from "@/shared/server/log";
 import { type Gap, REAL_GAP_KEY } from "../contracts";
-import { gapsPromptBuilder, PROMPT_VERSION } from "./prompts/gaps";
+import {
+  gapsOutputSchema,
+  gapsPromptBuilder,
+  PROMPT_VERSION,
+} from "./prompts/gaps";
 
-// What the AI must return: an object with a list. Each item is checked on its
-// own, so one malformed item is a skipped Keyword (a template Real gap) and
-// never fails the whole answer. A `suggestion` is ignored (Epic 5).
+// Each item of the AI's list is checked on its own, so one malformed item is a
+// skipped Keyword (a template Real gap) and never fails the whole answer
+// (`gapsOutputSchema` already turns a malformed item into an empty one). A
+// `suggestion` is ignored (Epic 5).
 const itemSchema = z.object({
   keyword: z.string(),
   kind: z.string(),
   explanation: z.string().nullish(),
   citation: z.string().nullish(),
 });
-const outputSchema = z.object({ gaps: z.array(z.unknown()) });
 
 export type AiGapItem = z.infer<typeof itemSchema>;
 
@@ -129,12 +133,12 @@ export async function analyseGaps(
   // alone (AD-15).
   const run = await runAi(
     {
-      task: "gaps",
+      task: GAPS_TASK,
       cvText: inputs.cvText,
       jobAd: inputs.jobAd,
       promptVersion: PROMPT_VERSION,
       buildPrompt: gapsPromptBuilder({ jobAd: inputs.jobAd, missingTerms }),
-      schema: outputSchema,
+      schema: gapsOutputSchema,
     },
     ctx,
     options,
@@ -144,8 +148,15 @@ export async function analyseGaps(
   const structured = structureGaps(
     missingTerms,
     run.value.data.gaps.flatMap((item) => {
+      // `gapsOutputSchema` turns a malformed item into one with an empty
+      // keyword and kind. It is dropped here, so it never takes the place of a
+      // usable item for the same keyword (the first usable item wins).
       const parsed = itemSchema.safeParse(item);
-      return parsed.success ? [parsed.data] : [];
+      return parsed.success &&
+        parsed.data.keyword !== "" &&
+        parsed.data.kind !== ""
+        ? [parsed.data]
+        : [];
     }),
   );
   // Citations are checked against the CV text that was sent, not the raw one.

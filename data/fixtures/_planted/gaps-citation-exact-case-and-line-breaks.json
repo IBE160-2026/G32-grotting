@@ -37,7 +37,7 @@
     "source": "cached",
     "provider": "planted",
     "model": "planted-1",
-    "promptVersion": "gaps-1",
+    "promptVersion": "gaps-2",
     "createdAt": "2026-11-20T09:00:00.000Z"
   }
 }

@@ -10,10 +10,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { aiResultMetaSchema } from "@/modules/ai/contracts";
+import { stripContactDetails } from "@/modules/ai/core/strip-contact";
+import { AiProviderError } from "@/modules/ai/server/adapters/live";
 import { createMockAdapter } from "@/modules/ai/server/adapters/mock";
 import { analyseInputs } from "@/modules/application";
+import {
+  PROMPT_VERSION as GAPS_PROMPT_VERSION,
+  gapsPromptBuilder,
+} from "@/modules/gaps/server/prompts/gaps";
 import { PROMPT_VERSION as KEYWORDS_PROMPT_VERSION } from "@/modules/keywords/server/prompts/keywords";
 import { PROMPT_VERSION } from "@/modules/letter/server/prompts/letter";
+import { answerKeySchema } from "@/shared/core/answer-key";
 import { vocabularySchema } from "@/shared/core/vocabulary";
 import { parseArgs, RecordUsageError, recordCached } from "./record-cached";
 
@@ -23,13 +30,15 @@ const KEY = "SENTINEL-KEY-hemmelig";
 const folders: string[] = [];
 
 // A copy of the Example pair Fixture, so the real folder is never written.
-function fixturesCopy(): string {
+function fixturesCopy(ids: readonly string[] = [EXAMPLE]): string {
   const root = mkdtempSync(join(tmpdir(), "record-cached-"));
   folders.push(root);
-  cpSync(`data/fixtures/${EXAMPLE}`, join(root, EXAMPLE), {
-    recursive: true,
-    filter: (source) => !source.includes("cached"),
-  });
+  for (const id of ids) {
+    cpSync(`data/fixtures/${id}`, join(root, id), {
+      recursive: true,
+      filter: (source) => !source.includes("cached"),
+    });
+  }
   return root;
 }
 
@@ -58,11 +67,13 @@ describe("FR-27 record-cached arguments", () => {
       fixtureId: EXAMPLE,
       tone: undefined,
       keywords: false,
+      gaps: false,
     });
     expect(parseArgs([EXAMPLE, "--tone", "Direkte"])).toEqual({
       fixtureId: EXAMPLE,
       tone: "Direkte",
       keywords: false,
+      gaps: false,
     });
   });
 
@@ -71,6 +82,7 @@ describe("FR-27 record-cached arguments", () => {
       fixtureId: EXAMPLE,
       tone: undefined,
       keywords: true,
+      gaps: false,
     });
     expect(() =>
       parseArgs([EXAMPLE, "--keywords", "--tone", "Direkte"]),
@@ -91,7 +103,12 @@ describe("FR-27 recordCached", () => {
   it("writes one raw Cached Letter per Tone with its meta, and nothing else", async () => {
     const { adapter, fixturesDir } = setup();
     const files = await recordCached({
-      args: { fixtureId: EXAMPLE, tone: undefined, keywords: false },
+      args: {
+        fixtureId: EXAMPLE,
+        tone: undefined,
+        keywords: false,
+        gaps: false,
+      },
       env: {},
       fixturesDir,
       now: NOW,
@@ -137,7 +154,12 @@ describe("FR-27 recordCached", () => {
   it("keeps a raw answer that breaks a rule: it is the tests that judge it", async () => {
     const { adapter, fixturesDir } = setup(() => ({ text: "Kort." }));
     await recordCached({
-      args: { fixtureId: EXAMPLE, tone: "Formell", keywords: false },
+      args: {
+        fixtureId: EXAMPLE,
+        tone: "Formell",
+        keywords: false,
+        gaps: false,
+      },
       env: {},
       fixturesDir,
       now: NOW,
@@ -155,7 +177,12 @@ describe("FR-27 recordCached", () => {
   it("makes the prompt of generateLetter: the Tone, the Matched keywords, no contact details", async () => {
     const { adapter, prompts, fixturesDir } = setup();
     await recordCached({
-      args: { fixtureId: EXAMPLE, tone: undefined, keywords: false },
+      args: {
+        fixtureId: EXAMPLE,
+        tone: undefined,
+        keywords: false,
+        gaps: false,
+      },
       env: {},
       fixturesDir,
       now: NOW,
@@ -200,7 +227,12 @@ describe("FR-27 recordCached", () => {
   it("records one Tone when asked", async () => {
     const { adapter, prompts, fixturesDir } = setup();
     await recordCached({
-      args: { fixtureId: EXAMPLE, tone: "Personlig", keywords: false },
+      args: {
+        fixtureId: EXAMPLE,
+        tone: "Personlig",
+        keywords: false,
+        gaps: false,
+      },
       env: {},
       fixturesDir,
       now: NOW,
@@ -223,7 +255,12 @@ describe("FR-27 recordCached", () => {
     });
     await expect(
       recordCached({
-        args: { fixtureId: EXAMPLE, tone: undefined, keywords: false },
+        args: {
+          fixtureId: EXAMPLE,
+          tone: undefined,
+          keywords: false,
+          gaps: false,
+        },
         env: {},
         fixturesDir,
         now: NOW,
@@ -239,7 +276,12 @@ describe("FR-27 recordCached", () => {
     const { adapter, fixturesDir } = setup(() => ({ nope: 1 }));
     await expect(
       recordCached({
-        args: { fixtureId: EXAMPLE, tone: undefined, keywords: false },
+        args: {
+          fixtureId: EXAMPLE,
+          tone: undefined,
+          keywords: false,
+          gaps: false,
+        },
         env: {},
         fixturesDir,
         now: NOW,
@@ -251,7 +293,12 @@ describe("FR-27 recordCached", () => {
 });
 
 describe("FR-5b recordCached --keywords", () => {
-  const keywordArgs = { fixtureId: EXAMPLE, tone: undefined, keywords: true };
+  const keywordArgs = {
+    fixtureId: EXAMPLE,
+    tone: undefined,
+    keywords: true,
+    gaps: false,
+  };
   const answer = { keywords: ["React", "TypeScript", "Git"] };
 
   it("makes one request with the Job ad and no CV, and writes the raw answer to keywords.json", async () => {
@@ -342,8 +389,179 @@ describe("FR-5b recordCached --keywords", () => {
   });
 });
 
+describe("FR-13 recordCached --gaps (Story 4.3)", () => {
+  const gapsArgs = {
+    fixtureId: EXAMPLE,
+    tone: undefined,
+    keywords: false,
+    gaps: true,
+  };
+  const answer = {
+    gaps: [
+      { keyword: "TypeScript", kind: "real", explanation: "e", citation: null },
+    ],
+  };
+  const FIXTURES = [
+    EXAMPLE,
+    "held-out-regnskap-kvale",
+    "nursing-sarvurdering",
+    "two-column-fjord-analytics",
+  ];
+
+  it("takes --gaps alone", () => {
+    expect(parseArgs([EXAMPLE, "--gaps"])).toEqual(gapsArgs);
+    expect(() => parseArgs([EXAMPLE, "--gaps", "--keywords"])).toThrow(
+      /cannot be combined/,
+    );
+    expect(() => parseArgs([EXAMPLE, "--gaps", "--tone", "Direkte"])).toThrow(
+      /cannot be combined/,
+    );
+  });
+
+  it("makes exactly one request with no retry, and writes the raw answer to gaps.json with its meta", async () => {
+    const generate = vi.fn();
+    const { adapter, fixturesDir, prompts } = setup(() => answer);
+    const spy = vi.spyOn(adapter, "generate").mockImplementation(async (a) => {
+      generate(a.maxRetries);
+      prompts.push(a.prompt);
+      return {
+        output: answer,
+        usage: { inputTokens: null, outputTokens: null },
+      };
+    });
+    const files = await recordCached({
+      args: gapsArgs,
+      env: {},
+      fixturesDir,
+      now: NOW,
+      adapter,
+    });
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(generate).toHaveBeenCalledWith(0);
+    expect(
+      files.map((file) => file.replace(/\\/g, "/").split("/").pop()),
+    ).toEqual(["gaps.json"]);
+    const written = JSON.parse(
+      readFileSync(join(fixturesDir, EXAMPLE, "cached", "gaps.json"), "utf8"),
+    );
+    expect(written.data).toEqual(answer);
+    expect(written.meta).toEqual({
+      source: "live",
+      provider: "mock",
+      model: "mock-1",
+      promptVersion: GAPS_PROMPT_VERSION,
+      createdAt: "2026-11-19T12:00:00.000Z",
+    });
+    expect(aiResultMetaSchema.safeParse(written.meta).success).toBe(true);
+    expect(readdirSync(join(fixturesDir, EXAMPLE, "cached"))).toEqual([
+      "gaps.json",
+    ]);
+  });
+
+  it.each(FIXTURES)(
+    "%s: asks about exactly the Missing keywords of its Answer key, in order, with the stripped CV",
+    async (id) => {
+      const fixturesDir = fixturesCopy([id]);
+      const prompts: string[] = [];
+      const adapter = createMockAdapter({
+        respond: (args) => {
+          prompts.push(args.prompt);
+          return answer;
+        },
+      });
+      await recordCached({
+        args: { ...gapsArgs, fixtureId: id },
+        env: {},
+        fixturesDir,
+        now: NOW,
+        adapter,
+      });
+      const folder = `data/fixtures/${id}`;
+      const key = answerKeySchema.parse(
+        JSON.parse(readFileSync(`${folder}/answer-key.json`, "utf8")),
+      );
+      expect(prompts).toHaveLength(1);
+      const listed = prompts[0]
+        ?.split("Missing keywords, in this order:\n")[1]
+        ?.split("\n\n")[0]
+        ?.split("\n")
+        .map((line) => line.replace(/^- /, ""));
+      // The Answer key's Missing keywords, in its order.
+      expect(listed).toEqual(key.keywords.missing);
+      // The prompt is the one `analyseGaps` builds.
+      expect(prompts[0]).toBe(
+        gapsPromptBuilder({
+          jobAd: readFileSync(`${folder}/ad.txt`, "utf8"),
+          missingTerms: listed ?? [],
+        })(stripContactDetails(readFileSync(`${folder}/cv.txt`, "utf8"))),
+      );
+    },
+  );
+
+  it("writes nothing when the request fails, and does not try again", async () => {
+    const fixturesDir = fixturesCopy();
+    const generate = vi.fn(async () => {
+      throw new AiProviderError("HTTP_500");
+    });
+    const adapter = {
+      ...createMockAdapter({ respond: () => answer }),
+      generate,
+    };
+    await expect(
+      recordCached({ args: gapsArgs, env: {}, fixturesDir, adapter }),
+    ).rejects.toBeInstanceOf(AiProviderError);
+    expect(generate).toHaveBeenCalledTimes(1);
+    expect(existsSync(join(fixturesDir, EXAMPLE, "cached"))).toBe(false);
+  });
+
+  it("writes the adapter's output as it came back, malformed items included", async () => {
+    const odd = {
+      gaps: [
+        {
+          keyword: "TypeScript",
+          kind: "real",
+          explanation: null,
+          citation: null,
+        },
+        { keyword: "REST-API", kind: 3 },
+      ],
+    };
+    const { adapter, fixturesDir } = setup(() => odd);
+    await recordCached({ args: gapsArgs, env: {}, fixturesDir, adapter });
+    const written = JSON.parse(
+      readFileSync(join(fixturesDir, EXAMPLE, "cached", "gaps.json"), "utf8"),
+    );
+    expect(written.data).toEqual(odd);
+  });
+
+  it("refuses an answer with no list and writes nothing", async () => {
+    const { adapter, fixturesDir } = setup(() => ({ nope: 1 }));
+    await expect(
+      recordCached({ args: gapsArgs, env: {}, fixturesDir, adapter }),
+    ).rejects.toThrow("no list of gaps");
+    expect(existsSync(join(fixturesDir, EXAMPLE, "cached"))).toBe(false);
+  });
+
+  it("is refused in a test run", async () => {
+    const { adapter, fixturesDir } = setup(() => answer);
+    await expect(
+      recordCached({
+        args: gapsArgs,
+        env: { VITEST: "true" },
+        fixturesDir,
+        adapter,
+      }),
+    ).rejects.toThrow(/test run/);
+  });
+});
+
 describe("FR-27 recordCached refuses what it must", () => {
-  const args = { fixtureId: EXAMPLE, tone: undefined, keywords: false };
+  const args = {
+    fixtureId: EXAMPLE,
+    tone: undefined,
+    keywords: false,
+    gaps: false,
+  };
 
   it.each([
     ["VITEST", { VITEST: "true" }],
@@ -395,7 +613,7 @@ describe("FR-27 recordCached refuses what it must", () => {
       const { adapter, fixturesDir } = setup();
       await expect(
         recordCached({
-          args: { fixtureId, tone: undefined, keywords: false },
+          args: { fixtureId, tone: undefined, keywords: false, gaps: false },
           env: {},
           fixturesDir,
           adapter,
@@ -412,6 +630,7 @@ describe("FR-27 recordCached refuses what it must", () => {
           fixtureId: "no-such-fixture",
           tone: undefined,
           keywords: false,
+          gaps: false,
         },
         env: {},
         fixturesDir,

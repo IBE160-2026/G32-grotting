@@ -179,7 +179,7 @@ describe("FR-13 analyseGaps", () => {
     expect(result.value.gaps[0]?.kind).toBe("rewordable");
     expect(result.value.meta).toMatchObject({
       source: "mock",
-      promptVersion: "gaps-1",
+      promptVersion: "gaps-2",
     });
   });
 
@@ -218,6 +218,26 @@ describe("FR-13 analyseGaps", () => {
       template("TypeScript"),
       template("REST-API"),
     ]);
+  });
+
+  it("lets a usable item win over an earlier malformed one for the same keyword", async () => {
+    const result = await analyseGaps(
+      { inputs, missingTerms: ["TypeScript"] },
+      CTX,
+      {
+        adapter: adapterOf(() => ({
+          gaps: [
+            { keyword: "TypeScript", kind: 3, explanation: "ødelagt" },
+            real("TypeScript", "CV-en viser ikke TypeScript."),
+          ],
+        })),
+        testMode: true,
+      },
+    );
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps[0]?.explanation).toEqual({
+      text: "CV-en viser ikke TypeScript.",
+    });
   });
 
   it("makes no request when no Keyword is missing", async () => {

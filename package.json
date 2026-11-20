@@ -23,7 +23,8 @@
     "db:check": "tsx --conditions=react-server scripts/db-check.ts",
     "db:migrate": "tsx --conditions=react-server scripts/migrate.ts",
     "fixtures:extract": "tsx scripts/extract-fixture-cv.ts",
-    "fixtures:record": "tsx scripts/record-cached.ts"
+    "fixtures:record": "tsx scripts/record-cached.ts",
+    "qa:compare": "tsx --conditions=react-server scripts/qa-compare.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.4.6",

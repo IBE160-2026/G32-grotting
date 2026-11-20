@@ -251,6 +251,39 @@ describe("FR-27 loadFixtures (AD-15)", () => {
     );
   });
 
+  it("FR-13 reads cached/gaps.json, also for a Fixture with no Cached Letters", async () => {
+    await fixturesWith({
+      a: {
+        "cv.txt": "CV",
+        "ad.txt": "AD",
+        "meta.json": META,
+        "cached/gaps.json": '{"data":{"gaps":[]}}',
+      },
+      b: { "cv.txt": "CV", "ad.txt": "AD", "meta.json": META },
+    });
+    const fixtures = await loadFixtures();
+    expect(fixtures.map((fixture) => fixture.id)).toEqual(["a"]);
+    expect(fixtures[0]?.cachedLetters).toEqual([]);
+    expect(fixtures[0]?.cachedGaps).toEqual({
+      file: "gaps.json",
+      content: { data: { gaps: [] } },
+    });
+  });
+
+  it("FR-13 throws when gaps.json is not JSON, naming the file", async () => {
+    await fixturesWith({
+      a: {
+        "cv.txt": "CV",
+        "ad.txt": "AD",
+        "meta.json": META,
+        "cached/gaps.json": "not json",
+      },
+    });
+    await expect(loadFixtures()).rejects.toThrow(
+      "Invalid Cached response a/gaps.json: not JSON",
+    );
+  });
+
   it("FR-5b gives every real Fixture a Cached Keyword list", async () => {
     const fixtures = await loadFixtures();
     expect(fixtures.map((fixture) => fixture.id)).toEqual([
