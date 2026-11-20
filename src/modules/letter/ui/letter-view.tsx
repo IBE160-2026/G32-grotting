@@ -1,7 +1,13 @@
-import type { Ref } from "react";
+import { Fragment, type Ref } from "react";
 import { messages } from "@/shared/ui/messages.nb";
 import type { Letter } from "../contracts";
-import { renderLetter } from "../core/render-letter";
+import { segmentLetter } from "../core/segment-letter";
+import {
+  FlaggedWord,
+  type LetterCheckState,
+  LetterFlagList,
+  LetterUnchecked,
+} from "./letter-flags";
 
 export const LETTER_HEADING_ID = "letter-h2";
 export const LETTER_LABEL_ID = "letter-ai-label";
@@ -9,23 +15,38 @@ export const LETTER_LABEL_ID = "letter-ai-label";
 // The Letter, read-only (FR-9, UX-DR28): an `<article>` tied to the section
 // heading and to the AI label, never a textarea or `contenteditable`, so the
 // Student edits it in their own program. The sign-off is rendered here by
-// `renderLetter`; before accounts there is no name, so the placeholder shows.
+// `segmentLetter`; before accounts there is no name, so the placeholder shows.
+// What the integrity check found (FR-11) sits between the label and the Letter:
+// a warning list, with each flagged word underlined in the text. Nothing in
+// the Letter is removed or rewritten.
 export function LetterView({
   letter,
   articleRef,
+  check = { kind: "pending" },
+  onRetryCheck,
 }: {
   letter: Letter;
   // Lets the owner select the text when the clipboard is blocked (FR-12).
   articleRef?: Ref<HTMLElement>;
+  check?: LetterCheckState;
+  onRetryCheck?: () => void;
 }) {
-  const paragraphs = renderLetter(letter.text, null)
-    .split(/\n{2,}/)
-    .filter((paragraph) => paragraph.trim() !== "");
+  const flags = check.kind === "done" ? check.flags : [];
+  const paragraphs = segmentLetter(letter.text, flags, null);
   return (
     <>
       <p id={LETTER_LABEL_ID} className="mb-3 text-hint text-ink-2">
         {messages.letter.aiLabel}
       </p>
+      {check.kind === "done" && flags.length > 0 ? (
+        <LetterFlagList flags={flags} />
+      ) : null}
+      {check.kind === "failed" ? (
+        <LetterUnchecked
+          busy={check.busy}
+          onRetry={onRetryCheck ?? (() => {})}
+        />
+      ) : null}
       <article
         ref={articleRef}
         aria-labelledby={LETTER_HEADING_ID}
@@ -35,7 +56,17 @@ export function LetterView({
         {paragraphs.map((paragraph, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: the text is fixed once the Letter has arrived and two paragraphs can be equal, so the index is the stable key
           <p key={index} className="m-0 whitespace-pre-line text-ink">
-            {paragraph}
+            {paragraph.map((piece, at) =>
+              piece.kind === "flagged" ? (
+                // biome-ignore lint/suspicious/noArrayIndexKey: pieces are fixed with the Letter and the flags
+                <FlaggedWord key={at} flag={piece.flag}>
+                  {piece.text}
+                </FlaggedWord>
+              ) : (
+                // biome-ignore lint/suspicious/noArrayIndexKey: pieces are fixed with the Letter and the flags
+                <Fragment key={at}>{piece.text}</Fragment>
+              ),
+            )}
           </p>
         ))}
       </article>

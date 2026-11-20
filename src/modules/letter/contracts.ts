@@ -38,3 +38,62 @@ export const letterResponseSchema = z.object({
 });
 
 export type LetterResponse = z.infer<typeof letterResponseSchema>;
+
+// The integrity guard on the Letter (FR-11, AD-14). A flag says what to check:
+// `term` is the Keyword or Upgrade word, `word` the form as it stands in the
+// Letter, `spans` its places in the Letter text (CRLF and lone CR counted as
+// LF, end exclusive). A type test keeps this equal to `integrity/core`'s
+// `LetterFlag`.
+export const LETTER_FLAG_KINDS = ["UNSUPPORTED_CLAIM", "UPGRADE_WORD"] as const;
+
+export const letterFlagSchema = z.object({
+  kind: z.enum(LETTER_FLAG_KINDS),
+  term: z.string(),
+  word: z.string(),
+  spans: z.array(
+    z.object({
+      start: z.number().int().nonnegative(),
+      end: z.number().int().nonnegative(),
+    }),
+  ),
+});
+
+export type LetterFlagWire = z.infer<typeof letterFlagSchema>;
+
+// The Letter text the check accepts: well above the 400 words asked for.
+export const LETTER_CHECK_TEXT_MAX = 20_000;
+
+const revSchema = z.number().int().nonnegative().max(1_000_000);
+
+// `POST /api/analyses/[id]/letter-check`. The server takes no Missing keywords
+// from the client: it recomputes phase 1 from `inputs`. `gaps` is `null` until
+// Epic 4 widens it. `letter.rev` must equal `letterRev`.
+export const letterCheckRequestSchema = z
+  .object({
+    applicationId: z.uuid(),
+    fingerprint: z.string(),
+    inputs: analysisInputsSchema,
+    letter: z.object({
+      text: z.string().max(LETTER_CHECK_TEXT_MAX),
+      tone: z.enum(TONES),
+      rev: revSchema,
+    }),
+    gaps: z.null(),
+    letterRev: revSchema,
+    gapsRev: revSchema,
+  })
+  .refine((request) => request.letter.rev === request.letterRev, {
+    path: ["letterRev"],
+  });
+
+export type LetterCheckRequest = z.infer<typeof letterCheckRequestSchema>;
+
+// What the check answers. The client shows it only while `letterRev` is the rev
+// of the Letter on screen and `gapsRev` is the rev of the Gap analysis shown.
+export const letterCheckSchema = z.object({
+  flags: z.array(letterFlagSchema),
+  letterRev: revSchema,
+  gapsRev: revSchema,
+});
+
+export type LetterCheck = z.infer<typeof letterCheckSchema>;
