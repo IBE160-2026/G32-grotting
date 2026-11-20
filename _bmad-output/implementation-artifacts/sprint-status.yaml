@@ -78,8 +78,8 @@ development_status:
   3-12-turn-on-live-ai-on-the-hosted-version-and-pass-the-core-flow: done
   epic-3-retrospective: optional
 
-  epic-4: backlog
-  4-1-classify-each-missing-keyword-on-the-server: backlog
+  epic-4: in-progress
+  4-1-classify-each-missing-keyword-on-the-server: done
   4-2-check-every-citation-against-the-cv-text: backlog
   4-3-record-cached-gaps-for-every-fixture: backlog
   4-4-read-the-gapanalyse-on-søknad: backlog

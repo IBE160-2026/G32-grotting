@@ -205,6 +205,14 @@ export const messages = {
       },
     },
   },
+  // The Gap analysis (FR-13, FR-14). The server sends a key and its parameters
+  // for a Real gap it wrote itself (AD-7); the UI maps the key here.
+  gaps: {
+    template: {
+      REAL_GAP: (keyword: string) =>
+        `Annonsen ber om «${keyword}». CV-en din viser ikke dette, og vi fant ingen linje i den som dekker det.`,
+    },
+  },
   // The phase-1 result on Søknad (FR-7, FR-8). Percent sign with a space and
   // sjevroner for quotes, as in EXPERIENCE.md, Key strings.
   result: {
