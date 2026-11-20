@@ -22,10 +22,9 @@ Alt er ukommittert i arbeidskopien (bare denne loggen og `issues.md` committes a
 - `src/shared/ui/messages.nb.ts` (`letter.check`), `e2e/letter-check.spec.ts` (12 tester), `docs/qa/letter-manual-checks.md` (rad 14 til 17).
 
 Verifisert: `npx biome check` rent, `npx tsc --noEmit` rent, `npx vitest run` 1009 grønne lokalt, `npx playwright test` 194 grønne lokalt, og `docker compose run --rm --build test` kjørt på grenen `story/3.10-flag-claims-in-the-letter` (exit 0, 91 testfiler og 1015 tester, 194 e2e; story-en legger til filer under `data/`).
-Funn: de tre Cached Letters til Example-paret gir null flagg (testet). Stammene til «ansvar» og «ansvarlig» er ulike i Snowball («ansv» mot «ansvar»), så «ansvar for» i CV-en fjerner ikke flagget på «ansvarlig for» i brevet; beholdt, siden `sameWord` er den ene dommeren (AD-5).
+Funn: de tre Cached Letters til Example-paret gir null flagg (testet). Etter gjennomgang: tittel og arbeidsgiver blankes bare som hele ord, og `UPGRADE_WORD_CV_FORMS` lar «ansvar for» i CV-en fjerne flagget på «ansvarlig for» (ulike stammer i Snowball).
 
 ### Åpne punkter
 - Fyll ut rad 14 til 17 i `docs/qa/letter-manual-checks.md` (skjermleser ved flaggliste, lenke fra ord til linje, mislykket sjekk, «Sjekk igjen»).
 - EXPERIENCE.md spesifiserer ingen live-region-linje for flagg eller for en mislykket automatisk sjekk; ingenting leses opp (utfallet av «Sjekk igjen» leses i andre region). Bekreft med Helene/UX at det er riktig.
 - Epic 4: `checkLetter` tar `gaps: null` nå og må lempes slik at Rewordable gaps som består siteringssjekken slipper gjennom; kontrakten `gaps: z.null()` utvides da.
-- «ansvar for» i CV-en fjerner ikke flagget på «ansvarlig for» (ulike stammer); vurder å fjerne «ansvarlig for» fra `UPGRADE_WORDS` hvis det gir støy.
