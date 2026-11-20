@@ -30,3 +30,20 @@ Helene ba om hjelp til å se hvor prosjektet står (`bmad-help`), valgte alterna
 - Valgfritt: live-flyten i nettleseren for alle tre Toner.
 - Review kjørt inline; `bmad-code-review` i ny økt gir uavhengig blikk.
 - De manuelle radene for 3.6–3.11 (skjermleser, 360 px, .docx, utklippstavle) ligger fortsatt åpne fra før.
+
+## 2026-11-20 kl. 16:00 — Helise-26
+
+### Oppgave
+UJ-1 på telefon: appen åpnet seg på `http://192.168.68.121:3000`, men «Analyser og skriv utkast» gjorde ingenting. Fungerte på laptopen.
+
+### Plan
+- Finn årsaken i klientkoden, rett den på egen branch `fix/application-id-insecure-context`, med enhetstest og e2e.
+
+### Resultat
+- Årsak: `crypto.randomUUID()` i `application-form.tsx` finnes bare på sikre opphav (https og localhost). Over vanlig http på lokalnettet er den `undefined`, og klikkhåndtereren kastet.
+- Rettelse: `src/shared/ui/new-id.ts` (`newId()`, reserve med `getRandomValues`, gyldig UUID v4), brukt i skjemaet; enhetstest `new-id.test.ts` (4) og e2e «submits where crypto.randomUUID is missing …» (feiler uten rettelsen, går med). Biome, typecheck, 105 enhetstester og 68 e2e grønne. Commit på branchen `fix/application-id-insecure-context` (lokal, ikke pushet). Helenes egne ukommitterte endringer i tre `docs/qa`-filer ble ikke rørt.
+- Windows-brannmuren tillater Node (Private og Public); porten var nåbar på LAN-adressen fra laptopen.
+
+### Åpne punkter
+- Serveren på port 3000 kjører gammelt bygg: `next build` og restart (`npm run serve`) før telefonen prøves på nytt.
+- Rettelsen er ikke pushet eller merget (PR gjenstår).
