@@ -177,6 +177,26 @@ export const messages = {
       label: "Testmodus",
       text: "Ikke tilgjengelig i testmodus. Bruk eksempelet for å se hele flyten.",
     },
+    // The integrity guard on the Letter (FR-11, UX-DR28): a warning per word
+    // the CV does not support, between the AI label and the Letter. Flag only;
+    // nothing in the Letter is removed or rewritten.
+    check: {
+      sectionName: "Sjekk av brevet mot CV-en",
+      strip: "Sjekk",
+      unsupported: (word: string) =>
+        `Brevet nevner «${word}», men CV-en din viser det ikke. Sjekk at brevet ikke påstår noe CV-en din ikke støtter.`,
+      upgrade: (word: string) =>
+        `Brevet bruker ordet «${word}», men CV-en din bruker det ikke. Sjekk at brevet ikke gjør rollen din større enn den var.`,
+      unchecked: "Brevet er ikke sjekket mot CV-en. Les det ekstra nøye.",
+      retry: "Sjekk igjen",
+      // The outcome of «Sjekk igjen», in the second live region. Nothing is
+      // spoken for the automatic check.
+      live: {
+        found: (count: string) => `Fant ${count} ord å sjekke i brevet.`,
+        none: "Fant ingenting å sjekke i brevet.",
+        still: "Brevet er fortsatt ikke sjekket mot CV-en.",
+      },
+    },
   },
   // The phase-1 result on Søknad (FR-7, FR-8). Percent sign with a space and
   // sjevroner for quotes, as in EXPERIENCE.md, Key strings.

@@ -10,6 +10,7 @@ import { ProgressLine } from "@/shared/ui/components/progress-line";
 import { messages } from "@/shared/ui/messages.nb";
 import type { Letter } from "../contracts";
 import { LetterActions, type RegenState } from "./letter-actions";
+import type { LetterCheckState } from "./letter-flags";
 import { LETTER_HEADING_ID, LetterView } from "./letter-view";
 
 // Where phase 2 stands for the Letter.
@@ -39,6 +40,8 @@ export function LetterSection({
   employer,
   regen = "idle",
   onRegenerate,
+  check = { kind: "pending" },
+  onRetryCheck,
 }: {
   phase: LetterPhase;
   onRetry: () => void;
@@ -48,6 +51,9 @@ export function LetterSection({
   // «Lag nytt utkast»: the old Letter stays while a new one is written.
   regen?: RegenState;
   onRegenerate: () => void;
+  // The integrity check of the Letter shown (FR-11) and its own retry.
+  check?: LetterCheckState;
+  onRetryCheck?: () => void;
 }) {
   const articleRef = useRef<HTMLElement>(null);
   // `undefined` children keep the slot a placeholder (aria-busy, «Skrives»).
@@ -55,7 +61,12 @@ export function LetterSection({
   if (phase.kind === "done") {
     settled = (
       <>
-        <LetterView letter={phase.letter} articleRef={articleRef} />
+        <LetterView
+          letter={phase.letter}
+          articleRef={articleRef}
+          check={check}
+          onRetryCheck={onRetryCheck}
+        />
         <LetterActions
           letter={phase.letter}
           employer={employer}

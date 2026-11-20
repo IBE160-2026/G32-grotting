@@ -36,3 +36,22 @@ export const MOTIVATION_PHRASES = [
   "Jeg er begeistret for",
   "Jeg gleder meg til",
 ] as const;
+
+// Words that make the Student's role bigger than a CV usually shows (FR-11).
+// The Letter uses one of them while the CV text holds no form of it: flagged,
+// never removed. Short and low-risk on purpose; a phrase is compared word by
+// word by stem (`sameWord`), so «ledet» is cleared by «leder» in the CV.
+export const UPGRADE_WORDS = [
+  "forsket",
+  "ledet",
+  "ansvarlig for",
+  "publiserte",
+  "grunnla",
+] as const;
+
+// CV phrases that mean the same as an Upgrade word although they stem
+// differently («ansvar» and «ansvarlig» do not): the CV holding one of them
+// clears the word like the word itself would.
+export const UPGRADE_WORD_CV_FORMS: Readonly<
+  Record<string, readonly string[]>
+> = { "ansvarlig for": ["ansvar for"] };

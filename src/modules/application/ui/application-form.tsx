@@ -19,14 +19,21 @@ import {
 } from "@/modules/cv/contracts";
 import { CvInput } from "@/modules/cv/ui";
 import { splitParagraphs } from "@/modules/keywords/core";
-import { TONES, type Tone } from "@/modules/letter/contracts";
 import {
+  type Letter,
+  type LetterFlagWire,
+  TONES,
+  type Tone,
+} from "@/modules/letter/contracts";
+import {
+  type LetterCheckState,
   type LetterJob,
   type LetterPhase,
   LetterSection,
   letterLine,
   type RegenState,
   requestLetter,
+  requestLetterCheck,
   ToneChoice,
 } from "@/modules/letter/ui";
 import type { AnalysisResult } from "@/modules/match/contracts";
@@ -85,6 +92,14 @@ const PHASE_LINE_GAP_MS = 1500;
 // failed, or «Lag nytt utkast» (the old Letter stays). The mode decides where
 // the outcome is spoken and how a refusal is shown (UX-DR39).
 type LetterMode = "first" | "retry" | "again";
+
+// Where the integrity check of one Letter stands (FR-11): kept with the rev of
+// the Letter it was made for. `retrying` is «Sjekk igjen» running.
+type CheckHeld = {
+  readonly rev: number;
+  readonly status: "running" | "done" | "failed" | "retrying";
+  readonly flags: readonly LetterFlagWire[];
+};
 
 // What the result view shows, kept as it was submitted: the form can change
 // only after «Endre annonsen» has brought it back. Held in this component only,
@@ -151,6 +166,13 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   const [regen, setRegen] = useState<RegenState>("idle");
   const letterHeadingRef = useRef<HTMLHeadingElement>(null);
   const [letterFocus, setLetterFocus] = useState(0);
+  // The integrity check of the Letter shown (FR-11). It is no AI request, so a
+  // check for an old Letter may finish while a new one is written: the sequence
+  // and the rev of the Letter shown decide whether a result is used.
+  const [check, setCheck] = useState<CheckHeld | null>(null);
+  const checkSeq = useRef(0);
+  const checkedLetter = useRef<Letter | null>(null);
+  const shownRev = useRef<number | null>(null);
   // A Letter request the server refused for the notice, waiting for the answer.
   const pendingLetter = useRef<{
     job: LetterJob;
@@ -213,6 +235,18 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   useEffect(() => {
     if (letterFocus > 0) letterHeadingRef.current?.focus();
   }, [letterFocus]);
+
+  // One check per Letter that has arrived: the first, «Prøv igjen» and «Lag
+  // nytt utkast» (FR-11). The Letter is on screen already; flags follow.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: starts once per arrived Letter; runCheck reads refs and sets state only
+  useEffect(() => {
+    if (letterPhase?.kind !== "done") return;
+    const { letter: arrived } = letterPhase;
+    if (checkedLetter.current === arrived) return;
+    checkedLetter.current = arrived;
+    shownRev.current = arrived.rev;
+    void runCheck(arrived, false);
+  }, [letterPhase]);
 
   const refs: Record<
     InputField,
@@ -461,6 +495,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       adParagraphs: splitParagraphs(inputs.jobAd),
     });
     setRegen("idle");
+    resetCheck();
     shownResult.current = answer.result;
     updateNote.current = null;
     announce("phase", phaseOneLine(answer.result, true));
@@ -487,25 +522,8 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
         letterBusy.current = false;
         // ANALYSIS_STALE was answered by a silent rerun of phase 1: the score
         // and the fingerprint now come from it (AD-6).
-        const current = rerun
-          ? { ...job, fingerprint: rerun.fingerprint }
-          : job;
+        const current = rerun ? adoptRerun(job, rerun, mode === "first") : job;
         lastJob.current = current;
-        if (rerun) {
-          const before = shownResult.current;
-          shownResult.current = rerun.result;
-          setOutcome((held) =>
-            held === null
-              ? held
-              : { ...held, result: rerun.result, job: current },
-          );
-          // The score changed under the Student's eyes: say so, once.
-          if (before !== null && resultChanged(before, rerun.result)) {
-            const note = updatedLine(rerun.result);
-            if (mode === "first") announce("action", note);
-            else updateNote.current = note;
-          }
-        }
         if (answer.ok) {
           reprompted.current = false;
           if (mode === "again") {
@@ -538,6 +556,86 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
         else settle(mode, { kind: "failed", code: "UNEXPECTED" });
       },
     });
+  }
+
+  // A silent rerun of phase 1 (ANALYSIS_STALE, AD-6): the result and the
+  // fingerprint the page holds come from it. When the score changed under the
+  // Student's eyes it is said, once: at once, or held for the outcome that the
+  // second live region speaks next. Returns the job with the new fingerprint.
+  function adoptRerun(
+    job: LetterJob,
+    rerun: AnalyseResponse,
+    speakNow: boolean,
+  ): LetterJob {
+    const current = { ...job, fingerprint: rerun.fingerprint };
+    lastJob.current = current;
+    const before = shownResult.current;
+    shownResult.current = rerun.result;
+    setOutcome((held) =>
+      held === null ? held : { ...held, result: rerun.result, job: current },
+    );
+    if (before !== null && resultChanged(before, rerun.result)) {
+      const note = updatedLine(rerun.result);
+      if (speakNow) announce("action", note);
+      else updateNote.current = note;
+    }
+    return current;
+  }
+
+  // Nothing from an earlier Letter's check may reach the screen.
+  function resetCheck() {
+    checkSeq.current += 1;
+    checkedLetter.current = null;
+    shownRev.current = null;
+    setCheck(null);
+  }
+
+  // The integrity check of one Letter (FR-11): code only, so it needs no
+  // consent and does not count toward the cap. `manual` is «Sjekk igjen»,
+  // whose outcome is spoken in the second live region; an automatic check says
+  // nothing, in either outcome.
+  async function runCheck(letter: Letter, manual: boolean) {
+    const base = lastJob.current;
+    if (base === null) return;
+    checkSeq.current += 1;
+    const seq = checkSeq.current;
+    setCheck({
+      rev: letter.rev,
+      status: manual ? "retrying" : "running",
+      flags: NONE,
+    });
+    const outcome = await requestLetterCheck(base, letter);
+    // A newer Letter, a newer check or the form took over: drop this result.
+    if (seq !== checkSeq.current) return;
+    if (outcome.rerun) {
+      adoptRerun(lastJob.current ?? base, outcome.rerun, !manual);
+    }
+    const { answer } = outcome;
+    if (answer.ok) {
+      const { flags, letterRev, gapsRev } = answer.data;
+      // The result is for the Letter shown, with no Gap analysis yet.
+      if (letterRev !== shownRev.current || gapsRev !== 0) return;
+      setCheck({ rev: letter.rev, status: "done", flags });
+      if (manual) {
+        say(
+          flags.length > 0
+            ? messages.letter.check.live.found(formatCount(flags.length))
+            : messages.letter.check.live.none,
+        );
+      }
+      return;
+    }
+    setCheck({ rev: letter.rev, status: "failed", flags: NONE });
+    if (manual) say(messages.letter.check.live.still);
+  }
+
+  // «Sjekk igjen»: only the check is sent again; focus follows to the section
+  // heading, as for «Prøv igjen».
+  function retryCheck() {
+    if (check?.status === "retrying") return;
+    if (letterPhase?.kind !== "done") return;
+    setLetterFocus((count) => count + 1);
+    void runCheck(letterPhase.letter, true);
   }
 
   // The old Letter stays. The cap and Test mode are notices without a retry;
@@ -614,6 +712,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
 
   function backToForm() {
     clearTimeout(phaseTwoTimer.current);
+    resetCheck();
     letter.reset();
     pendingLetter.current = null;
     setLetterPhase(null);
@@ -622,6 +721,17 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     setRegen("idle");
     setHeadingFocus((count) => count + 1);
     setOutcome(null);
+  }
+
+  // The check state of the Letter on screen: a result for an earlier Letter is
+  // not shown on a new one.
+  let letterCheck: LetterCheckState = { kind: "pending" };
+  if (letterPhase?.kind === "done" && check?.rev === letterPhase.letter.rev) {
+    if (check.status === "done") {
+      letterCheck = { kind: "done", flags: check.flags };
+    } else if (check.status === "failed" || check.status === "retrying") {
+      letterCheck = { kind: "failed", busy: check.status === "retrying" };
+    }
   }
 
   if (outcome !== null) {
@@ -694,6 +804,8 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
             employer={outcome.employer}
             regen={regen}
             onRegenerate={regenerate}
+            check={letterCheck}
+            onRetryCheck={retryCheck}
           />
         </div>
         <AiNotice
