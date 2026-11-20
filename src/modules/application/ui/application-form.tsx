@@ -18,6 +18,13 @@ import {
   restoreCv,
 } from "@/modules/cv/contracts";
 import { CvInput } from "@/modules/cv/ui";
+import {
+  type GapsJob,
+  type GapsPhase,
+  GapsSection,
+  gapTargetId,
+  requestGaps,
+} from "@/modules/gaps/ui";
 import { splitParagraphs } from "@/modules/keywords/core";
 import {
   type Letter,
@@ -70,6 +77,11 @@ import {
   JOB_AD_MAX,
   normaliseNewlines,
 } from "../contracts";
+import {
+  phaseTwoLine,
+  type SectionKind,
+  sectionKindOfFailure,
+} from "./phase-two-line";
 
 type Errors = Partial<Record<InputField, InputErrorCode>>;
 type JobField = Exclude<InputField, "cvText">;
@@ -99,6 +111,7 @@ const CHECK_RETRY_SPEECH_MS = 600;
 // failed, or «Lag nytt utkast» (the old Letter stays). The mode decides where
 // the outcome is spoken and how a refusal is shown (UX-DR39).
 type LetterMode = "first" | "retry" | "again";
+type GapsMode = "first" | "retry";
 
 // Where the integrity check of one Letter stands (FR-11): kept with the rev of
 // the Letter it was made for. `retrying` is «Sjekk igjen» running.
@@ -142,6 +155,13 @@ const FIELD_ORDER: readonly InputField[] = [
   "jobAd",
 ];
 
+// How a settled section of phase 2 ended, for the phase-2 line.
+function kindOfPhase(
+  phase: { kind: "done" } | { kind: "failed"; code: MessageKey },
+): SectionKind {
+  return phase.kind === "done" ? "done" : sectionKindOfFailure(phase.code);
+}
+
 type ApplicationFormProps = {
   // The Example pair, read by the server component page. Without it the form
   // has no «Bruk eksempelet» button (FR-27).
@@ -173,6 +193,23 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   const [regen, setRegen] = useState<RegenState>("idle");
   const letterHeadingRef = useRef<HTMLHeadingElement>(null);
   const [letterFocus, setLetterFocus] = useState(0);
+  // Phase 2 with the Gap analysis (FR-13): `null` when it is not asked for (the
+  // flag is off, or no Keyword is missing). It is written next to the Letter and
+  // fails on its own; «Prøv igjen» moves focus to its heading.
+  const [gapsPhase, setGapsPhase] = useState<GapsPhase | null>(null);
+  const gapsHeadingRef = useRef<HTMLHeadingElement>(null);
+  const [gapsFocus, setGapsFocus] = useState(0);
+  const gapsBusy = useRef(false);
+  const gapsActive = useRef(false);
+  const repromptedGaps = useRef(false);
+  const pendingGaps = useRef<{ job: GapsJob; mode: GapsMode } | null>(null);
+  // How each AI section of phase 2 settled, and whether the phase-2 line has
+  // been given: it waits for both sections and is spoken once (NFR-2).
+  const sectionKinds = useRef<{
+    letter: SectionKind | null;
+    gaps: SectionKind | null;
+  }>({ letter: null, gaps: null });
+  const lineGiven = useRef(false);
   // The integrity check of the Letter shown (FR-11). It is no AI request, so a
   // check for an old Letter may finish while a new one is written: the sequence
   // and the rev of the Letter shown decide whether a result is used.
@@ -216,6 +253,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     mutationFn: (request: AnalyseRequest) =>
       callApi("/api/analyses", analyseResponseSchema, { body: request }),
   });
+  // The same for the Gaps request; the two are independent (AD-6).
+  const gaps = useMutation({
+    mutationFn: (job: GapsJob) =>
+      requestGaps(job, consentFor(runMode, readSession().noticeVersion)),
+  });
   // One Letter request in flight (AD-6). The consent is read when it starts,
   // so a notice accepted a moment ago counts (AD-13).
   const letter = useMutation({
@@ -242,6 +284,10 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   useEffect(() => {
     if (letterFocus > 0) letterHeadingRef.current?.focus();
   }, [letterFocus]);
+
+  useEffect(() => {
+    if (gapsFocus > 0) gapsHeadingRef.current?.focus();
+  }, [gapsFocus]);
 
   // One check per Letter that has arrived: the first, «Prøv igjen» and «Lag
   // nytt utkast» (FR-11). The Letter is on screen already; flags follow.
@@ -435,6 +481,9 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     const held = pendingLetter.current;
     pendingLetter.current = null;
     if (held !== null) runLetter(held.job, held.mode);
+    const heldGaps = pendingGaps.current;
+    pendingGaps.current = null;
+    if (heldGaps !== null) runGaps(heldGaps.job, heldGaps.mode);
   }
 
   // «Avbryt» and Esc: the inputs stay, nothing is sent, and focus goes back to
@@ -449,6 +498,12 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       reprompted.current = false;
       if (held.mode === "again") failRegenerate("AI_NOTICE_REQUIRED");
       else settle(held.mode, { kind: "failed", code: "AI_NOTICE_REQUIRED" });
+    }
+    const heldGaps = pendingGaps.current;
+    if (heldGaps !== null) {
+      pendingGaps.current = null;
+      repromptedGaps.current = false;
+      settleGaps({ kind: "failed", code: "AI_NOTICE_REQUIRED" });
     }
   }
 
@@ -511,12 +566,23 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     resetCheck();
     shownResult.current = answer.result;
     updateNote.current = null;
-    announce("phase", phaseOneLine(answer.result, true));
+    // The Gap analysis needs the flag and at least one Missing keyword; the
+    // server would answer an empty list for none.
+    const withGaps = runMode.features.gaps && answer.result.missing.length > 0;
+    announce("phase", phaseOneLine(answer.result, true, withGaps));
     phaseOneAt.current = Date.now();
     reprompted.current = false;
+    repromptedGaps.current = false;
+    pendingGaps.current = null;
+    sectionKinds.current = { letter: null, gaps: null };
+    lineGiven.current = false;
+    gapsActive.current = withGaps;
+    setGapsPhase(withGaps ? { kind: "pending" } : null);
     // A new Application: nothing from an earlier one is still in flight.
     letterBusy.current = false;
+    gapsBusy.current = false;
     runLetter(job);
+    if (withGaps) runGaps(job);
   }
 
   // `again` is «Lag nytt utkast»: the Letter shown stays until the new one has
@@ -527,6 +593,9 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     // A line still waiting from an earlier outcome must not be spoken now; a
     // new draft leaves the first Letter's line alone.
     if (mode !== "again") clearTimeout(phaseTwoTimer.current);
+    if (mode === "retry" && !lineGiven.current) {
+      sectionKinds.current.letter = null;
+    }
     lastJob.current = job;
     if (mode === "again") setRegen("running");
     else setLetterPhase({ kind: "pending" });
@@ -567,6 +636,46 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
         letterBusy.current = false;
         if (mode === "again") failRegenerate("UNEXPECTED");
         else settle(mode, { kind: "failed", code: "UNEXPECTED" });
+      },
+    });
+  }
+
+  // The Gaps request next to the Letter (FR-13): the same stale rerun and
+  // notice handling, its own busy flag and its own outcome. The job is the one
+  // the page holds now, so a retry carries the fingerprint of a rerun.
+  function runGaps(job: GapsJob, mode: GapsMode = "first") {
+    if (gapsBusy.current) return;
+    gapsBusy.current = true;
+    if (mode === "retry" && !lineGiven.current) {
+      sectionKinds.current.gaps = null;
+    }
+    setGapsPhase({ kind: "pending" });
+    gaps.mutate(job, {
+      onSuccess: ({ answer, rerun }) => {
+        gapsBusy.current = false;
+        const base = lastJob.current;
+        if (rerun && base !== null) adoptRerun(base, rerun, mode === "first");
+        if (answer.ok) {
+          repromptedGaps.current = false;
+          settleGaps({ kind: "done", gaps: answer.data.gaps });
+          return;
+        }
+        // As for the Letter: ask again once, then it is the alert.
+        if (
+          answer.error.code === "AI_NOTICE_REQUIRED" &&
+          !repromptedGaps.current
+        ) {
+          repromptedGaps.current = true;
+          pendingGaps.current = { job: lastJob.current ?? job, mode };
+          setNoticeOpen(true);
+          return;
+        }
+        repromptedGaps.current = false;
+        settleGaps({ kind: "failed", code: answer.error.code });
+      },
+      onError: () => {
+        gapsBusy.current = false;
+        settleGaps({ kind: "failed", code: "UNEXPECTED" });
       },
     });
   }
@@ -701,8 +810,17 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   }
 
   // Where a settled phase is spoken: the first Letter in the first live region
-  // (the phase-2 line, once); «Prøv igjen» in the second (UX-DR39).
+  // (the phase-2 line, once); «Prøv igjen» in the second (UX-DR39). With the
+  // Gap analysis the line waits for both sections.
   function settle(mode: LetterMode, phase: LetterPhase) {
+    if (gapsActive.current) {
+      setLetterPhase(phase);
+      const line = letterLine(phase);
+      if (line !== null && phase.kind !== "pending") {
+        settleSection("letter", kindOfPhase(phase), line);
+      }
+      return;
+    }
     if (mode === "first") {
       settleLetter(phase);
       return;
@@ -719,11 +837,44 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     announce("action", note === null ? text : `${note} ${text}`);
   }
 
+  // The Gap analysis settled: the first outcome joins the Letter's in the
+  // phase-2 line, a retry after it is spoken in the second live region.
+  function settleGaps(phase: GapsPhase) {
+    setGapsPhase(phase);
+    if (phase.kind === "pending") return;
+    const kind = kindOfPhase(phase);
+    settleSection("gaps", kind, messages.gaps.live[kind]);
+  }
+
+  // One section of phase 2 settled. Once the line has been given, an outcome
+  // is a retry and goes to the second live region; before it, the line waits
+  // until both sections have settled and is then spoken once (NFR-2).
+  function settleSection(
+    section: "letter" | "gaps",
+    kind: SectionKind,
+    own: string,
+  ) {
+    sectionKinds.current[section] = kind;
+    if (lineGiven.current) {
+      say(own);
+      return;
+    }
+    const { letter: letterKind, gaps: gapsKind } = sectionKinds.current;
+    if (letterKind === null || gapsKind === null) return;
+    lineGiven.current = true;
+    speakPhaseLine(phaseTwoLine(letterKind, gapsKind));
+  }
+
   // The phase-2 line, once, in the first live region (NFR-2).
   function settleLetter(phase: LetterPhase) {
     setLetterPhase(phase);
     const line = letterLine(phase);
     if (line === null) return;
+    speakPhaseLine(line);
+  }
+
+  // After the phase-1 line has had time to be read.
+  function speakPhaseLine(line: string) {
     clearTimeout(phaseTwoTimer.current);
     const wait = Math.max(
       0,
@@ -743,12 +894,27 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     runLetter(job, "retry");
   }
 
+  // «Prøv igjen» for the Gap analysis: only the Gaps request is sent again;
+  // focus follows to the section heading, since the button goes away.
+  function retryGaps() {
+    const job = lastJob.current;
+    if (job === null || gapsBusy.current) return;
+    repromptedGaps.current = false;
+    setGapsFocus((count) => count + 1);
+    runGaps(job, "retry");
+  }
+
   function backToForm() {
     clearTimeout(phaseTwoTimer.current);
     resetCheck();
     letter.reset();
+    gaps.reset();
     pendingLetter.current = null;
+    pendingGaps.current = null;
     setLetterPhase(null);
+    setGapsPhase(null);
+    gapsActive.current = false;
+    gapsBusy.current = false;
     letterBusy.current = false;
     shownResult.current = null;
     setRegen("idle");
@@ -766,6 +932,32 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       letterCheck = { kind: "failed", busy: check.status === "retrying" };
     }
   }
+
+  // «Se gapanalysen» on each Missing entry that has a Gap to go to. The slice
+  // of the match list knows no Gaps: it gets the element ids from here.
+  const gapTargets =
+    gapsPhase?.kind === "done"
+      ? Object.fromEntries(
+          gapsPhase.gaps.map((gap, index) => [gap.keyword, gapTargetId(index)]),
+        )
+      : undefined;
+  const letterPending = (letterPhase?.kind ?? "pending") === "pending";
+
+  // The Letter section; with the Gap analysis one progress line stands above
+  // both sections, so the Letter's own is left out.
+  const letterSection = (showProgress: boolean) => (
+    <LetterSection
+      phase={letterPhase ?? { kind: "pending" }}
+      onRetry={retryLetter}
+      headingRef={letterHeadingRef}
+      employer={outcome?.employer ?? ""}
+      regen={regen}
+      onRegenerate={regenerate}
+      check={letterCheck}
+      onRetryCheck={retryCheck}
+      showProgress={showProgress}
+    />
+  );
 
   if (outcome !== null) {
     const { result } = outcome;
@@ -827,19 +1019,27 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
             kind="missing"
             entries={result.missing}
             adParagraphs={outcome.adParagraphs}
+            gapTargets={gapTargets}
           />
         </div>
         <div className="mt-8 max-w-letter">
-          <LetterSection
-            phase={letterPhase ?? { kind: "pending" }}
-            onRetry={retryLetter}
-            headingRef={letterHeadingRef}
-            employer={outcome.employer}
-            regen={regen}
-            onRegenerate={regenerate}
-            check={letterCheck}
-            onRetryCheck={retryCheck}
-          />
+          {gapsPhase === null ? (
+            letterSection(true)
+          ) : (
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-4">
+                {gapsPhase.kind === "pending" || letterPending ? (
+                  <ProgressLine>{messages.gaps.progress}</ProgressLine>
+                ) : null}
+                <GapsSection
+                  phase={gapsPhase}
+                  onRetry={retryGaps}
+                  headingRef={gapsHeadingRef}
+                />
+              </div>
+              {letterSection(false)}
+            </div>
+          )}
         </div>
         <AiNotice
           open={noticeOpen}

@@ -1,0 +1,108 @@
+import { describe, expect, it, vi } from "vitest";
+import type { AnalyseResponse } from "@/modules/application/contracts";
+import type { ApiResult } from "@/shared/ui/api-client";
+import type { GapsRequest, GapsResponse } from "../contracts";
+import { type GapsIo, type GapsJob, requestGaps } from "./request-gaps";
+
+const job: GapsJob = {
+  applicationId: "5b8b4a58-1d2c-4f55-9f43-7d1d6f0a1c11",
+  inputs: {
+    cvText: "cv",
+    jobAd: "annonse",
+    jobTitle: "Utvikler",
+    employer: "Nordic Digital",
+  },
+  fingerprint: "fp-1",
+};
+
+const good: ApiResult<GapsResponse> = {
+  ok: true,
+  data: { gaps: [], meta: null },
+};
+const stale: ApiResult<GapsResponse> = {
+  ok: false,
+  error: { code: "ANALYSIS_STALE", retryable: false },
+};
+const rerun = { result: {}, fingerprint: "fp-2" } as unknown as AnalyseResponse;
+
+function io(
+  answers: ApiResult<GapsResponse>[],
+  analyse: ApiResult<AnalyseResponse> = { ok: true, data: rerun },
+) {
+  const sent: GapsRequest[] = [];
+  const queue = [...answers];
+  const analyseMock = vi.fn(async () => analyse);
+  const port: GapsIo = {
+    sendGaps: async (body) => {
+      sent.push(body);
+      const next = queue.shift();
+      if (next === undefined) throw new Error("unexpected request");
+      return next;
+    },
+    analyse: analyseMock,
+  };
+  return { port, sent, analyseMock };
+}
+
+describe("FR-13 the phase-2 Gaps request", () => {
+  it("sends the inputs, fingerprint and consent in one request", async () => {
+    const { port, sent } = io([good]);
+    const consent = {
+      noticeVersion: "notice-3:openrouter:unknown:no-fallback",
+    };
+    expect(await requestGaps(job, consent, port)).toEqual({ answer: good });
+    expect(sent).toEqual([
+      {
+        applicationId: job.applicationId,
+        fingerprint: "fp-1",
+        inputs: job.inputs,
+        consent,
+      },
+    ]);
+  });
+
+  it("passes any other failure on without a second request", async () => {
+    const failure: ApiResult<GapsResponse> = {
+      ok: false,
+      error: { code: "AI_TIMEOUT", retryable: true },
+    };
+    const { port, sent, analyseMock } = io([failure]);
+    expect(await requestGaps(job, null, port)).toEqual({ answer: failure });
+    expect(sent).toHaveLength(1);
+    expect(analyseMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("AD-6 ANALYSIS_STALE for the Gaps request", () => {
+  it("reruns phase 1 once and resends with the new fingerprint", async () => {
+    const { port, sent, analyseMock } = io([stale, good]);
+    const consent = { noticeVersion: "v" };
+    expect(await requestGaps(job, consent, port)).toEqual({
+      answer: good,
+      rerun,
+    });
+    expect(analyseMock).toHaveBeenCalledWith({
+      applicationId: job.applicationId,
+      inputs: job.inputs,
+      consent,
+    });
+    expect(sent.map((body) => body.fingerprint)).toEqual(["fp-1", "fp-2"]);
+  });
+
+  it("answers with the second ANALYSIS_STALE instead of looping", async () => {
+    const { port, sent, analyseMock } = io([stale, stale]);
+    expect((await requestGaps(job, null, port)).answer).toEqual(stale);
+    expect(sent).toHaveLength(2);
+    expect(analyseMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("answers with the failure when the rerun of phase 1 fails", async () => {
+    const failed: ApiResult<AnalyseResponse> = {
+      ok: false,
+      error: { code: "NETWORK_ERROR", retryable: true },
+    };
+    const { port, sent } = io([stale], failed);
+    expect(await requestGaps(job, null, port)).toEqual({ answer: failed });
+    expect(sent).toHaveLength(1);
+  });
+});

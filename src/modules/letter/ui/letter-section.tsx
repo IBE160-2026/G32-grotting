@@ -42,6 +42,7 @@ export function LetterSection({
   onRegenerate,
   check = { kind: "pending" },
   onRetryCheck,
+  showProgress = true,
 }: {
   phase: LetterPhase;
   onRetry: () => void;
@@ -54,6 +55,9 @@ export function LetterSection({
   // The integrity check of the Letter shown (FR-11) and its own retry.
   check?: LetterCheckState;
   onRetryCheck?: () => void;
+  // The progress line while the Letter is written. The owner turns it off when
+  // it shows one line for this section and the Gap analysis together.
+  showProgress?: boolean;
 }) {
   const articleRef = useRef<HTMLElement>(null);
   // `undefined` children keep the slot a placeholder (aria-busy, «Skrives»).
@@ -81,7 +85,7 @@ export function LetterSection({
   }
   return (
     <div className="flex flex-col gap-4">
-      {phase.kind === "pending" ? (
+      {phase.kind === "pending" && showProgress ? (
         <ProgressLine>{messages.letter.progress}</ProgressLine>
       ) : null}
       {phase.kind === "done" && regen === "running" ? (

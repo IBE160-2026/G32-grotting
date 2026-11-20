@@ -125,6 +125,41 @@ describe("FR-7 phase-1 live line", () => {
   });
 });
 
+describe("FR-13 the phase-1 line when the Gap analysis is written too", () => {
+  it("ends with the sentence for the Gap analysis and the Letter", () => {
+    expect(phaseOneLine(withScore(71, 5, 7), true, true)).toBe(
+      "Samsvaret er klart: 71 %, sterkt samsvar, 5 av 7 nøkkelord. Gapanalysen og søknadsbrevet skrives nå.",
+    );
+  });
+});
+
+describe("FR-13 the link from a Missing entry to its Gap", () => {
+  const missing = result.missing;
+  const render = (gapTargets?: Record<string, string>) =>
+    renderToStaticMarkup(
+      createElement(KeywordList, {
+        kind: "missing",
+        entries: missing,
+        adParagraphs,
+        gapTargets,
+      }),
+    );
+
+  it("has no link without a target", () => {
+    expect(text(render())).not.toContain("Se gapanalysen");
+  });
+
+  it("ends each entry that has a target with «Se gapanalysen» for that term", () => {
+    const first = missing[0];
+    if (first === undefined) throw new Error("no missing keyword");
+    const html = render({ [first.term]: "gap-0" });
+    expect(html.match(/Se gapanalysen/g)).toHaveLength(1);
+    expect(html).toContain('href="#gap-0"');
+    expect(html).toContain(`<span class="sr-only"> for ${first.term}</span>`);
+    expect(html).toContain("min-h-6");
+  });
+});
+
 describe("AD-6 the line for a result that a silent rerun changed", () => {
   it("says the new score and Verdict as an update", () => {
     expect(updatedLine(withScore(57, 4, 7))).toBe(
