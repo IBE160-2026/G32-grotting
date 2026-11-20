@@ -34,9 +34,12 @@ import {
   KeywordList,
   PulsePlot,
   phaseOneLine,
+  resultChanged,
   ScoreBlock,
+  updatedLine,
 } from "@/modules/match/ui";
 import { formatCount } from "@/shared/core/format-count";
+import type { MessageKey } from "@/shared/core/message-key";
 import { announce } from "@/shared/ui/announce";
 import { callApi } from "@/shared/ui/api-client";
 import { readSession, writeSession } from "@/shared/ui/client-session";
@@ -77,6 +80,11 @@ function storedTone(): Tone {
 // The phase-1 line is spoken first; the phase-2 line waits until it has had
 // time to be read, so a Letter that arrives at once does not cut it off.
 const PHASE_LINE_GAP_MS = 1500;
+
+// Which request phase 2 is sending: the first Letter, «Prøv igjen» after it
+// failed, or «Lag nytt utkast» (the old Letter stays). The mode decides where
+// the outcome is spoken and how a refusal is shown (UX-DR39).
+type LetterMode = "first" | "retry" | "again";
 
 // What the result view shows, kept as it was submitted: the form can change
 // only after «Endre annonsen» has brought it back. Held in this component only,
@@ -143,10 +151,23 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   const [regen, setRegen] = useState<RegenState>("idle");
   const letterHeadingRef = useRef<HTMLHeadingElement>(null);
   const [letterFocus, setLetterFocus] = useState(0);
-  const pendingLetter = useRef<LetterJob | null>(null);
+  // A Letter request the server refused for the notice, waiting for the answer.
+  const pendingLetter = useRef<{
+    job: LetterJob;
+    mode: LetterMode;
+  } | null>(null);
   const reprompted = useRef(false);
   const lastJob = useRef<LetterJob | null>(null);
-  const regenerating = useRef(false);
+  // One Letter request at a time, even before React has rendered the busy
+  // button: a double press must not send two (each counts toward the Daily
+  // cap) (AD-6, NFR-5).
+  const letterBusy = useRef(false);
+  // The result on screen, so a silent rerun can tell whether it changed it.
+  const shownResult = useRef<AnalysisResult | null>(null);
+  // «Samsvaret er oppdatert …» from a silent rerun, held to be spoken together
+  // with the outcome of «Prøv igjen» or a new draft: both go to the second live
+  // region, and a second `announce` there would replace the first.
+  const updateNote = useRef<string | null>(null);
   const phaseOneAt = useRef(0);
   const phaseTwoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -370,9 +391,9 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     const request = pending.current;
     pending.current = null;
     if (request !== null) send(request);
-    const job = pendingLetter.current;
+    const held = pendingLetter.current;
     pendingLetter.current = null;
-    if (job !== null) runLetter(job);
+    if (held !== null) runLetter(held.job, held.mode);
   }
 
   // «Avbryt» and Esc: the inputs stay, nothing is sent, and focus goes back to
@@ -381,10 +402,12 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   function cancelNotice() {
     pending.current = null;
     setNoticeOpen(false);
-    if (pendingLetter.current !== null) {
+    const held = pendingLetter.current;
+    if (held !== null) {
       pendingLetter.current = null;
       reprompted.current = false;
-      settleLetter({ kind: "failed", code: "AI_NOTICE_REQUIRED" });
+      if (held.mode === "again") failRegenerate("AI_NOTICE_REQUIRED");
+      else settle(held.mode, { kind: "failed", code: "AI_NOTICE_REQUIRED" });
     }
   }
 
@@ -438,23 +461,30 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       adParagraphs: splitParagraphs(inputs.jobAd),
     });
     setRegen("idle");
+    shownResult.current = answer.result;
+    updateNote.current = null;
     announce("phase", phaseOneLine(answer.result, true));
     phaseOneAt.current = Date.now();
     reprompted.current = false;
+    // A new Application: nothing from an earlier one is still in flight.
+    letterBusy.current = false;
     runLetter(job);
   }
 
   // `again` is «Lag nytt utkast»: the Letter shown stays until the new one has
   // arrived, and the outcome goes to the second live region (FR-12, UX-DR39).
-  function runLetter(job: LetterJob, again = false) {
+  function runLetter(job: LetterJob, mode: LetterMode = "first") {
+    if (letterBusy.current) return;
+    letterBusy.current = true;
     // A line still waiting from an earlier outcome must not be spoken now; a
     // new draft leaves the first Letter's line alone.
-    if (!again) clearTimeout(phaseTwoTimer.current);
+    if (mode !== "again") clearTimeout(phaseTwoTimer.current);
     lastJob.current = job;
-    if (again) setRegen("running");
+    if (mode === "again") setRegen("running");
     else setLetterPhase({ kind: "pending" });
     letter.mutate(job, {
       onSuccess: ({ answer, rerun }) => {
+        letterBusy.current = false;
         // ANALYSIS_STALE was answered by a silent rerun of phase 1: the score
         // and the fingerprint now come from it (AD-6).
         const current = rerun
@@ -462,26 +492,29 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
           : job;
         lastJob.current = current;
         if (rerun) {
+          const before = shownResult.current;
+          shownResult.current = rerun.result;
           setOutcome((held) =>
             held === null
               ? held
               : { ...held, result: rerun.result, job: current },
           );
+          // The score changed under the Student's eyes: say so, once.
+          if (before !== null && resultChanged(before, rerun.result)) {
+            const note = updatedLine(rerun.result);
+            if (mode === "first") announce("action", note);
+            else updateNote.current = note;
+          }
         }
         if (answer.ok) {
           reprompted.current = false;
-          if (again) {
+          if (mode === "again") {
             setLetterPhase({ kind: "done", letter: answer.data.letter });
-            regenerating.current = false;
             setRegen("idle");
-            announce("action", messages.letter.regenerate.live.done);
+            say(messages.letter.regenerate.live.done);
             return;
           }
-          settleLetter({ kind: "done", letter: answer.data.letter });
-          return;
-        }
-        if (again) {
-          failRegenerate();
+          settle(mode, { kind: "done", letter: answer.data.letter });
           return;
         }
         // The server and this page disagree about the notice (a config change
@@ -490,25 +523,38 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
         // loop; a reload brings the server's current version.
         if (answer.error.code === "AI_NOTICE_REQUIRED" && !reprompted.current) {
           reprompted.current = true;
-          pendingLetter.current = current;
+          pendingLetter.current = { job: current, mode };
+          if (mode === "again") setRegen("idle");
           setNoticeOpen(true);
           return;
         }
         reprompted.current = false;
-        settleLetter({ kind: "failed", code: answer.error.code });
+        if (mode === "again") failRegenerate(answer.error.code);
+        else settle(mode, { kind: "failed", code: answer.error.code });
       },
-      onError: () =>
-        again
-          ? failRegenerate()
-          : settleLetter({ kind: "failed", code: "UNEXPECTED" }),
+      onError: () => {
+        letterBusy.current = false;
+        if (mode === "again") failRegenerate("UNEXPECTED");
+        else settle(mode, { kind: "failed", code: "UNEXPECTED" });
+      },
     });
   }
 
-  // The old Letter stays; the section shows the alert with «Prøv igjen».
-  function failRegenerate() {
-    regenerating.current = false;
-    setRegen("failed");
-    announce("action", messages.letter.regenerate.live.failed);
+  // The old Letter stays. The cap and Test mode are notices without a retry;
+  // anything else is the alert with «Prøv igjen». Spoken once, in the second
+  // live region.
+  function failRegenerate(code: MessageKey) {
+    letterBusy.current = false;
+    if (code === "DAILY_CAP_REACHED") {
+      setRegen("cap");
+      say(messages.letter.regenerate.live.cap);
+    } else if (code === "TEST_MODE_UNAVAILABLE") {
+      setRegen("testMode");
+      say(messages.letter.regenerate.live.testMode);
+    } else {
+      setRegen("failed");
+      say(messages.letter.regenerate.live.failed);
+    }
   }
 
   // «Lag nytt utkast»: one new Letter request with the form's Tone and the rev
@@ -516,14 +562,30 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   // Letter again.
   function regenerate() {
     const base = lastJob.current;
-    // A ref, not `regen`: two presses before React has rendered the busy
-    // button must not send two requests (each counts toward the Daily cap).
-    if (regenerating.current || letterPhase?.kind !== "done" || base === null) {
+    if (letterBusy.current || letterPhase?.kind !== "done" || base === null) {
       return;
     }
-    regenerating.current = true;
     reprompted.current = false;
-    runLetter({ ...base, tone, previousRev: letterPhase.letter.rev }, true);
+    runLetter({ ...base, tone, previousRev: letterPhase.letter.rev }, "again");
+  }
+
+  // Where a settled phase is spoken: the first Letter in the first live region
+  // (the phase-2 line, once); «Prøv igjen» in the second (UX-DR39).
+  function settle(mode: LetterMode, phase: LetterPhase) {
+    if (mode === "first") {
+      settleLetter(phase);
+      return;
+    }
+    setLetterPhase(phase);
+    const line = letterLine(phase);
+    if (line !== null) say(line);
+  }
+
+  // The second live region, with a held update note in front.
+  function say(text: string) {
+    const note = updateNote.current;
+    updateNote.current = null;
+    announce("action", note === null ? text : `${note} ${text}`);
   }
 
   // The phase-2 line, once, in the first live region (NFR-2).
@@ -544,9 +606,10 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   function retryLetter() {
     const job = lastJob.current;
     if (job === null) return;
+    if (letterBusy.current) return;
     reprompted.current = false;
     setLetterFocus((count) => count + 1);
-    runLetter(job);
+    runLetter(job, "retry");
   }
 
   function backToForm() {
@@ -554,7 +617,8 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     letter.reset();
     pendingLetter.current = null;
     setLetterPhase(null);
-    regenerating.current = false;
+    letterBusy.current = false;
+    shownResult.current = null;
     setRegen("idle");
     setHeadingFocus((count) => count + 1);
     setOutcome(null);

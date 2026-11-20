@@ -2,9 +2,11 @@ import { expect, type Page, test } from "@playwright/test";
 import {
   analysisCalls,
   EXAMPLE_AD,
+  EXAMPLE_KEY,
   EXAMPLE_META,
   EXAMPLE_SENTENCE,
   failure,
+  failureBox,
   fillExample,
   LETTER_ROUTE,
   letterCalls,
@@ -359,7 +361,11 @@ test.describe("AD-6 ANALYSIS_STALE", () => {
     await expect(article(page)).toBeVisible();
     expect(analyses).toHaveLength(2);
     expect(letters).toHaveLength(2);
-    await expect(letterSection(page).getByRole("alert")).toHaveCount(0);
+    // The rerun gave the same result: nothing to announce.
+    await expect(page.locator("#live-action")).not.toContainText("oppdatert");
+    await expect(
+      failureBox(page, "Søknadsbrevet kunne ikke lages."),
+    ).toHaveCount(0);
     await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
   });
 
@@ -369,15 +375,149 @@ test.describe("AD-6 ANALYSIS_STALE", () => {
       route.fulfill({ json: failure("ANALYSIS_STALE") }),
     );
     await submitExample(page);
-    await expect(letterSection(page).getByRole("alert")).toContainText(
-      "Søknadsbrevet kunne ikke lages.",
-    );
+    await expect(
+      failureBox(page, "Søknadsbrevet kunne ikke lages."),
+    ).toBeVisible();
     expect(letters).toHaveLength(2);
     await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
   });
 });
 
+test.describe("AD-6 a silent rerun that changes the score", () => {
+  test("is said once in the second live region", async ({ page }) => {
+    let letters = 0;
+    await page.route(LETTER_ROUTE, async (route) => {
+      letters += 1;
+      if (letters === 1) {
+        await route.fulfill({ json: failure("ANALYSIS_STALE") });
+        return;
+      }
+      await route.continue();
+    });
+    let analyses = 0;
+    await page.route("**/api/analyses", async (route) => {
+      analyses += 1;
+      if (analyses === 1) {
+        await route.continue();
+        return;
+      }
+      // The rerun comes back with another score.
+      const response = await route.fetch();
+      const body = await response.json();
+      body.data.result.score = Math.max(0, body.data.result.score - 10);
+      await route.fulfill({ response, json: body });
+    });
+    await submitExample(page);
+    await expect(article(page)).toBeVisible();
+    await expect(page.locator("#live-action")).toHaveText(
+      /^Samsvaret er oppdatert: \d+ %, .+, \d+ av \d+ nøkkelord\.$/,
+    );
+    await expect(
+      page.getByText(`${EXAMPLE_KEY.score - 10} % samsvar`),
+    ).toBeVisible();
+  });
+});
+
 test.describe("NFR-5 a Letter that cannot be written keeps the score", () => {
+  test("the failure is spoken once: the box is silent, the first live region names the section", async ({
+    page,
+  }) => {
+    await page.route(LETTER_ROUTE, (route) =>
+      route.fulfill({ status: 502, json: failure("AI_TIMEOUT", true) }),
+    );
+    await submitExample(page);
+    await expect(
+      failureBox(
+        page,
+        "Søknadsbrevet kunne ikke lages. Samsvaret over er fortsatt riktig.",
+      ),
+    ).toBeVisible();
+    await expect(letterSection(page).getByRole("alert")).toHaveCount(0);
+    await expect(page.locator("#live-phase")).toHaveText(
+      "Søknadsbrevet kunne ikke lages. Samsvaret står fortsatt.",
+    );
+    await expect(
+      letterSection(page).getByRole("button", { name: "Prøv igjen" }),
+    ).toBeVisible();
+    await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
+  });
+
+  test("«Prøv igjen» speaks its outcome in the second live region, also when it fails again", async ({
+    page,
+  }) => {
+    const letters = letterCalls(page);
+    const analyses = analysisCalls(page);
+    let sent = 0;
+    await page.route(LETTER_ROUTE, async (route) => {
+      sent += 1;
+      if (sent <= 2) {
+        await route.fulfill({
+          status: 502,
+          json: failure("AI_PROVIDER_ERROR", true),
+        });
+        return;
+      }
+      await route.continue();
+    });
+    await submitExample(page);
+    const retry = letterSection(page).getByRole("button", {
+      name: "Prøv igjen",
+    });
+    await expect(retry).toBeVisible();
+    await expect(page.locator("#live-action")).not.toContainText(
+      "Søknadsbrevet",
+    );
+    await retry.click();
+    // Failed again: the second region says so, focus is on the h2, the retry is back.
+    await expect(page.locator("#live-action")).toHaveText(
+      "Søknadsbrevet kunne ikke lages. Samsvaret står fortsatt.",
+    );
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Søknadsbrev" }),
+    ).toBeFocused();
+    await retry.click();
+    await expect(article(page)).toBeVisible();
+    await expect(page.locator("#live-action")).toHaveText(
+      "Søknadsbrevet er klart.",
+    );
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Søknadsbrev" }),
+    ).toBeFocused();
+    expect(letters).toHaveLength(3);
+    expect(analyses).toHaveLength(1);
+  });
+
+  test("a double press on «Prøv igjen» sends one Letter request", async ({
+    page,
+  }) => {
+    const letters = letterCalls(page);
+    let sent = 0;
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(LETTER_ROUTE, async (route) => {
+      sent += 1;
+      if (sent === 1) {
+        await route.fulfill({
+          status: 502,
+          json: failure("AI_PROVIDER_ERROR", true),
+        });
+        return;
+      }
+      await held;
+      await route.continue();
+    });
+    await submitExample(page);
+    const retry = letterSection(page).getByRole("button", {
+      name: "Prøv igjen",
+    });
+    await retry.dblclick();
+    release();
+    await expect(article(page)).toBeVisible();
+    expect(letters).toHaveLength(2);
+  });
+
   test("a provider failure becomes an alert with «Prøv igjen», which resends only the Letter request", async ({
     page,
   }) => {
@@ -396,10 +536,12 @@ test.describe("NFR-5 a Letter that cannot be written keeps the score", () => {
       await route.continue();
     });
     await submitExample(page);
-    const alert = letterSection(page).getByRole("alert");
-    await expect(alert).toContainText(
-      "Søknadsbrevet kunne ikke lages. Samsvaret over er fortsatt riktig.",
-    );
+    await expect(
+      failureBox(
+        page,
+        "Søknadsbrevet kunne ikke lages. Samsvaret over er fortsatt riktig.",
+      ),
+    ).toBeVisible();
     await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
     await expect(page.locator("#live-phase")).toHaveText(
       "Søknadsbrevet kunne ikke lages. Samsvaret står fortsatt.",
@@ -432,7 +574,7 @@ test.describe("NFR-5 a Letter that cannot be written keeps the score", () => {
       "Du har brukt dagens 30 KI-forespørsler. Grensen nullstilles ved midnatt.",
     );
     await expect(letterSection(page).getByRole("button")).toHaveCount(0);
-    await expect(letterSection(page).getByRole("alert")).toHaveCount(0);
+    await expect(failureBox(page, "kunne ikke lages")).toHaveCount(0);
     await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
   });
 
@@ -460,6 +602,59 @@ Vi tilbyr også fleksibel arbeidstid.`,
     await expect(page.locator("#live-phase")).toHaveText(
       "Søknadsbrevet er ikke tilgjengelig i testmodus.",
     );
+  });
+});
+
+test.describe("NFR-5 a double submit and a refresh while the Letter is written", () => {
+  test("a double click on submit starts one Application and one Letter request", async ({
+    page,
+  }) => {
+    const analyses = analysisCalls(page);
+    const letters = letterCalls(page);
+    await openForm(page);
+    await page.getByRole("button", { name: USE_EXAMPLE }).click();
+    await page.getByRole("button", { name: SUBMIT }).dblclick();
+    await expect(article(page)).toBeVisible();
+    expect(analyses).toHaveLength(1);
+    expect(letters).toHaveLength(1);
+  });
+
+  test("a refresh brings the form back with its inputs and no error page; the next submit reuses the Application id", async ({
+    page,
+  }) => {
+    const letters = letterCalls(page);
+    let first = true;
+    await page.route(LETTER_ROUTE, async (route) => {
+      if (first) {
+        first = false;
+        // Never answered: the page is gone before it is.
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await route.abort().catch(() => {});
+        return;
+      }
+      await route.continue();
+    });
+    await openForm(page);
+    await page.getByRole("button", { name: USE_EXAMPLE }).click();
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(page.getByText("Skriver søknadsbrevet")).toBeVisible();
+    const applicationId = (await session(page))?.applicationId;
+    expect(applicationId).toMatch(/^[0-9a-f-]{36}$/);
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Ny søknad",
+    );
+    await expect(page.getByLabel("Stillingstittel")).toHaveValue(
+      EXAMPLE_META.jobTitle,
+    );
+    await expect(page.locator("form").getByRole("alert")).toHaveCount(0);
+    await page.getByRole("button", { name: SUBMIT }).click();
+    await expect(article(page)).toBeVisible();
+    expect(letters.map((call) => call.applicationId)).toEqual([
+      applicationId,
+      applicationId,
+    ]);
   });
 });
 

@@ -11,7 +11,7 @@ const letter: Letter = {
 };
 const text = (html: string) => html.replace(/<[^>]*>/g, "");
 
-function render(regen: "idle" | "running" | "failed") {
+function render(regen: "idle" | "running" | "failed" | "cap" | "testMode") {
   return renderToStaticMarkup(
     createElement(LetterSection, {
       phase: { kind: "done", letter },
@@ -62,10 +62,30 @@ describe("UX-DR39 Letter regenerating", () => {
   it("on failure keeps the old Letter with an alert and «Prøv igjen»", () => {
     const html = render("failed");
     expect(html).toContain("<article");
-    expect(html).toContain('role="alert"');
+    // Silent: the second live region speaks it once.
+    expect(html).not.toContain('role="alert"');
     expect(text(html)).toContain(
       "Det nye utkastet kunne ikke lages. Det forrige brevet står fortsatt.",
     );
     expect(text(html)).toContain("Prøv igjen");
+  });
+
+  it("NFR-5, FR-25 the cap is the «Dagens grense» notice with no retry, and the old Letter stays", () => {
+    const html = render("cap");
+    expect(html).toContain("<article");
+    expect(text(html)).toContain("Dagens grense");
+    expect(text(html)).toContain(
+      "Du har brukt dagens 30 KI-forespørsler. Grensen nullstilles ved midnatt.",
+    );
+    expect(text(html)).not.toContain("Prøv igjen");
+    expect(html).not.toContain("role=");
+  });
+
+  it("FR-27 Test mode is the «Testmodus» notice with no retry, and the old Letter stays", () => {
+    const html = render("testMode");
+    expect(html).toContain("<article");
+    expect(text(html)).toContain("Testmodus");
+    expect(text(html)).toContain("Ikke tilgjengelig i testmodus.");
+    expect(text(html)).not.toContain("Prøv igjen");
   });
 });

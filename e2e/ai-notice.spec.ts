@@ -3,6 +3,7 @@ import {
   analysisCalls,
   EXAMPLE_SENTENCE,
   failure,
+  failureBox,
   fillExample,
   LETTER_ROUTE,
   letterAnswer,
@@ -180,9 +181,7 @@ test.describe("FR-24 the AI notice, Test mode off", () => {
     await dialog(page).getByRole("button", { name: "Avbryt" }).click();
     await expect(dialog(page)).toBeHidden();
     await expect(
-      page
-        .getByRole("alert")
-        .filter({ hasText: "Søknadsbrevet kunne ikke lages." }),
+      failureBox(page, "Søknadsbrevet kunne ikke lages."),
     ).toBeVisible();
     await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
     expect(letters).toHaveLength(1);
@@ -206,9 +205,7 @@ test.describe("FR-24 the AI notice, Test mode off", () => {
       .getByRole("button", { name: "Godta og fortsett" })
       .click();
     await expect(
-      page
-        .getByRole("alert")
-        .filter({ hasText: "Søknadsbrevet kunne ikke lages." }),
+      failureBox(page, "Søknadsbrevet kunne ikke lages."),
     ).toBeVisible();
     await expect(dialog(page)).toBeHidden();
     expect(letters).toHaveLength(2);
@@ -238,5 +235,78 @@ test.describe("FR-24 the AI notice, Test mode on", () => {
     await submit(page).click();
     await expect(page.getByText(EXAMPLE_SENTENCE)).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+});
+
+test.describe("AD-13, FR-24 «Lag nytt utkast» refused for the notice", () => {
+  test.use({ baseURL: LIVE });
+
+  // The notice is accepted, the first Letter arrives, then the server refuses
+  // the new draft for the notice (a config change in mid-session).
+  async function openLetterThenRefuse(page: Page, rest: object[]) {
+    await stubLetters(page, [letterAnswer("Formell"), ...rest]);
+    await openNotice(page);
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(page.locator("article")).toBeVisible();
+  }
+
+  test("opens the notice again, and «Godta og fortsett» sends the new draft", async ({
+    page,
+  }) => {
+    const letters = letterCalls(page);
+    const analyses = analysisCalls(page);
+    await openLetterThenRefuse(page, [
+      failure("AI_NOTICE_REQUIRED"),
+      letterAnswer("Formell", "Hei igjen,\n\n{{SIGNATUR}}"),
+    ]);
+    await page.getByRole("button", { name: "Lag nytt utkast" }).click();
+    await expect(dialog(page)).toBeVisible();
+    await expect(page.locator("article")).toBeVisible();
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(page.locator("article")).toContainText("Hei igjen,");
+    await expect(page.locator("#live-action")).toHaveText(
+      "Det nye utkastet er klart.",
+    );
+    expect(letters).toHaveLength(3);
+    expect(letters.map((call) => call.previousRev ?? 0)).toEqual([0, 1, 1]);
+    expect(analyses).toHaveLength(1);
+  });
+
+  test("«Avbryt» keeps the old Letter and shows the new-draft alert with «Prøv igjen»", async ({
+    page,
+  }) => {
+    await openLetterThenRefuse(page, [
+      failure("AI_NOTICE_REQUIRED"),
+      letterAnswer("Formell", "Hei igjen,\n\n{{SIGNATUR}}"),
+    ]);
+    await page.getByRole("button", { name: "Lag nytt utkast" }).click();
+    await expect(dialog(page)).toBeVisible();
+    await dialog(page).getByRole("button", { name: "Avbryt" }).click();
+    await expect(dialog(page)).toBeHidden();
+    await expect(
+      failureBox(page, "Det nye utkastet kunne ikke lages."),
+    ).toBeVisible();
+    await expect(page.locator("article")).toContainText("Hei,");
+    await expect(page.locator("article")).not.toContainText("Hei igjen");
+    await page.getByRole("button", { name: "Prøv igjen" }).click();
+    await expect(page.locator("article")).toContainText("Hei igjen,");
+  });
+
+  test("a second refusal after the Student accepted is the alert, not another notice", async ({
+    page,
+  }) => {
+    await openLetterThenRefuse(page, [failure("AI_NOTICE_REQUIRED")]);
+    await page.getByRole("button", { name: "Lag nytt utkast" }).click();
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(
+      failureBox(page, "Det nye utkastet kunne ikke lages."),
+    ).toBeVisible();
+    await expect(dialog(page)).toBeHidden();
   });
 });

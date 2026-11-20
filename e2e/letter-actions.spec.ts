@@ -4,6 +4,7 @@ import { strFromU8, unzipSync } from "fflate";
 import {
   EXAMPLE_META,
   failure,
+  failureBox,
   LETTER_ROUTE,
   letterCalls,
   openForm,
@@ -170,9 +171,7 @@ test.describe("FR-12 a download that cannot be made", () => {
     await downloadButton(page).click();
     const message =
       "Filen kunne ikke lages. Kopier brevet i stedet, og lim det inn i ditt eget program.";
-    await expect(
-      page.locator("section[aria-labelledby=letter-h2]").getByRole("alert"),
-    ).toContainText(message);
+    await expect(failureBox(page, message)).toBeVisible();
     await expect(page.locator("#live-action")).toHaveText(message);
     await expect(downloadButton(page)).not.toHaveAttribute(
       "aria-disabled",
@@ -204,9 +203,7 @@ test.describe("FR-12, FR-10, UX-DR39 «Lag nytt utkast»", () => {
       "Det nye utkastet er klart.",
     );
     await expect(article(page)).toHaveText(before);
-    await expect(
-      page.locator("section[aria-labelledby=letter-h2]").getByRole("alert"),
-    ).toHaveCount(0);
+    await expect(failureBox(page, "kunne ikke lages")).toHaveCount(0);
     expect(calls.map((call) => call.previousRev ?? 0)).toEqual([0, 1, 1]);
   });
 
@@ -260,9 +257,7 @@ test.describe("FR-12, FR-10, UX-DR39 «Lag nytt utkast»", () => {
     failNext = true;
     await regenerateButton(page).click();
 
-    await expect(
-      page.locator("section[aria-labelledby=letter-h2]").getByRole("alert"),
-    ).toContainText(NEW_DRAFT_FAILED);
+    await expect(failureBox(page, NEW_DRAFT_FAILED)).toBeVisible();
     await expect(page.locator("#live-action")).toHaveText(NEW_DRAFT_FAILED);
     await expect(article(page)).toHaveText(before);
     await expect(page.getByText(NEW_DRAFT)).toHaveCount(0);
@@ -271,9 +266,7 @@ test.describe("FR-12, FR-10, UX-DR39 «Lag nytt utkast»", () => {
     await expect(page.locator("#live-action")).toHaveText(
       "Det nye utkastet er klart.",
     );
-    await expect(
-      page.locator("section[aria-labelledby=letter-h2]").getByRole("alert"),
-    ).toHaveCount(0);
+    await expect(failureBox(page, "kunne ikke lages")).toHaveCount(0);
     await expect(regenerateButton(page)).toBeFocused();
     await expect(article(page)).toHaveText(before);
     expect(calls.map((call) => call.tone)).toEqual([
@@ -325,5 +318,109 @@ test.describe("UX-DR28 the actions at 640 px or less", () => {
     await openLetter(page);
     await expect(regenerateButton(page)).toBeVisible();
     expect(await seriousFindings(page)).toEqual([]);
+  });
+});
+
+// The first Letter request goes through; the second is answered by the stub.
+async function answerSecond(page: Page, answer: object, status = 200) {
+  let sent = 0;
+  await page.route(LETTER_ROUTE, async (route) => {
+    sent += 1;
+    if (sent === 2) {
+      await route.fulfill({ status, json: answer });
+      return;
+    }
+    await route.continue();
+  });
+}
+
+test.describe("NFR-5, FR-25, FR-27 a new draft that cannot be written keeps the old Letter", () => {
+  test("DAILY_CAP_REACHED is the «Dagens grense» notice with no retry, spoken once", async ({
+    page,
+  }) => {
+    await answerSecond(page, failure("DAILY_CAP_REACHED"), 429);
+    await openLetter(page, "Personlig");
+    const before = (await article(page).textContent()) ?? "";
+    await regenerateButton(page).click();
+    const section = page.locator("section[aria-labelledby=letter-h2]");
+    await expect(
+      section.getByText("Dagens grense", { exact: true }),
+    ).toBeVisible();
+    await expect(section).toContainText(
+      "Du har brukt dagens 30 KI-forespørsler. Grensen nullstilles ved midnatt.",
+    );
+    await expect(page.getByRole("button", { name: "Prøv igjen" })).toHaveCount(
+      0,
+    );
+    await expect(section.getByRole("alert")).toHaveCount(0);
+    await expect(page.locator("#live-action")).toHaveText(
+      "Dagens grense for KI er nådd. Det forrige brevet står fortsatt.",
+    );
+    await expect(article(page)).toHaveText(before);
+    await expect(page.getByText(NEW_DRAFT)).toHaveCount(0);
+  });
+
+  test("TEST_MODE_UNAVAILABLE is the «Testmodus» notice with no retry", async ({
+    page,
+  }) => {
+    await answerSecond(page, failure("TEST_MODE_UNAVAILABLE"), 502);
+    await openLetter(page);
+    await regenerateButton(page).click();
+    const section = page.locator("section[aria-labelledby=letter-h2]");
+    await expect(section.getByText("Testmodus", { exact: true })).toBeVisible();
+    await expect(section).toContainText("Ikke tilgjengelig i testmodus.");
+    await expect(page.getByRole("button", { name: "Prøv igjen" })).toHaveCount(
+      0,
+    );
+    await expect(page.locator("#live-action")).toHaveText(
+      "Et nytt utkast er ikke tilgjengelig i testmodus. Det forrige brevet står fortsatt.",
+    );
+    await expect(article(page)).toBeVisible();
+  });
+
+  test("a failure box is silent: the second live region is the only thing that speaks it", async ({
+    page,
+  }) => {
+    await answerSecond(page, failure("AI_TIMEOUT", true), 502);
+    await openLetter(page);
+    await regenerateButton(page).click();
+    await expect(failureBox(page, NEW_DRAFT_FAILED)).toBeVisible();
+    await expect(
+      page.locator("section[aria-labelledby=letter-h2]").getByRole("alert"),
+    ).toHaveCount(0);
+    await expect(page.locator("#live-action")).toHaveText(NEW_DRAFT_FAILED);
+  });
+});
+
+test.describe("AD-6, UX-DR39 a silent rerun on a new draft", () => {
+  test("a changed score is spoken together with the outcome, in the second live region", async ({
+    page,
+  }) => {
+    let letters = 0;
+    await page.route(LETTER_ROUTE, async (route) => {
+      letters += 1;
+      if (letters === 2) {
+        await route.fulfill({ json: failure("ANALYSIS_STALE") });
+        return;
+      }
+      await route.continue();
+    });
+    let analyses = 0;
+    await page.route("**/api/analyses", async (route) => {
+      analyses += 1;
+      if (analyses === 1) {
+        await route.continue();
+        return;
+      }
+      const response = await route.fetch();
+      const body = await response.json();
+      body.data.result.score = Math.max(0, body.data.result.score - 10);
+      await route.fulfill({ response, json: body });
+    });
+    await openLetter(page);
+    await regenerateButton(page).click();
+    await expect(page.locator("#live-action")).toHaveText(
+      /^Samsvaret er oppdatert: .+ Det nye utkastet er klart\.$/,
+    );
   });
 });
