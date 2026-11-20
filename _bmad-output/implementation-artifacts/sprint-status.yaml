@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-20-2026 21:52
+last_updated: 11-20-2026 22:04
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -178,7 +178,7 @@ action_items:
     action: "Split the phase-2 orchestration (Letter, Gaps, check, revs, retries)
       out of application-form.tsx (1177 lines) before Epic 5 builds on it"
     owner: "dev loop"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-11-20.md"
   - id: "epic-4-retro-item-10-decide-before-story-5-1-how-the-next-gap"
     epic: 4
