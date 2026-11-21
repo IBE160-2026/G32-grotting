@@ -251,6 +251,17 @@ test.describe("Story 4.4 with the flag on (the default)", () => {
     }
   });
 
+  test("FR-16 with rewording off (the default) no suggestion box and no «Ingen forslag her» show", async ({
+    page,
+  }) => {
+    await submitExample(page);
+    const { total } = await expected(page);
+    await expect(gapItems(page)).toHaveCount(total);
+    await expect(gapsSection(page)).not.toContainText("Omformuleringsforslag");
+    await expect(gapsSection(page)).not.toContainText("Ingen forslag her");
+    await expect(gapsSection(page).getByRole("button")).toHaveCount(0);
+  });
+
   test("a Real gap has nothing to copy: no button, no field, no suggestion", async ({
     page,
   }) => {
@@ -795,5 +806,66 @@ test.describe("Story 4.4 with the flag off", () => {
     await expect(
       page.getByRole("link", { name: /^Se gapanalysen/ }),
     ).toHaveCount(0);
+  });
+});
+
+// Epic 4 retro, item 12: a Gaps or Letter request from an earlier submission
+// that comes back with ANALYSIS_STALE after a new submission has started must
+// not rerun phase 1 or resend for the old job (each resend counts toward the
+// Daily cap, and its answer is not for this submission).
+test.describe("a response from an earlier submission is dropped", () => {
+  async function staleOnFirst(page: Page, route: string) {
+    let sent = 0;
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(route, async (handler) => {
+      sent += 1;
+      if (sent > 1) return handler.continue();
+      await held;
+      return handler.fulfill({ json: failure("ANALYSIS_STALE") });
+    });
+    return release;
+  }
+
+  async function newSubmissionWhileHeld(page: Page) {
+    await submitExample(page);
+    await expect(
+      page.getByRole("button", { name: "Endre annonsen" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Endre annonsen" }).click();
+    await page.getByRole("button", { name: SUBMIT }).click();
+  }
+
+  test("an old Gaps request answered with ANALYSIS_STALE after a new submission sends nothing more", async ({
+    page,
+  }) => {
+    const analyses = analysisCalls(page);
+    const gaps = gapsCalls(page);
+    const release = await staleOnFirst(page, GAPS_ROUTE);
+    await newSubmissionWhileHeld(page);
+    const { total } = await expected(page);
+    await expect(gapItems(page)).toHaveCount(total);
+    release();
+    await page.waitForTimeout(1000);
+    expect(analyses).toHaveLength(2);
+    expect(gaps).toHaveLength(2);
+    await expect(gapItems(page)).toHaveCount(total);
+  });
+
+  test("an old Letter request answered with ANALYSIS_STALE after a new submission sends nothing more", async ({
+    page,
+  }) => {
+    const analyses = analysisCalls(page);
+    const letters = letterCalls(page);
+    const release = await staleOnFirst(page, LETTER_ROUTE);
+    await newSubmissionWhileHeld(page);
+    await expect(article(page)).toBeVisible();
+    release();
+    await page.waitForTimeout(1000);
+    expect(analyses).toHaveLength(2);
+    expect(letters).toHaveLength(2);
+    await expect(article(page)).toBeVisible();
   });
 });

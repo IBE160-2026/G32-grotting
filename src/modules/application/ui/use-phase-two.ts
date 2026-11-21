@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { consentFor } from "@/modules/ai/ui";
 import {
+  browserGapsIo,
   type GapsJob,
   type GapsPhase,
   gapTargetId,
@@ -16,6 +17,7 @@ import type {
   Tone,
 } from "@/modules/letter/contracts";
 import {
+  browserLetterIo,
   type LetterCheckState,
   type LetterJob,
   type LetterPhase,
@@ -149,16 +151,42 @@ export function usePhaseTwo({
   const phaseTwoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  // Counts the submissions (`begin` and `reset` each start a new one). A Gaps
+  // or Letter request belongs to the submission it started in: its answer is
+  // dropped, and it sends nothing more, once another has started.
+  const submission = useRef(0);
   // The same for the Gaps request; the two are independent (AD-6).
   const gaps = useMutation({
-    mutationFn: (job: GapsJob) =>
-      requestGaps(job, consentFor(runMode, readSession().noticeVersion)),
+    mutationFn: ({
+      job,
+      isCurrent,
+    }: {
+      job: GapsJob;
+      isCurrent: () => boolean;
+    }) =>
+      requestGaps(
+        job,
+        consentFor(runMode, readSession().noticeVersion),
+        browserGapsIo,
+        isCurrent,
+      ),
   });
   // One Letter request in flight (AD-6). The consent is read when it starts,
   // so a notice accepted a moment ago counts (AD-13).
   const letter = useMutation({
-    mutationFn: (job: LetterJob) =>
-      requestLetter(job, consentFor(runMode, readSession().noticeVersion)),
+    mutationFn: ({
+      job,
+      isCurrent,
+    }: {
+      job: LetterJob;
+      isCurrent: () => boolean;
+    }) =>
+      requestLetter(
+        job,
+        consentFor(runMode, readSession().noticeVersion),
+        browserLetterIo,
+        isCurrent,
+      ),
   });
 
   useEffect(() => () => clearTimeout(phaseTwoTimer.current), []);
@@ -194,6 +222,7 @@ export function usePhaseTwo({
   // Phase 1 is on the screen; phase 2 starts at once (NFR-4). The phase-1 line
   // ends with what happens next.
   function begin(job: LetterJob, result: AnalysisResult) {
+    submission.current += 1;
     setRegen("idle");
     resetCheck();
     gapsRev.current = 0;
@@ -232,45 +261,58 @@ export function usePhaseTwo({
     lastJob.current = job;
     if (mode === "again") setRegen("running");
     else setLetterPhase({ kind: "pending" });
-    letter.mutate(job, {
-      onSuccess: ({ answer, rerun }) => {
-        letterBusy.current = false;
-        // ANALYSIS_STALE was answered by a silent rerun of phase 1: the score
-        // and the fingerprint now come from it (AD-6).
-        const current = rerun ? adoptRerun(job, rerun, mode === "first") : job;
-        lastJob.current = current;
-        if (answer.ok) {
-          reprompted.current = false;
-          if (mode === "again") {
-            setLetterPhase({ kind: "done", letter: answer.data.letter });
-            setRegen("idle");
-            say(messages.letter.regenerate.live.done);
+    const mine = submission.current;
+    const isCurrent = () => mine === submission.current;
+    letter.mutate(
+      { job, isCurrent },
+      {
+        onSuccess: ({ answer, rerun }) => {
+          // An answer for an earlier submission is not for this one.
+          if (!isCurrent()) return;
+          letterBusy.current = false;
+          // ANALYSIS_STALE was answered by a silent rerun of phase 1: the score
+          // and the fingerprint now come from it (AD-6).
+          const current = rerun
+            ? adoptRerun(job, rerun, mode === "first")
+            : job;
+          lastJob.current = current;
+          if (answer.ok) {
+            reprompted.current = false;
+            if (mode === "again") {
+              setLetterPhase({ kind: "done", letter: answer.data.letter });
+              setRegen("idle");
+              say(messages.letter.regenerate.live.done);
+              return;
+            }
+            settle(mode, { kind: "done", letter: answer.data.letter });
             return;
           }
-          settle(mode, { kind: "done", letter: answer.data.letter });
-          return;
-        }
-        // The server and this page disagree about the notice (a config change
-        // in mid-session): ask again, once, then resend (AD-13, FR-24). A
-        // second refusal after the Student accepted is an alert, so it cannot
-        // loop; a reload brings the server's current version.
-        if (answer.error.code === "AI_NOTICE_REQUIRED" && !reprompted.current) {
-          reprompted.current = true;
-          pendingLetter.current = { job: current, mode };
-          if (mode === "again") setRegen("idle");
-          openNotice();
-          return;
-        }
-        reprompted.current = false;
-        if (mode === "again") failRegenerate(answer.error.code);
-        else settle(mode, { kind: "failed", code: answer.error.code });
+          // The server and this page disagree about the notice (a config change
+          // in mid-session): ask again, once, then resend (AD-13, FR-24). A
+          // second refusal after the Student accepted is an alert, so it cannot
+          // loop; a reload brings the server's current version.
+          if (
+            answer.error.code === "AI_NOTICE_REQUIRED" &&
+            !reprompted.current
+          ) {
+            reprompted.current = true;
+            pendingLetter.current = { job: current, mode };
+            if (mode === "again") setRegen("idle");
+            openNotice();
+            return;
+          }
+          reprompted.current = false;
+          if (mode === "again") failRegenerate(answer.error.code);
+          else settle(mode, { kind: "failed", code: answer.error.code });
+        },
+        onError: () => {
+          if (!isCurrent()) return;
+          letterBusy.current = false;
+          if (mode === "again") failRegenerate("UNEXPECTED");
+          else settle(mode, { kind: "failed", code: "UNEXPECTED" });
+        },
       },
-      onError: () => {
-        letterBusy.current = false;
-        if (mode === "again") failRegenerate("UNEXPECTED");
-        else settle(mode, { kind: "failed", code: "UNEXPECTED" });
-      },
-    });
+    );
   }
 
   // The Gaps request next to the Letter (FR-13): the same stale rerun and
@@ -283,34 +325,41 @@ export function usePhaseTwo({
       sectionKinds.current.gaps = null;
     }
     setGapsPhase({ kind: "pending" });
-    gaps.mutate(job, {
-      onSuccess: ({ answer, rerun }) => {
-        gapsBusy.current = false;
-        const base = lastJob.current;
-        if (rerun && base !== null) adoptRerun(base, rerun, mode === "first");
-        if (answer.ok) {
+    const mine = submission.current;
+    const isCurrent = () => mine === submission.current;
+    gaps.mutate(
+      { job, isCurrent },
+      {
+        onSuccess: ({ answer, rerun }) => {
+          if (!isCurrent()) return;
+          gapsBusy.current = false;
+          const base = lastJob.current;
+          if (rerun && base !== null) adoptRerun(base, rerun, mode === "first");
+          if (answer.ok) {
+            repromptedGaps.current = false;
+            settleGaps({ kind: "done", gaps: answer.data.gaps });
+            return;
+          }
+          // As for the Letter: ask again once, then it is the alert.
+          if (
+            answer.error.code === "AI_NOTICE_REQUIRED" &&
+            !repromptedGaps.current
+          ) {
+            repromptedGaps.current = true;
+            pendingGaps.current = { job: lastJob.current ?? job, mode };
+            openNotice();
+            return;
+          }
           repromptedGaps.current = false;
-          settleGaps({ kind: "done", gaps: answer.data.gaps });
-          return;
-        }
-        // As for the Letter: ask again once, then it is the alert.
-        if (
-          answer.error.code === "AI_NOTICE_REQUIRED" &&
-          !repromptedGaps.current
-        ) {
-          repromptedGaps.current = true;
-          pendingGaps.current = { job: lastJob.current ?? job, mode };
-          openNotice();
-          return;
-        }
-        repromptedGaps.current = false;
-        settleGaps({ kind: "failed", code: answer.error.code });
+          settleGaps({ kind: "failed", code: answer.error.code });
+        },
+        onError: () => {
+          if (!isCurrent()) return;
+          gapsBusy.current = false;
+          settleGaps({ kind: "failed", code: "UNEXPECTED" });
+        },
       },
-      onError: () => {
-        gapsBusy.current = false;
-        settleGaps({ kind: "failed", code: "UNEXPECTED" });
-      },
-    });
+    );
   }
 
   // A silent rerun of phase 1 (ANALYSIS_STALE, AD-6): the result and the
@@ -576,6 +625,7 @@ export function usePhaseTwo({
 
   // «Endre annonsen»: nothing of phase 2 stays.
   function reset() {
+    submission.current += 1;
     clearTimeout(phaseTwoTimer.current);
     resetCheck();
     letter.reset();
@@ -616,6 +666,8 @@ export function usePhaseTwo({
     letterPhase,
     regen,
     gapsPhase,
+    // The suggestions are written and shown with the Gaps (FR-16).
+    rewording: runMode.features.rewording,
     letterCheck,
     gapTargets,
     letterHeadingRef,

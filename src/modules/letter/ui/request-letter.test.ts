@@ -148,3 +148,32 @@ describe("FR-12 «Lag nytt utkast» sends the rev it last saw", () => {
     expect(first.sent[0]?.previousRev).toBe(0);
   });
 });
+
+describe("a response from an earlier submission is not followed up", () => {
+  it("stops after the first ANALYSIS_STALE when a new submission has started", async () => {
+    const { port, sent, analyseMock } = io([stale, good]);
+    const outcome = await requestLetter(job, null, port, () => false);
+    expect(outcome).toEqual({ answer: stale });
+    expect(sent).toHaveLength(1);
+    expect(analyseMock).not.toHaveBeenCalled();
+  });
+
+  it("does not resend after the rerun when a new submission started meanwhile", async () => {
+    let current = true;
+    const { port, sent, analyseMock } = io([stale, good]);
+    analyseMock.mockImplementation(async () => {
+      current = false;
+      return { ok: true as const, data: rerun };
+    });
+    const outcome = await requestLetter(job, null, port, () => current);
+    expect(outcome).toEqual({ answer: stale });
+    expect(sent).toHaveLength(1);
+  });
+
+  it("keeps the old behaviour while the submission is the current one", async () => {
+    const { port, sent } = io([stale, good]);
+    const outcome = await requestLetter(job, null, port, () => true);
+    expect(outcome).toEqual({ answer: good, rerun });
+    expect(sent).toHaveLength(2);
+  });
+});

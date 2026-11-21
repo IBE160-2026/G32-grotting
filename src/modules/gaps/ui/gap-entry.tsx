@@ -3,6 +3,7 @@ import { EvidenceQuote } from "@/shared/ui/components/evidence-quote";
 import { messages } from "@/shared/ui/messages.nb";
 import type { Gap } from "../contracts";
 import { NoCopyNote } from "./no-copy-note";
+import { SuggestionBox } from "./suggestion-box";
 
 const ENTRY = "border-rule border-t py-6";
 const KEYWORD = "flex flex-wrap items-baseline gap-x-3 gap-y-2 text-keyword";
@@ -13,8 +14,18 @@ export function gapTargetId(index: number): string {
 }
 
 // One Gap (FR-13, FR-14). The `h3` is a focus target, as the Missing entries
-// are. `suggestion` is never shown: rewording belongs to a later story.
-export function GapEntry({ gap, index }: { gap: Gap; index: number }) {
+// are. With `rewording` on (FR-16) a Rewordable gap shows its suggestion in a
+// box after the citation, or the «no suggestion» line when FR-17 discarded it;
+// with it off the suggestion is `null` and nothing stands in its place.
+export function GapEntry({
+  gap,
+  index,
+  rewording = false,
+}: {
+  gap: Gap;
+  index: number;
+  rewording?: boolean;
+}) {
   const { explanation } = gap;
   // A downgraded or skipped Gap travels as the template key and shows only the
   // template line; nothing says it was downgraded. A Rewordable gap without a
@@ -50,6 +61,18 @@ export function GapEntry({ gap, index }: { gap: Gap; index: number }) {
                   source={messages.gaps.citationSource}
                 />
               </div>
+              {!rewording ? null : gap.suggestion !== null ? (
+                <div className="mt-4">
+                  <SuggestionBox
+                    suggestion={gap.suggestion}
+                    keyword={gap.keyword}
+                  />
+                </div>
+              ) : (
+                <p className="mt-4 mb-0 text-body text-ink">
+                  {messages.gaps.suggestion.none}
+                </p>
+              )}
               <p className="mt-3 mb-0 text-body text-ink">
                 {messages.gaps.hedge}
               </p>

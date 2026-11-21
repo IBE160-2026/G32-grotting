@@ -215,10 +215,23 @@ export const messages = {
     heading: "Gapanalyse",
     // The progress line while the Gap analysis and the Letter are written.
     progress: "Skriver gapanalyse og søknadsbrev … dette tar under ett minutt.",
+    // The same line with rewording on (FR-16): the suggestions are written in
+    // the same request as the Gaps.
+    progressRewording:
+      "Skriver gapanalyse, omformuleringer og søknadsbrev … dette tar under ett minutt.",
     aiStrip: "Skrevet med KI",
     strip: { rewordable: "Omformulerbart gap", real: "Reelt gap" },
     citationSource: "Sitert ordrett fra CV-en din · sjekket mot CV-teksten",
     hedge: "Linjen din dekker trolig dette – vurder å ta det med.",
+    // The box under the citation of a Rewordable gap (FR-16, UX-DR13): one
+    // suggestion and a small «Kopier». Nothing adds it to the CV (P3).
+    suggestion: {
+      heading: "Omformuleringsforslag",
+      // The accessible name of «Kopier» where several boxes share the page.
+      copyLabel: (keyword: string) => `Kopier forslaget for «${keyword}»`,
+      // FR-17 discarded the suggestion: this stands where the box would be.
+      none: "Ingen forslag her. Vurder selv om og hvordan du vil formulere det.",
+    },
     noCopy:
       "Ingen tekst å kopiere. Vi skriver ikke tekst for det CV-en ikke viser.",
     failed: "Gapanalysen kunne ikke lages. Samsvaret over er fortsatt riktig.",

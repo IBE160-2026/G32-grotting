@@ -57,12 +57,16 @@ export type LetterOutcome = {
  * One phase-2 Letter request (FR-9, FR-10, AD-6): inputs, fingerprint, Tone and
  * consent. `ANALYSIS_STALE` reruns phase 1 once and sends the Letter request
  * again with the new fingerprint; a second one is the answer (the section
- * error), so it never loops.
+ * error), so it never loops. An answer for an earlier submission (`isCurrent`
+ * false) is not followed up: no rerun and no resend, since each one counts
+ * toward the cap.
  */
 export async function requestLetter(
   job: LetterJob,
   consent: LetterRequest["consent"],
   io: LetterIo = browserLetterIo,
+  // False once a new submission has started: nothing more is sent for this one.
+  isCurrent: () => boolean = () => true,
 ): Promise<LetterOutcome> {
   const send = (fingerprint: string) =>
     io.sendLetter({
@@ -75,7 +79,7 @@ export async function requestLetter(
     });
 
   const first = await send(job.fingerprint);
-  if (first.ok || first.error.code !== "ANALYSIS_STALE") {
+  if (first.ok || first.error.code !== "ANALYSIS_STALE" || !isCurrent()) {
     return { answer: first };
   }
   const rerun = await io.analyse({
@@ -84,5 +88,7 @@ export async function requestLetter(
     consent,
   });
   if (!rerun.ok) return { answer: rerun };
+  // A new submission started while phase 1 reran: this one is no longer asked.
+  if (!isCurrent()) return { answer: first };
   return { answer: await send(rerun.data.fingerprint), rerun: rerun.data };
 }

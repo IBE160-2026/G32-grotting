@@ -2,6 +2,7 @@
 
 import { type RefObject, useRef, useState } from "react";
 import { announce } from "@/shared/ui/announce";
+import { selectContents } from "@/shared/ui/clipboard";
 import { Alert } from "@/shared/ui/components/alert";
 import { Button } from "@/shared/ui/components/button";
 import { CopyButton } from "@/shared/ui/components/copy-button";
@@ -14,18 +15,6 @@ import { downloadLetter } from "./download-letter";
 // Where «Lag nytt utkast» stands (FR-12, UX-DR39).
 // `cap` and `testMode` are notices without a retry; `failed` is the alert.
 export type RegenState = "idle" | "running" | "failed" | "cap" | "testMode";
-
-// Selects what the Letter shows, so Ctrl+C or a long press copies it when the
-// clipboard is blocked.
-function selectAll(element: HTMLElement | null) {
-  if (element === null) return;
-  const selection = window.getSelection();
-  if (selection === null) return;
-  selection.removeAllRanges();
-  const range = document.createRange();
-  range.selectNodeContents(element);
-  selection.addRange(range);
-}
 
 /**
  * The action stack under the Letter (FR-12, UX-DR28): «Kopier» (primary),
@@ -101,7 +90,7 @@ export function LetterActions({
       <CopyButton
         text={rendered}
         variant="primary"
-        onBlocked={() => selectAll(articleRef.current)}
+        onBlocked={() => selectContents(articleRef.current)}
       />
       <Button variant="secondary" busy={downloading} onClick={download}>
         {messages.letter.actions.download}

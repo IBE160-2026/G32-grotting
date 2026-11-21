@@ -24,3 +24,17 @@ export async function writeToClipboard(
     return false;
   }
 }
+
+/**
+ * Selects what an element shows, so Ctrl+C or a long press copies it when the
+ * clipboard is blocked (the Letter, a suggestion).
+ */
+export function selectContents(element: HTMLElement | null): void {
+  if (element === null) return;
+  const selection = window.getSelection();
+  if (selection === null) return;
+  selection.removeAllRanges();
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  selection.addRange(range);
+}

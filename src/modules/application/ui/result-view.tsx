@@ -130,12 +130,17 @@ export function ResultView({
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-4">
               {gapsPhase.kind === "pending" || letterPending ? (
-                <ProgressLine>{messages.gaps.progress}</ProgressLine>
+                <ProgressLine>
+                  {phaseTwo.rewording
+                    ? messages.gaps.progressRewording
+                    : messages.gaps.progress}
+                </ProgressLine>
               ) : null}
               <GapsSection
                 phase={gapsPhase}
                 onRetry={phaseTwo.retryGaps}
                 headingRef={phaseTwo.gapsHeadingRef}
+                rewording={phaseTwo.rewording}
               />
             </div>
             {letterSection(false)}
