@@ -185,7 +185,8 @@ test.describe("FR-11 flags in the Letter", () => {
     await plantLetter(page);
     await submitExample(page);
     await expect(warnings(page)).toBeVisible();
-    await page.getByRole("button", { name: /^Kopier/ }).click();
+    // The Letter's button, not a suggestion box's «Kopier forslaget for …».
+    await page.getByRole("button", { name: /^Kopier(?! forslaget)/ }).click();
     await expect(page.locator("#live-action")).toHaveText(
       "Kopiert til utklippstavlen.",
     );

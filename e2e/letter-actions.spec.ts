@@ -17,8 +17,10 @@ import {
 } from "./support/application";
 
 const article = (page: Page) => page.locator("article");
+// The Letter's «Kopier» (or «Kopiert»), not the one of a suggestion box
+// («Kopier forslaget for …», rewording is on by default since Story 5.4).
 const copyButton = (page: Page) =>
-  page.getByRole("button", { name: /^Kopier/ });
+  page.getByRole("button", { name: /^Kopier(?! forslaget)/ });
 const regenerateButton = (page: Page) =>
   page.getByRole("button", { name: "Lag nytt utkast" });
 const downloadButton = (page: Page) =>

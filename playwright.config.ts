@@ -25,10 +25,11 @@ const LETTER_ONLY_PORT = 3104;
 // Letter stub). Its Gaps and Letter requests are answered in the browser, so
 // the made-up key is never used and nothing reaches a provider.
 const LIVE_GAPS_PORT = 3105;
-// A seventh server is the default one with rewording switched on
-// (FEATURE_REWORDING=true), which stays off by default until Story 5.4: the
-// Gap analysis shows the suggestions of the Cached Gaps, in Test mode.
-const REWORDING_PORT = 3106;
+// A seventh server is the default one with rewording switched off
+// (FEATURE_REWORDING=false). Rewording is on by default since Story 5.4, so the
+// default server shows the suggestions; this one keeps the Gap analysis without
+// them under test.
+const REWORDING_OFF_PORT = 3106;
 // Repeated in e2e/access.spec.ts.
 const HOSTED_ACCESS_CODE = "e2e-access-code-0123456789";
 
@@ -130,15 +131,15 @@ export default defineConfig({
       },
     },
     {
-      command: `next start -p ${REWORDING_PORT}`,
-      url: `http://localhost:${REWORDING_PORT}`,
+      command: `next start -p ${REWORDING_OFF_PORT}`,
+      url: `http://localhost:${REWORDING_OFF_PORT}`,
       reuseExistingServer: false,
       timeout: 60_000,
       env: {
         TEST_MODE: "true",
         APP_ENV: "local",
         DATABASE_URL: "pglite://memory",
-        FEATURE_REWORDING: "true",
+        FEATURE_REWORDING: "false",
         E2E: "1",
       },
     },

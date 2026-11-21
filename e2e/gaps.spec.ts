@@ -35,8 +35,9 @@ const NO_COPY =
 const HEDGE = "Linjen din dekker trolig dette – vurder å ta det med.";
 const FAILED =
   "Gapanalysen kunne ikke lages. Samsvaret over er fortsatt riktig.";
+// Rewording is on by default since Story 5.4, so the default line names it.
 const PROGRESS =
-  "Skriver gapanalyse og søknadsbrev … dette tar under ett minutt.";
+  "Skriver gapanalyse, omformuleringer og søknadsbrev … dette tar under ett minutt.";
 
 const gapsSection = (page: Page) =>
   page.locator("section[aria-labelledby=gaps-h2]");
@@ -174,7 +175,7 @@ test.describe("Story 4.4 with the flag on (the default)", () => {
     await expect(page.getByText(PROGRESS)).toHaveCount(0);
   });
 
-  test("UJ-1 with the Example pair: the Gapanalyse shows Rewordable and Real gaps, «Se gapanalysen» moves focus, and the axe scan passes", async ({
+  test("UJ-1 with the Example pair: the Gapanalyse shows Rewordable gaps with their suggestions and «Kopier», Real gaps, «Se gapanalysen» moves focus, and the axe scan passes", async ({
     page,
   }) => {
     await submitExample(page);
@@ -194,6 +195,14 @@ test.describe("Story 4.4 with the flag on (the default)", () => {
     );
     await expect(section.locator("blockquote")).toHaveCount(rewordable.length);
     await expect(section.getByText(NO_COPY)).toHaveCount(real.length);
+    // Rewording is on by default (Story 5.4): each Rewordable gap of the Cached
+    // Gaps shows its suggestion box with a «Kopier», and no Real gap does.
+    await expect(
+      section.getByRole("heading", { level: 4, name: "Omformuleringsforslag" }),
+    ).toHaveCount(rewordable.length);
+    await expect(
+      section.getByRole("button", { name: /^Kopier forslaget for / }),
+    ).toHaveCount(rewordable.length);
 
     // The link on a Missing entry moves focus to its Gap.
     const target = rewordable[0];
@@ -251,24 +260,21 @@ test.describe("Story 4.4 with the flag on (the default)", () => {
     }
   });
 
-  test("FR-16 with rewording off (the default) no suggestion box and no «Ingen forslag her» show", async ({
-    page,
-  }) => {
-    await submitExample(page);
-    const { total } = await expected(page);
-    await expect(gapItems(page)).toHaveCount(total);
-    await expect(gapsSection(page)).not.toContainText("Omformuleringsforslag");
-    await expect(gapsSection(page)).not.toContainText("Ingen forslag her");
-    await expect(gapsSection(page).getByRole("button")).toHaveCount(0);
-  });
-
   test("a Real gap has nothing to copy: no button, no field, no suggestion", async ({
     page,
   }) => {
     await submitExample(page);
     const { total, real } = await expected(page);
     await expect(gapItems(page)).toHaveCount(total);
-    await expect(gapsSection(page).getByRole("button")).toHaveCount(0);
+    // The only buttons in the section are the «Kopier» of the suggestion boxes
+    // (rewording is on by default since Story 5.4), none of them in a Real gap.
+    const copyButtons = gapsSection(page).getByRole("button", {
+      name: /^Kopier forslaget for /,
+    });
+    await expect(copyButtons).not.toHaveCount(0);
+    await expect(gapsSection(page).getByRole("button")).toHaveCount(
+      await copyButtons.count(),
+    );
     await expect(gapsSection(page).locator("textarea, input")).toHaveCount(0);
     for (const gap of real) {
       const item = gapItems(page).filter({

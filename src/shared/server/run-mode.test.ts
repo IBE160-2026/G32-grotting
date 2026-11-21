@@ -7,6 +7,8 @@ describe("AD-4 toRunMode", () => {
     const config = parseConfig({
       DATABASE_URL: "pglite://memory",
       FEATURE_GAPS: "true",
+      // Off on purpose (on by default since Story 5.4), so the flags differ.
+      FEATURE_REWORDING: "false",
       FEATURE_KEYWORD_FALLBACK: "true",
       AI_PROVIDER: "acme",
       AI_RETENTION_DAYS: "30",
