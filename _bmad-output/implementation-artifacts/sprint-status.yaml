@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-21-2026 12:50
+last_updated: 11-21-2026 21:00
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -92,7 +92,7 @@ development_status:
   5-2-discard-suggestions-that-invent-or-upgrade: done
   5-3-copy-a-suggestion-from-the-gapanalyse: done
   5-4-switch-on-suggestions-and-run-the-first-live-checklist: done
-  epic-5-retrospective: optional
+  epic-5-retrospective: done
 
   epic-6: backlog
   6-1-encrypt-personal-fields-with-one-key: backlog
@@ -208,3 +208,48 @@ action_items:
     owner: "Helene"
     status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-11-20.md"
+  - id: "epic-5-retro-item-14-fix-the-flaky-e2e-test-in-e2e-gaps-spec"
+    epic: 5
+    action: "Fix the flaky e2e test in e2e/gaps.spec.ts (drops a result for another
+      Gap analysis rev): await page.unrouteAll({ behavior: \"ignoreErrors\" }) before
+      the test ends, and check the other 4.5 tests that use route.fetch()"
+    owner: "dev loop"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-21.md"
+  - id: "epic-5-retro-item-15-revert-the-two-stray-spaces-at-the-start"
+    epic: 5
+    action: "Revert the two stray spaces at the start of scripts/qa-compare.ts so
+      biome check and npm test pass; do not commit it"
+    owner: "Helene"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-21.md"
+  - id: "epic-5-retro-item-16-run-the-live-checklist-in-docs-qa-reword"
+    epic: 5
+    action: "Run the live checklist in docs/qa/rewording-manual-checks.md (L1-L8,
+      G1-G5, R1-R3), run qa:compare on the fresh answers, commit the live outputs
+      and make the 3 December decision"
+    owner: "Helene"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-21.md"
+  - id: "epic-5-retro-item-17-decide-how-a-cv-entry-is-bounded-when-th"
+    epic: 5
+    action: "Decide how a CV entry is bounded when the CV text has no blank lines
+      (cvEntries, FR-15, FR-17, Letter check), then a dev-loop story with a test on
+      single-newline CV text"
+    owner: "Helene"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-21.md"
+  - id: "epic-5-retro-item-18-correct-the-goal-md-template-the-live-se"
+    epic: 5
+    action: "Correct the goal.md template: the live-settings server Gaps flag, and
+      run Docker/e2e only after the four review layers have returned"
+    owner: "Helene"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-21.md"
+  - id: "epic-5-retro-item-19-change-the-gaps-prompt-to-raise-g4-recal"
+    epic: 5
+    action: "Change the Gaps prompt to raise G4 recall (gaps-4), record the four gaps.json
+      once each, keep G2 clean"
+    owner: "dev loop"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-21.md"
