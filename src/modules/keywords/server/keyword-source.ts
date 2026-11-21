@@ -16,6 +16,7 @@ import {
   keywordsOutputSchema,
   keywordsPromptBuilder,
   MAX_PROPOSED,
+  MIN_KEYWORDS,
   PROMPT_VERSION,
 } from "./prompts/keywords";
 import { keywordLists } from "./schema";
@@ -24,9 +25,6 @@ export type ResolvedKeywords = {
   readonly keywords: Keyword[];
   readonly keywordSource: KeywordSource;
 };
-
-// Fewer Keywords than this are not a usable list (FR-4), whoever made them.
-export const MIN_KEYWORDS = 3;
 
 type RunOptions = Parameters<typeof runAi>[2];
 

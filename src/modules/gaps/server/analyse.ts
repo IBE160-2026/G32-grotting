@@ -16,12 +16,13 @@ import {
 // Each item of the AI's list is checked on its own, so one malformed item is a
 // skipped Keyword (a template Real gap) and never fails the whole answer
 // (`gapsOutputSchema` already turns a malformed item into an empty one). A
-// `suggestion` is ignored (Epic 5).
+// `suggestion` is read only for a Rewordable gap with `features.rewording` on.
 const itemSchema = z.object({
   keyword: z.string(),
   kind: z.string(),
   explanation: z.string().nullish(),
   citation: z.string().nullish(),
+  suggestion: z.string().nullish(),
 });
 
 export type AiGapItem = z.infer<typeof itemSchema>;
@@ -37,7 +38,11 @@ const templateGap = (keyword: string): Gap => ({
   suggestion: null,
 });
 
-function gapOf(keyword: string, item: AiGapItem | undefined): Gap {
+function gapOf(
+  keyword: string,
+  item: AiGapItem | undefined,
+  rewording: boolean,
+): Gap {
   if (item === undefined) return templateGap(keyword);
   const text = item.explanation?.trim() ?? "";
   if (text === "") return templateGap(keyword);
@@ -56,12 +61,15 @@ function gapOf(keyword: string, item: AiGapItem | undefined): Gap {
     // FR-15 step (`checkGapCitations`); a missing quote is already not Rewordable.
     const citation = item.citation?.trim() ?? "";
     if (citation === "") return templateGap(keyword);
+    // One suggestion per Rewordable gap when rewording is on. A missing or
+    // blank one stays `null`: the code never writes a suggestion itself.
+    const suggestion = rewording ? (item.suggestion?.trim() ?? "") : "";
     return {
       keyword,
       kind: "rewordable",
       explanation: { text },
       citation,
-      suggestion: null,
+      suggestion: suggestion === "" ? null : suggestion,
     };
   }
   return templateGap(keyword);
@@ -71,19 +79,23 @@ function gapOf(keyword: string, item: AiGapItem | undefined): Gap {
  * The structure step (AD-14): exactly one Gap per Missing keyword, in the order
  * of the Missing list. Items for a keyword that is not missing are dropped, the
  * first item per keyword wins, and a keyword the AI skipped, or answered with
- * an unusable item, becomes the template Real gap. Every `suggestion` is
- * `null`: this story asks for none, and with rewording off none may pass.
+ * an unusable item, becomes the template Real gap. A `suggestion` is kept only
+ * on a Rewordable gap and only with `rewording` on (FR-16); a Real gap, the
+ * template and every Gap with rewording off have `null`.
  */
 export function structureGaps(
   missingTerms: readonly string[],
   items: readonly AiGapItem[],
+  rewording = false,
 ): Gap[] {
   const first = new Map<string, AiGapItem>();
   for (const item of items) {
     const key = keyOf(item.keyword);
     if (!first.has(key)) first.set(key, item);
   }
-  return missingTerms.map((term) => gapOf(term, first.get(keyOf(term))));
+  return missingTerms.map((term) =>
+    gapOf(term, first.get(keyOf(term)), rewording),
+  );
 }
 
 /**
@@ -110,6 +122,9 @@ export type AnalyseGapsInput = {
   readonly inputs: AnalysisInputs;
   // The Missing keywords from the server's own phase-1 analysis, in order.
   readonly missingTerms: readonly string[];
+  // `features.rewording`, read by the caller. Off (the default) asks for no
+  // suggestion and returns none.
+  readonly rewording?: boolean;
 };
 
 type RunOptions = Parameters<typeof runAi>[2];
@@ -127,6 +142,7 @@ export async function analyseGaps(
   options?: RunOptions,
 ): Promise<Result<{ gaps: Gap[]; meta: AiResultMeta | null }, AiFailure>> {
   const { inputs, missingTerms } = input;
+  const rewording = input.rewording === true;
   if (missingTerms.length === 0) return ok({ gaps: [], meta: null });
 
   // No job title, employer or tone: the Gaps lookup key is the CV and the ad
@@ -137,7 +153,11 @@ export async function analyseGaps(
       cvText: inputs.cvText,
       jobAd: inputs.jobAd,
       promptVersion: PROMPT_VERSION,
-      buildPrompt: gapsPromptBuilder({ jobAd: inputs.jobAd, missingTerms }),
+      buildPrompt: gapsPromptBuilder({
+        jobAd: inputs.jobAd,
+        missingTerms,
+        rewording,
+      }),
       schema: gapsOutputSchema,
     },
     ctx,
@@ -158,6 +178,7 @@ export async function analyseGaps(
         ? [parsed.data]
         : [];
     }),
+    rewording,
   );
   // Citations are checked against the CV text that was sent, not the raw one.
   const { gaps, downgraded } = checkGapCitations(

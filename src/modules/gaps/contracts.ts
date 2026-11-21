@@ -25,7 +25,8 @@ export const gapExplanationSchema = z.union([
 export type GapExplanation = z.infer<typeof gapExplanationSchema>;
 
 // The fixed Gap shape (AD-7). `citation` is set only on a rewordable Gap.
-// `suggestion` is `null` until Epic 5.
+// `suggestion` is a string only on a rewordable Gap with `features.rewording`
+// on (FR-16); otherwise `null`.
 export const gapSchema = z.object({
   keyword: z.string(),
   kind: z.enum(GAP_KINDS),

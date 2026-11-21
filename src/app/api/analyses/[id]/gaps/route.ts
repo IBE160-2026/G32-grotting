@@ -45,6 +45,7 @@ export async function POST(
       {
         inputs: parsed.inputs,
         missingTerms: analysed.value.result.missing.map(({ term }) => term),
+        rewording: getConfig().features.rewording,
       },
       { studentId: null, consent: parsed.consent },
     );

@@ -9,8 +9,8 @@ const prompt = (overrides: Partial<typeof base> = {}, cv = "CV-TEKST") =>
   gapsPromptBuilder({ ...base, ...overrides })(cv);
 
 describe("FR-13 gaps prompt", () => {
-  it("has the version gaps-2", () => {
-    expect(PROMPT_VERSION).toBe("gaps-2");
+  it("has the version gaps-3", () => {
+    expect(PROMPT_VERSION).toBe("gaps-3");
   });
 
   it("lists every Missing keyword in order", () => {
@@ -55,10 +55,31 @@ describe("FR-13 gaps prompt", () => {
     );
   });
 
-  it("forbids invention and does not ask for a suggestion", () => {
+  it("forbids invention and, with rewording off, does not ask for a suggestion", () => {
     const text = prompt();
     expect(text).toContain("Never invent or upgrade");
     expect(text).not.toContain('"suggestion"');
+    expect(text).not.toContain("A suggestion");
+    expect(gapsPromptBuilder({ ...base, rewording: false })("CV-TEKST")).toBe(
+      text,
+    );
+  });
+
+  it("FR-16: with rewording on, asks for one suggestion per Rewordable gap and none for a Real gap", () => {
+    const text = gapsPromptBuilder({ ...base, rewording: true })("CV-TEKST");
+    expect(text).toContain(
+      '- "suggestion": for "rewordable", one suggested new phrasing of that cited CV entry',
+    );
+    expect(text).toContain('For "real", always null.');
+    expect(text).toContain("at most 25 words");
+    expect(text).toContain("uses only facts the cited entry itself states");
+    expect(text).toContain("employer's words");
+    expect(text).toContain(
+      "never upgrades the kind of work or the student's role",
+    );
+    expect(text).toContain("An exam paper");
+    expect(text).toContain("Taking part, helping or observing is not leading");
+    expect(text).toContain("names no other keyword from the list above");
   });
 
   it("puts the CV and the ad in data blocks and strips a delimiter written inside", () => {
@@ -87,14 +108,36 @@ describe("FR-13 gaps prompt", () => {
 });
 
 describe("FR-13 gapsOutputSchema", () => {
-  it("accepts well-formed items", () => {
+  it("accepts well-formed items, with or without a suggestion", () => {
     const answer = {
       gaps: [
-        { keyword: "A", kind: "real", explanation: "e", citation: null },
-        { keyword: "B", kind: "rewordable", explanation: "e", citation: "c" },
+        {
+          keyword: "A",
+          kind: "real",
+          explanation: "e",
+          citation: null,
+          suggestion: null,
+        },
+        {
+          keyword: "B",
+          kind: "rewordable",
+          explanation: "e",
+          citation: "c",
+          suggestion: "s",
+        },
       ],
     };
     expect(gapsOutputSchema.parse(answer)).toEqual(answer);
+    // A file recorded before Story 5.1 has no `suggestion` field.
+    const old = {
+      keyword: "A",
+      kind: "real",
+      explanation: "e",
+      citation: null,
+    };
+    expect(
+      gapsOutputSchema.parse({ gaps: [old] }).gaps[0]?.suggestion,
+    ).toBeNull();
   });
 
   it("turns a malformed item into an empty one instead of failing the answer", () => {
@@ -107,6 +150,7 @@ describe("FR-13 gapsOutputSchema", () => {
       kind: "",
       explanation: null,
       citation: null,
+      suggestion: null,
     });
     expect(parsed.gaps[1]).toMatchObject({ keyword: "A", kind: "" });
   });

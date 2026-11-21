@@ -17,6 +17,9 @@ export type KeywordsOutput = z.infer<typeof keywordsOutputSchema>;
 // A cap on what is read from one answer.
 export const MAX_PROPOSED = 60;
 
+// Fewer Keywords than this are not a usable list (FR-4), whoever made them.
+export const MIN_KEYWORDS = 3;
+
 // A delimiter written inside the ad must not close the block early. Removed
 // until stable, so `<</jobbannonse>/jobbannonse>` cannot rebuild a tag.
 const DELIMITER = /<\s*\/?\s*jobbannonse\s*>/gi;

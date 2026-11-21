@@ -15,8 +15,13 @@ import {
 import { checkCitation } from "@/modules/integrity/core";
 import { normalise } from "@/modules/keywords/core";
 import { answerKeySchema } from "@/shared/core/answer-key";
+import { vocabularySchema } from "@/shared/core/vocabulary";
 import { type FixtureFiles, loadFixtures } from "@/shared/server/data-files";
 import { evaluateGaps } from "../scripts/qa-compare";
+import {
+  gapsMissingList,
+  testModeMissingTerms,
+} from "../scripts/record-cached";
 
 // FR-13, FR-15, FR-27, FR-28, SC4, AD-15 (Story 4.3): every Fixture has the
 // Gaps a live request returned once (`scripts/record-cached.ts --gaps`), raw
@@ -166,13 +171,28 @@ describe("FR-13, FR-15, FR-28 the Cached Gaps after the guards", () => {
       expect(result.value.gaps.map((gap) => gap.keyword)).toEqual(
         answerKeyOf(id).keywords.missing,
       );
-      // The raw list names every Missing keyword too: none was left to the
-      // template by the structure step.
+      // The raw list names every Answer key Missing keyword first, in its
+      // order (Story 5.1: the recorder then adds the Missing keywords phase 1
+      // finds in Test mode), and none twice: none was left to the template.
       const raw = gapsOutputSchema.parse(rawOf(fixture).data);
-      expect(
-        raw.gaps.map((item) => normalise(item.keyword)).sort(),
-        id,
-      ).toEqual(answerKeyOf(id).keywords.missing.map(normalise).sort());
+      const rawKeys = raw.gaps.map((item) => normalise(item.keyword));
+      const keyKeys = answerKeyOf(id).keywords.missing.map(normalise);
+      expect(rawKeys.slice(0, keyKeys.length), id).toEqual(keyKeys);
+      expect(new Set(rawKeys).size, id).toBe(rawKeys.length);
+      // ... and the rest is exactly what phase 1 finds in Test mode.
+      const vocabulary = vocabularySchema.parse(
+        JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
+      );
+      const expected = gapsMissingList(
+        answerKeyOf(id).keywords.missing,
+        await testModeMissingTerms(
+          `data/fixtures/${id}`,
+          fixture.cvText,
+          fixture.jobAd,
+          vocabulary,
+        ),
+      ).map(normalise);
+      expect(rawKeys, id).toEqual(expected);
       expect(result.value.meta?.source).toBe("cached");
     },
   );
@@ -219,13 +239,60 @@ describe("FR-13, FR-15, FR-28 the Cached Gaps after the guards", () => {
   );
 
   it.each(IDS)(
-    "%s: every suggestion is null (rewording is off)",
+    "%s: every suggestion is null with rewording off",
     async (id) => {
       const fixture = (await loadFixtures()).find((f) => f.id === id);
       if (fixture === undefined) throw new Error(`no Fixture ${id}`);
       const result = await analyseCached(fixture);
       if (!result.ok) throw new Error(`expected ok for ${id}`);
       for (const gap of result.value.gaps) expect(gap.suggestion).toBeNull();
+    },
+  );
+});
+
+describe("FR-16 the Cached Gaps with rewording on (Story 5.1)", () => {
+  it.each(IDS)(
+    "%s: a Rewordable gap has a suggestion string and a Real gap has none",
+    async (id) => {
+      const fixture = (await loadFixtures()).find((f) => f.id === id);
+      if (fixture === undefined) throw new Error(`no Fixture ${id}`);
+      const answerKey = answerKeyOf(id);
+      const result = await analyseGaps(
+        {
+          inputs: {
+            cvText: fixture.cvText,
+            jobAd: fixture.jobAd,
+            jobTitle: fixture.jobTitle,
+            employer: fixture.employer,
+          },
+          missingTerms: answerKey.keywords.missing,
+          rewording: true,
+        },
+        CTX,
+        { adapter: createCachedAdapter(), testMode: true },
+      );
+      if (!result.ok) throw new Error(`expected ok for ${id}`);
+      for (const gap of result.value.gaps) {
+        if (gap.kind === "rewordable") {
+          expect(typeof gap.suggestion, `${id} ${gap.keyword}`).toBe("string");
+          expect(gap.suggestion?.trim(), `${id} ${gap.keyword}`).not.toBe("");
+        } else {
+          expect(gap.suggestion, `${id} ${gap.keyword}`).toBeNull();
+        }
+      }
+    },
+  );
+
+  it.each(IDS)(
+    "%s: the raw recording gives a Real item no suggestion",
+    (id) => {
+      const raw = gapsOutputSchema.parse(
+        JSON.parse(readFileSync(`data/fixtures/${id}/cached/gaps.json`, "utf8"))
+          .data,
+      );
+      for (const item of raw.gaps) {
+        if (item.kind === "real") expect(item.suggestion, id).toBeNull();
+      }
     },
   );
 });
