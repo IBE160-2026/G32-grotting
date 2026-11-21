@@ -89,8 +89,9 @@ Funn er skrevet i `### Review Findings` i `_bmad-output/implementation-artifacts
 - `issues.md`: seks 3.12-punkter lukket (Vercel-raden, UJ-1, sprint-status, review, telefon, `fix/check-retry-announcement` merget som #69).
 - Kontroll: `biome check` ren, `tsc --noEmit` ren, `npx vitest run` 110 filer, 1296 bestått og 3 forventet feil. Playwright kjørt for de tre «cannot be made»-testene; hele e2e-suiten og Docker-kjøringen er ikke kjørt etter rettelsene.
 - Sprint-status: 3-12 står som `done` (uendret), `last_updated` satt.
+- Etter økten, på Helenes ønske: patchene committet som `39a2d97` (uten `gaps-manual-checks.md` og `gap_test/`, som er hennes egne), `docker compose run --rm --build test` bestått (228 Playwright-tester), CI grønn på PR #80, merget til `main` som `138df5e`. Punktet om ukommitterte rettelser og full e2e-kjøring i `issues.md` er lukket.
 
 ### Åpne punkter
-- Rettelsene ligger ukommittert på `fix/3.12-review-patches` sammen med Helenes egne endringer i `gaps-manual-checks.md`.
+- (Lukket senere samme dag: rettelsene er merget, se Resultat.)
 - Tilfellet «en overstyrt sjekk holder seg stille» er ikke dekket av noen test (kun tidsgrensen er).
 - Rad 1 i `ai-notice-manual-checks.md` sier nå at vertsvilkårene er lest, men hva de sa er ikke ført.
