@@ -123,14 +123,61 @@ describe("FR-13 structureGaps", () => {
     expect(gaps[0]?.citation).toBeNull();
   });
 
-  it("sets every suggestion to null, also when the AI wrote one", () => {
-    const withSuggestion = (item: AiGapItem, suggestion: string) =>
-      ({ ...item, suggestion }) as AiGapItem;
-    const gaps = structureGaps(missing, [
+  const withSuggestion = (item: AiGapItem, suggestion: string | null) =>
+    ({ ...item, suggestion }) as AiGapItem;
+
+  it("sets every suggestion to null with rewording off, also when the AI wrote one", () => {
+    const items = [
       withSuggestion(rewordable("TypeScript"), "Skriv dette."),
       withSuggestion(real("REST-API"), "Og dette."),
-    ]);
-    expect(gaps.every((gap) => gap.suggestion === null)).toBe(true);
+    ];
+    expect(
+      structureGaps(missing, items).every((gap) => gap.suggestion === null),
+    ).toBe(true);
+    expect(
+      structureGaps(missing, items, false).every(
+        (gap) => gap.suggestion === null,
+      ),
+    ).toBe(true);
+  });
+
+  it("FR-16: with rewording on, a Rewordable gap gets its trimmed suggestion and a Real gap null", () => {
+    const gaps = structureGaps(
+      missing,
+      [
+        withSuggestion(rewordable("TypeScript"), "  Skriv dette.  "),
+        withSuggestion(real("REST-API"), "Og dette."),
+      ],
+      true,
+    );
+    expect(gaps[0]?.suggestion).toBe("Skriv dette.");
+    expect(gaps[1]?.suggestion).toBeNull();
+    expect(gaps[2]).toEqual(template("pull requests"));
+  });
+
+  it.each([
+    ["null", null],
+    ["blank", "   "],
+  ])(
+    "FR-16: a Rewordable gap with a %s suggestion has null, never a made-up one",
+    (_name, suggestion) => {
+      const gaps = structureGaps(
+        ["TypeScript"],
+        [withSuggestion(rewordable("TypeScript"), suggestion)],
+        true,
+      );
+      expect(gaps[0]?.kind).toBe("rewordable");
+      expect(gaps[0]?.suggestion).toBeNull();
+    },
+  );
+
+  it("FR-16: a Rewordable item with no suggestion field (an older Cached file) has null", () => {
+    const gaps = structureGaps(
+      ["TypeScript"],
+      [rewordable("TypeScript")],
+      true,
+    );
+    expect(gaps[0]?.suggestion).toBeNull();
   });
 });
 
@@ -179,8 +226,70 @@ describe("FR-13 analyseGaps", () => {
     expect(result.value.gaps[0]?.kind).toBe("rewordable");
     expect(result.value.meta).toMatchObject({
       source: "mock",
-      promptVersion: "gaps-2",
+      promptVersion: "gaps-3",
     });
+  });
+
+  it("FR-16: with rewording on it asks for a suggestion and returns it for the Rewordable gap only", async () => {
+    const respond = vi.fn((_args: { prompt: string }) => ({
+      gaps: [
+        { ...rewordable("TypeScript"), suggestion: "Jeg brukte Git." },
+        { ...real("REST-API"), suggestion: "Skal ikke slippe gjennom." },
+      ],
+    }));
+    const result = await analyseGaps(
+      { inputs, missingTerms: ["TypeScript", "REST-API"], rewording: true },
+      CTX,
+      { adapter: adapterOf(respond), testMode: true },
+    );
+    expect(respond.mock.calls[0]?.[0].prompt).toContain('"suggestion"');
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps.map((gap) => gap.suggestion)).toEqual([
+      "Jeg brukte Git.",
+      null,
+    ]);
+  });
+
+  it("FR-16: with rewording off it asks for no suggestion and every suggestion is null", async () => {
+    const respond = vi.fn((_args: { prompt: string }) => ({
+      gaps: [{ ...rewordable("TypeScript"), suggestion: "Jeg brukte Git." }],
+    }));
+    for (const input of [
+      { inputs, missingTerms: ["TypeScript"] },
+      { inputs, missingTerms: ["TypeScript"], rewording: false },
+    ]) {
+      const result = await analyseGaps(input, CTX, {
+        adapter: adapterOf(respond),
+        testMode: true,
+      });
+      if (!result.ok) throw new Error("expected ok");
+      expect(result.value.gaps.every((gap) => gap.suggestion === null)).toBe(
+        true,
+      );
+    }
+    for (const call of respond.mock.calls) {
+      expect(call[0].prompt).not.toContain('"suggestion"');
+    }
+  });
+
+  it("FR-16, FR-15: a Rewordable gap whose citation is not in the CV is the template, with no suggestion", async () => {
+    const result = await analyseGaps(
+      { inputs, missingTerms: ["TypeScript"], rewording: true },
+      CTX,
+      {
+        adapter: adapterOf(() => ({
+          gaps: [
+            {
+              ...rewordable("TypeScript", "Finnes ikke i CV-en."),
+              suggestion: "Noe.",
+            },
+          ],
+        })),
+        testMode: true,
+      },
+    );
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps).toEqual([template("TypeScript")]);
   });
 
   it("sends the CV with its contact details stripped, the ad and the Missing keywords", async () => {

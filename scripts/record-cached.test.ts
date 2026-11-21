@@ -1,6 +1,7 @@
 import {
   cpSync,
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -22,7 +23,13 @@ import { PROMPT_VERSION as KEYWORDS_PROMPT_VERSION } from "@/modules/keywords/se
 import { PROMPT_VERSION } from "@/modules/letter/server/prompts/letter";
 import { answerKeySchema } from "@/shared/core/answer-key";
 import { vocabularySchema } from "@/shared/core/vocabulary";
-import { parseArgs, RecordUsageError, recordCached } from "./record-cached";
+import {
+  gapsMissingList,
+  parseArgs,
+  RecordUsageError,
+  recordCached,
+  testModeMissingTerms,
+} from "./record-cached";
 
 const EXAMPLE = "example-nordic-digital";
 const NOW = new Date("2026-11-19T12:00:00.000Z");
@@ -389,6 +396,22 @@ describe("FR-5b recordCached --keywords", () => {
   });
 });
 
+describe("FR-16 gapsMissingList", () => {
+  it("puts the Answer key's words first and drops duplicates, ignoring case and white space", () => {
+    expect(
+      gapsMissingList(
+        ["TypeScript", "REST-API", "testing"],
+        ["testing", "  typescript ", "REST API-er", "Testing", "Git"],
+      ),
+    ).toEqual(["TypeScript", "REST-API", "testing", "REST API-er", "Git"]);
+  });
+
+  it("is the Answer key's list when phase 1 adds nothing", () => {
+    expect(gapsMissingList(["A", "B"], [])).toEqual(["A", "B"]);
+    expect(gapsMissingList(["A", "B"], ["b", "a"])).toEqual(["A", "B"]);
+  });
+});
+
 describe("FR-13 recordCached --gaps (Story 4.3)", () => {
   const gapsArgs = {
     fixtureId: EXAMPLE,
@@ -459,9 +482,15 @@ describe("FR-13 recordCached --gaps (Story 4.3)", () => {
   });
 
   it.each(FIXTURES)(
-    "%s: asks about exactly the Missing keywords of its Answer key, in order, with the stripped CV",
+    "%s: asks about the Answer key's Missing keywords first, then phase 1's in Test mode, once each, with the stripped CV",
     async (id) => {
       const fixturesDir = fixturesCopy([id]);
+      // The saved AI Keyword list is what phase 1 uses in Test mode.
+      mkdirSync(join(fixturesDir, id, "cached"), { recursive: true });
+      cpSync(
+        `data/fixtures/${id}/cached/keywords.json`,
+        join(fixturesDir, id, "cached", "keywords.json"),
+      );
       const prompts: string[] = [];
       const adapter = createMockAdapter({
         respond: (args) => {
@@ -486,17 +515,51 @@ describe("FR-13 recordCached --gaps (Story 4.3)", () => {
         ?.split("\n\n")[0]
         ?.split("\n")
         .map((line) => line.replace(/^- /, ""));
-      // The Answer key's Missing keywords, in its order.
-      expect(listed).toEqual(key.keywords.missing);
-      // The prompt is the one `analyseGaps` builds.
+      // The Answer key's Missing keywords come first, in its order.
+      expect(listed?.slice(0, key.keywords.missing.length)).toEqual(
+        key.keywords.missing,
+      );
+      // Nothing is listed twice.
+      const keys = (listed ?? []).map((term) => term.toLowerCase());
+      expect(new Set(keys).size).toBe(keys.length);
+      // Then the Missing keywords of phase 1 in Test mode that are not there.
+      const vocabulary = vocabularySchema.parse(
+        JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
+      );
+      const phaseOne = await testModeMissingTerms(
+        folder,
+        readFileSync(`${folder}/cv.txt`, "utf8"),
+        readFileSync(`${folder}/ad.txt`, "utf8"),
+        vocabulary,
+      );
+      expect(listed).toEqual(gapsMissingList(key.keywords.missing, phaseOne));
+      // The prompt is the one `analyseGaps` builds with rewording on.
       expect(prompts[0]).toBe(
         gapsPromptBuilder({
           jobAd: readFileSync(`${folder}/ad.txt`, "utf8"),
           missingTerms: listed ?? [],
+          rewording: true,
         })(stripContactDetails(readFileSync(`${folder}/cv.txt`, "utf8"))),
       );
+      expect(prompts[0]).toContain('"suggestion"');
     },
   );
+
+  it("without a Cached Keyword list, phase 1 is the code-only one", async () => {
+    const id = EXAMPLE;
+    const vocabulary = vocabularySchema.parse(
+      JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
+    );
+    const terms = await testModeMissingTerms(
+      join(fixturesCopy([id]), id),
+      readFileSync(`data/fixtures/${id}/cv.txt`, "utf8"),
+      readFileSync(`data/fixtures/${id}/ad.txt`, "utf8"),
+      vocabulary,
+    );
+    // The copy has no `cached/` folder; the code list still finds Missing
+    // words in the Example pair.
+    expect(terms.length).toBeGreaterThan(0);
+  });
 
   it("writes nothing when the request fails, and does not try again", async () => {
     const fixturesDir = fixturesCopy();

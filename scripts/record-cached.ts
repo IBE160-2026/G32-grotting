@@ -15,11 +15,18 @@ import {
   gapsOutputSchema,
   gapsPromptBuilder,
 } from "@/modules/gaps/server/prompts/gaps";
-import { extractKeywords, splitParagraphs } from "@/modules/keywords/core";
+import {
+  extractKeywords,
+  type Keyword,
+  proposeKeywords,
+  splitParagraphs,
+} from "@/modules/keywords/core";
 import {
   PROMPT_VERSION as KEYWORDS_PROMPT_VERSION,
   keywordsOutputSchema,
   keywordsPromptBuilder,
+  MAX_PROPOSED,
+  MIN_KEYWORDS,
 } from "@/modules/keywords/server/prompts/keywords";
 import { TONES, type Tone } from "@/modules/letter/contracts";
 import {
@@ -28,14 +35,19 @@ import {
 } from "@/modules/letter/server/prompts/letter";
 import { analyse } from "@/modules/match";
 import { answerKeySchema, fixtureMetaSchema } from "@/shared/core/answer-key";
-import { vocabularySchema } from "@/shared/core/vocabulary";
+import { canon } from "@/shared/core/canon";
+import { type Vocabulary, vocabularySchema } from "@/shared/core/vocabulary";
 
 // Records the Cached responses of one Fixture (Story 3.5, FR-27, AD-15): one
 // live request per Tone, written raw, before `normaliseLetter` or any guard, to
 // `data/fixtures/<id>/cached/letter-<tone>.json`; with `--keywords` one request
 // for the Keyword list (Story 3.11, FR-5b), written raw to `cached/keywords.json`.
-// With `--gaps` one request for the Gaps (Story 4.3, FR-13), written raw to
-// `cached/gaps.json`.
+// With `--gaps` one request for the Gaps (Story 4.3, FR-13) and, with rewording
+// asked for, one suggestion per Rewordable gap (Story 5.1, FR-16), written raw
+// to `cached/gaps.json`.
+// `--gaps` reads `cached/keywords.json` (phase 1 in Test mode), so record the
+// Keyword list first; a `keywords.json` recorded after `--gaps` needs `--gaps`
+// again.
 // This is the only writer of `cached/`; a Cached file is never edited by hand.
 // It is run by Helene with her own key from `.env`; no test ever runs it live.
 // Usage: npm run fixtures:record -- <fixture-id> [--tone Formell|Personlig|Direkte | --keywords | --gaps]
@@ -182,31 +194,109 @@ async function recordKeywords(
   return file;
 }
 
+// The Missing keywords phase 1 finds for a Fixture in Test mode, in list order:
+// the Keywords come from the saved AI Keyword list (the Cached
+// `keywords.json`, checked against the ad as `resolveKeywords` does) and, when
+// that is no usable list, from code alone. This is the list the Gaps route asks
+// about in the default Test-mode flow. Pure apart from reading the file.
+export async function testModeMissingTerms(
+  folder: string,
+  cvText: string,
+  jobAd: string,
+  vocabulary: Vocabulary,
+): Promise<string[]> {
+  let keywords: Keyword[] | undefined;
+  const file = join(folder, "cached", "keywords.json");
+  if (existsSync(file)) {
+    const saved = z
+      .object({ data: keywordsOutputSchema })
+      .safeParse(JSON.parse(await readFile(file, "utf8")));
+    if (saved.success) {
+      // Checked against the ad when proposed, and again when read back.
+      const proposed = proposeKeywords(
+        jobAd,
+        saved.data.data.keywords.slice(0, MAX_PROPOSED),
+        vocabulary,
+      );
+      const usable =
+        proposed.length < MIN_KEYWORDS
+          ? []
+          : proposeKeywords(
+              jobAd,
+              proposed.map(({ term }) => term),
+              vocabulary,
+            );
+      if (usable.length >= MIN_KEYWORDS) keywords = usable;
+    }
+  }
+  if (keywords === undefined) {
+    const extracted = extractKeywords(jobAd, vocabulary);
+    if (!extracted.ok) return [];
+    keywords = extracted.value;
+  }
+  const analysis = analyse(cvText, keywords, vocabulary, {
+    keywordSource: "saved",
+    adParagraphs: splitParagraphs(jobAd).length,
+  });
+  return analysis.missing.map(({ term }) => term);
+}
+
+const keyOf = (term: string) => canon(term).toLowerCase();
+
+/**
+ * The words one Gaps request asks about: the Answer key's Missing list first,
+ * in its order, then every Missing keyword the app's phase 1 finds in Test mode
+ * that is not already there, with no duplicates (case and white space do not
+ * count, as in the structure step). The Answer key is the oracle for G2 and
+ * stays first; the extra words make every Missing keyword the app shows in Test
+ * mode a real Gap instead of the template.
+ */
+export function gapsMissingList(
+  answerKeyMissing: readonly string[],
+  testModeMissing: readonly string[],
+): string[] {
+  const seen = new Set<string>();
+  const list: string[] = [];
+  for (const term of [...answerKeyMissing, ...testModeMissing]) {
+    const key = keyOf(term);
+    if (key === "" || seen.has(key)) continue;
+    seen.add(key);
+    list.push(term);
+  }
+  return list;
+}
+
 // The one request for the Gaps. The Missing keywords are the Answer key's, in
-// its order: the Answer key is the oracle for what is missing, and for the held
-// out Fixture the code-only list is not (the known FR-5b failure). Only the
-// keywords are read from it, never its Gap verdicts or its must-never-suggest
-// list. The prompt is the one `analyseGaps` builds, from the stripped CV. The
-// answer is written raw, before the structure step and FR-15, so the tests
-// judge what the model really wrote. One request, no retry: a failure writes
-// nothing.
+// its order, followed by the Missing keywords of phase 1 in Test mode (see
+// `gapsMissingList`). The Answer key is the oracle for what is missing, and for
+// the held out Fixture the code-only list is not (the known FR-5b failure).
+// Only the keywords are read from it, never its Gap verdicts or its
+// must-never-suggest list. The prompt is the one `analyseGaps` builds with
+// rewording on (FR-16), from the stripped CV. The answer is written raw, before
+// the structure step and FR-15, so the tests judge what the model really wrote.
+// One request, no retry: a failure writes nothing.
 async function recordGaps(
   adapter: AiAdapterPort,
   folder: string,
   fixtureId: string,
   cvText: string,
   jobAd: string,
+  vocabulary: Vocabulary,
   now: Date | undefined,
 ): Promise<string> {
   const answerKey = answerKeySchema.parse(
     JSON.parse(await readFile(join(folder, "answer-key.json"), "utf8")),
   );
-  const missingTerms = answerKey.keywords.missing;
-  if (missingTerms.length === 0) {
+  if (answerKey.keywords.missing.length === 0) {
     throw new RecordUsageError(`${fixtureId}: no Missing keyword to judge`);
   }
+  // Everything is read before the one request: a problem here costs nothing.
+  const missingTerms = gapsMissingList(
+    answerKey.keywords.missing,
+    await testModeMissingTerms(folder, cvText, jobAd, vocabulary),
+  );
   // Contact details never go to a provider (FR-26).
-  const prompt = gapsPromptBuilder({ jobAd, missingTerms })(
+  const prompt = gapsPromptBuilder({ jobAd, missingTerms, rewording: true })(
     stripContactDetails(cvText),
   );
   const generated = await adapter.generate({
@@ -283,6 +373,7 @@ export async function recordCached(options: RecordOptions): Promise<string[]> {
         args.fixtureId,
         cvText,
         jobAd,
+        vocabulary,
         options.now,
       ),
     ];

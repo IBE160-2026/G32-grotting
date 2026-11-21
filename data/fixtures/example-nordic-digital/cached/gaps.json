@@ -4,32 +4,65 @@
       {
         "keyword": "TypeScript",
         "kind": "real",
-        "explanation": "Annonsen ber om at du bruker TypeScript sammen med React, noe som er en del av den daglige frontend-jobben. CV-en viser ikke TypeScript.",
-        "citation": null
+        "explanation": "Annonsen ber om at du bruker TypeScript sammen med React, og det er en del av det daglige arbeidet i frontend-teamet. CV-en viser ikke TypeScript.",
+        "citation": null,
+        "suggestion": null
       },
       {
         "keyword": "REST-API",
         "kind": "real",
-        "explanation": "Annonsen ber om at du kan jobbe med REST API-er, som er viktig når frontend skal hente og sende data. CV-en viser ikke erfaring med REST API-er.",
-        "citation": null
+        "explanation": "Annonsen ber om at du kan jobbe med API-er, som er viktig for å hente og sende data i kundenes løsninger. CV-en viser ikke arbeid med API-er.",
+        "citation": null,
+        "suggestion": null
       },
       {
         "keyword": "pull requests",
         "kind": "rewordable",
-        "explanation": "Annonsen ber om erfaring med samarbeid i pull requests, som er viktig for teamarbeid og kodekvalitet. Linjen om Git og GitHub i prosjektet dekker trolig dette – vurder å ta det med.",
-        "citation": "Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen."
+        "explanation": "Annonsen ber om erfaring med samarbeid i pull requests, som er vanlig arbeidsform i teamet. Linjen din om at endringer ble gjennomgått av et annet gruppemedlem før sammenslåing dekker trolig dette – vurder å ta det med i annonsens ord.",
+        "citation": "Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet\ngruppemedlem før de ble slått sammen.",
+        "suggestion": "Samarbeidet med Git og GitHub: alle endringer gikk gjennom pull requests og ble gjennomgått av et annet gruppemedlem før sammenslåing."
       },
       {
         "keyword": "testing",
         "kind": "rewordable",
-        "explanation": "Annonsen ber om erfaring med testing av frontend-kode, siden du skal jobbe tett med testere. Linjen om tester for skjemaene dekker trolig dette – vurder å ta det med.",
-        "citation": "Jeg skrev enkle tester for skjemaene våre."
+        "explanation": "Annonsen legger vekt på testing, siden du skal jobbe tett med testere. Linjen din om at du skrev tester for skjemaene dekker trolig dette – vurder å ta det med tydeligere.",
+        "citation": "Jeg skrev enkle tester for skjemaene våre.",
+        "suggestion": "Testet skjemaene i gruppeprosjektet ved å skrive enkle tester."
       },
       {
         "keyword": "responsive nettsider",
         "kind": "rewordable",
-        "explanation": "Annonsen ber om at du bygger responsive nettsider som fungerer godt på mobil, noe som er viktig for kundenes brukere. Emnet Webutvikling 1 dekker trolig dette – vurder å ta det med.",
-        "citation": "Webutvikling 1: HTML, CSS og JavaScript. Bygde en nettside som"
+        "explanation": "Annonsen ber om at du bygger responsive nettsider som fungerer godt på mobil. Emnet Webutvikling 1, der du bygde en nettside som tilpasser seg mobilskjermer, dekker trolig dette – vurder å bruke annonsens ord.",
+        "citation": "Webutvikling 1: HTML, CSS og JavaScript. Bygde en nettside som\ntilpasser seg mobilskjermer.",
+        "suggestion": "Bygde en responsiv nettside med HTML, CSS og JavaScript som tilpasser seg mobilskjermer."
+      },
+      {
+        "keyword": "stakeholders",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du følger opp stakeholders i kundens organisasjon og forklarer tekniske valg forståelig. Linjen din om møter med organisasjonen hvor du viste frem og forklarte arbeidet dekker trolig dette – vurder å ta det med.",
+        "citation": "Vi hadde møter med organisasjonen hver andre uke, og jeg viste frem og\nforklarte hva vi hadde laget.",
+        "suggestion": "Møtte organisasjonen, som var interessent i prosjektet, hver andre uke og viste frem og forklarte det vi hadde laget."
+      },
+      {
+        "keyword": "testing av frontend-kode",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med testing av frontend-kode, som sikrer kvaliteten på det brukerne ser. Linjen din om enkle tester for skjemaene dekker trolig dette, siden skjemaer er en del av frontend – vurder å ta det med.",
+        "citation": "Jeg skrev enkle tester for skjemaene våre.",
+        "suggestion": "Skrev enkle tester for skjemaene våre som del av frontend-koden."
+      },
+      {
+        "keyword": "tilgjengelighet",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du bryr deg om universell utforming og tilgjengelighet, som er viktig for kunder i offentlig sektor. Emnet Brukeropplevelse med universell utforming av nettsider dekker trolig dette – vurder å bruke annonsens ord.",
+        "citation": "Brukeropplevelse: Prototyping i Figma og universell utforming av\nnettsider.",
+        "suggestion": "Brukeropplevelse: prototyping i Figma og universell utforming av nettsider, med fokus på tilgjengelighet."
+      },
+      {
+        "keyword": "REST API-er",
+        "kind": "real",
+        "explanation": "Annonsen ber om at du kan jobbe med REST API-er, som er viktig for å koble frontend mot data. CV-en viser ikke dette.",
+        "citation": null,
+        "suggestion": null
       }
     ]
   },
@@ -37,7 +70,7 @@
     "source": "live",
     "provider": "openrouter",
     "model": "anthropic/claude-sonnet-5.5",
-    "promptVersion": "gaps-2",
-    "createdAt": "2026-11-20T18:21:35.345Z"
+    "promptVersion": "gaps-3",
+    "createdAt": "2026-11-21T16:26:35.175Z"
   }
 }

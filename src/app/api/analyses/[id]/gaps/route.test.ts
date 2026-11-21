@@ -6,7 +6,7 @@ import { loadVocabulary } from "@/shared/server/data-files";
 vi.mock("@/shared/server/log", () => ({ log: vi.fn() }));
 
 // Tests set the flag on explicitly, so they do not depend on its default.
-const flags = vi.hoisted(() => ({ gaps: true }));
+const flags = vi.hoisted(() => ({ gaps: true, rewording: false }));
 vi.mock("@/shared/server/config", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@/shared/server/config")>();
@@ -14,7 +14,14 @@ vi.mock("@/shared/server/config", async (importOriginal) => {
     ...actual,
     getConfig: () => {
       const config = actual.getConfig();
-      return { ...config, features: { ...config.features, gaps: flags.gaps } };
+      return {
+        ...config,
+        features: {
+          ...config.features,
+          gaps: flags.gaps,
+          rewording: flags.rewording,
+        },
+      };
     },
   };
 });
@@ -109,6 +116,7 @@ let fetchSpy: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   flags.gaps = true;
+  flags.rewording = false;
   vi.mocked(runAi).mockClear();
   answer.value = { gaps: [] };
   fetchSpy = vi.fn();
@@ -143,10 +151,62 @@ describe("FR-13, FR-14 POST /api/analyses/[id]/gaps", () => {
     ).toBe(true);
     expect(json.data.meta).toMatchObject({
       source: "mock",
-      promptVersion: "gaps-2",
+      promptVersion: "gaps-3",
     });
     expect(runAi).toHaveBeenCalledTimes(1);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("FR-16: with features.rewording on, asks for suggestions and returns one for each Rewordable gap and null for a Real gap", async () => {
+    flags.rewording = true;
+    const missing = (await phaseOne()).result.missing.map(({ term }) => term);
+    const [first, ...rest] = missing;
+    const citation = inputs.cvText
+      .split("\n")
+      .find((line) => line.trim() !== "");
+    if (first === undefined || citation === undefined) throw new Error("setup");
+    answer.value = {
+      gaps: [
+        {
+          keyword: first,
+          kind: "rewordable",
+          explanation: "Linjen din dekker trolig dette.",
+          citation: citation.trim(),
+          suggestion: "  Et forslag.  ",
+        },
+        ...rest.map((term) => ({
+          keyword: term,
+          kind: "real",
+          explanation: "CV-en viser ikke dette.",
+          citation: null,
+          suggestion: "Skal bli null.",
+        })),
+      ],
+    };
+    const response = await post(await body());
+    const json = await response.json();
+    expect(json.ok).toBe(true);
+    const suggestions = json.data.gaps.map(
+      (gap: { suggestion: unknown }) => gap.suggestion,
+    );
+    expect(suggestions).toEqual(["Et forslag.", ...rest.map(() => null)]);
+    const prompt = vi.mocked(runAi).mock.calls[0]?.[0].buildPrompt("CV") ?? "";
+    expect(prompt).toContain('"suggestion"');
+  });
+
+  it("FR-16: with features.rewording off, no suggestion is asked for and every suggestion is null", async () => {
+    answer.value = { gaps: await reversedAnswer() };
+    const response = await post(await body());
+    const json = await response.json();
+    expect(json.ok).toBe(true);
+    // The answer carries a suggestion for every item; none passes.
+    expect(
+      json.data.gaps.every(
+        (gap: { suggestion: unknown }) => gap.suggestion === null,
+      ),
+    ).toBe(true);
+    const prompt = vi.mocked(runAi).mock.calls[0]?.[0].buildPrompt("CV") ?? "";
+    expect(prompt).not.toContain('"suggestion"');
   });
 
   it("turns every Keyword into the template Real gap when the AI skipped them all", async () => {
@@ -171,7 +231,7 @@ describe("FR-13, FR-14 POST /api/analyses/[id]/gaps", () => {
     const prompt = request?.buildPrompt(inputs.cvText) ?? "";
     expect(request).toMatchObject({
       task: "gaps",
-      promptVersion: "gaps-2",
+      promptVersion: "gaps-3",
       cvText: inputs.cvText,
       jobAd: inputs.jobAd,
     });
