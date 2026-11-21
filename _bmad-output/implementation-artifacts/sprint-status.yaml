@@ -91,7 +91,7 @@ development_status:
   5-1-ask-for-a-rewording-suggestion-with-each-rewordable-gap: done
   5-2-discard-suggestions-that-invent-or-upgrade: done
   5-3-copy-a-suggestion-from-the-gapanalyse: done
-  5-4-switch-on-suggestions-and-run-the-first-live-checklist: backlog
+  5-4-switch-on-suggestions-and-run-the-first-live-checklist: done
   epic-5-retrospective: optional
 
   epic-6: backlog

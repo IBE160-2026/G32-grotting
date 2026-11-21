@@ -8,7 +8,9 @@ export const FEATURE_DEFAULTS = {
   // On since Story 4.6: the Gap analysis runs with every Application. Never on
   // Hosted, which has no AI (D23).
   gaps: true,
-  rewording: false,
+  // On since Story 5.4: each Rewordable gap carries a rewording suggestion
+  // (FR-16), guarded by FR-17. Never on Hosted, which has no AI (D23).
+  rewording: true,
   // On since Story 3.11 (FR-5b applies, decided 17 Nov): AI proposes the Keyword
   // list of a new Job ad. Never on Hosted, which has no AI (D23).
   keywordFallback: true,
@@ -176,7 +178,11 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     // Hosted has no AI (D23), so the Gap analysis is off there whatever the
     // environment says, as the Keyword fallback is.
     gaps: hosted ? false : (e.FEATURE_GAPS ?? FEATURE_DEFAULTS.gaps),
-    rewording: e.FEATURE_REWORDING ?? FEATURE_DEFAULTS.rewording,
+    // Hosted has no AI (D23), so there is nothing to reword there whatever the
+    // environment says, as with the Gap analysis it rides on.
+    rewording: hosted
+      ? false
+      : (e.FEATURE_REWORDING ?? FEATURE_DEFAULTS.rewording),
     // Hosted is the frozen skeleton with no AI and no Student data (D23), so
     // the Keyword fallback is off there whatever the environment says.
     keywordFallback: hosted

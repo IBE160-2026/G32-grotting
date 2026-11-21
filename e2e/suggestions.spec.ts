@@ -8,11 +8,12 @@ import {
   seriousFindings,
 } from "./support/application";
 
-// The seventh server (playwright.config.ts): Test mode with rewording switched
-// on explicitly, since FEATURE_REWORDING is off by default until Story 5.4.
-// Everything comes from the Cached Gaps of the Example pair or from a stub in
-// the browser; nothing reaches a provider.
-const REWORDING = "http://localhost:3106";
+// The default server (Test mode), where rewording is on since Story 5.4, shows
+// the suggestions of the Cached Gaps of the Example pair. The seventh server
+// (playwright.config.ts) switches it off (FEATURE_REWORDING=false). Everything
+// comes from the Cached Gaps or from a stub in the browser; nothing reaches a
+// provider.
+const REWORDING_OFF = "http://localhost:3106";
 const GAPS_ROUTE = "**/api/analyses/*/gaps";
 
 const HEADING = "Omformuleringsforslag";
@@ -83,9 +84,7 @@ async function discard(page: Page, keyword: string) {
   });
 }
 
-test.describe("FR-16 the suggestion box, rewording on", () => {
-  test.use({ baseURL: REWORDING });
-
+test.describe("FR-16 the suggestion box, rewording on by default", () => {
   test("a Rewordable gap shows the citation, then a raised box with the suggestion and «Kopier», then the hedge, and nothing adds it to the CV", async ({
     page,
   }) => {
@@ -240,10 +239,7 @@ test.describe("FR-16 the suggestion box, rewording on", () => {
 });
 
 test.describe("FR-16 «Kopier» in a suggestion box", () => {
-  test.use({
-    baseURL: REWORDING,
-    permissions: ["clipboard-read", "clipboard-write"],
-  });
+  test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 
   test("copies only the suggestion's plain text, with the Letter's feedback, and focus stays", async ({
     page,
@@ -281,8 +277,6 @@ test.describe("FR-16 «Kopier» in a suggestion box", () => {
 });
 
 test.describe("FR-16 «Kopier» with the clipboard blocked", () => {
-  test.use({ baseURL: REWORDING });
-
   test("selects the suggestion and shows the Ctrl+C notice", async ({
     page,
   }) => {
@@ -305,5 +299,44 @@ test.describe("FR-16 «Kopier» with the clipboard blocked", () => {
       () => window.getSelection()?.toString() ?? "",
     );
     expect(selected.trim()).toBe(gap.suggestion);
+  });
+});
+
+test.describe("FR-16 rewording switched off with FEATURE_REWORDING=false", () => {
+  test.use({ baseURL: REWORDING_OFF });
+
+  test("the Gapanalyse shows no suggestion box, no «Kopier» and no «Ingen forslag her», and the old progress line", async ({
+    page,
+  }) => {
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(GAPS_ROUTE, async (route) => {
+      await held;
+      await route.continue();
+    });
+    const response = page.waitForResponse(
+      (candidate) =>
+        /\/api\/analyses\/[^/]+\/gaps$/.test(candidate.url()) &&
+        candidate.request().method() === "POST",
+    );
+    await submitExample(page);
+    await expect(
+      page.getByText(
+        "Skriver gapanalyse og søknadsbrev … dette tar under ett minutt.",
+      ),
+    ).toBeVisible();
+    await expect(page.getByText(PROGRESS)).toHaveCount(0);
+    release();
+    await expect(gapItems(page).first()).toBeVisible();
+    // The server asks for and returns no suggestion either.
+    const body = await (await response).json();
+    expect(body.data.gaps.length).toBeGreaterThan(0);
+    for (const gap of body.data.gaps) expect(gap.suggestion).toBeNull();
+    await expect(page.getByText(HEADING)).toHaveCount(0);
+    await expect(page.getByText(NONE)).toHaveCount(0);
+    await expect(gapsSection(page).getByRole("button")).toHaveCount(0);
+    expect(await seriousFindings(page)).toEqual([]);
   });
 });

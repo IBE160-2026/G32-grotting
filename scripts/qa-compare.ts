@@ -7,11 +7,13 @@ import { stripContactDetails } from "@/modules/ai/core/strip-contact";
 import type { Gap } from "@/modules/gaps/contracts";
 import {
   checkGapCitations,
+  checkGapSuggestions,
   structureGaps,
 } from "@/modules/gaps/server/analyse";
 import { gapsOutputSchema } from "@/modules/gaps/server/prompts/gaps";
 import { normalise } from "@/modules/keywords/core";
 import { type AnswerKey, answerKeySchema } from "@/shared/core/answer-key";
+import { type Vocabulary, vocabularySchema } from "@/shared/core/vocabulary";
 
 // The G2 check of the Gap output (docs/qa, Story 4.3, FR-13): given a set of
 // live Gaps outputs, it reports every must-never-suggest keyword of the Answer
@@ -25,9 +27,18 @@ import { type AnswerKey, answerKeySchema } from "@/shared/core/answer-key";
 // Usage: npm run qa:compare [-- --dir <folder>]
 // The folder holds `<fixture-id>/gaps.json` or `<fixture-id>/cached/gaps.json`;
 // it is `data/fixtures` when no folder is given.
+//
+// It also counts G4 (SM-5, Story 5.4): how many of the Answer key's expected
+// Rewordable gaps the app found and showed with a suggestion that passed FR-17.
+// «Showed» is judged the way the app does it, with rewording on: structure
+// step, FR-15, then FR-17 (`checkGapSuggestions`). G4 is a count to read, not a
+// verdict: only a G2 failure (or an unreadable output) makes the run fail.
 
 const FIXTURES_DIR = fileURLToPath(
   new URL("../data/fixtures", import.meta.url),
+);
+const VOCABULARY_FILE = fileURLToPath(
+  new URL("../data/vocabulary/nb.json", import.meta.url),
 );
 
 export type GapsEvaluation = {
@@ -39,28 +50,62 @@ export type GapsEvaluation = {
   readonly g2Failures: readonly string[];
   // Must-never-suggest keywords the model called Rewordable and FR-15 caught.
   readonly g2Caught: readonly string[];
+  // Suggestions FR-17 discarded (the Gap stays Rewordable, with no suggestion).
+  readonly discarded: number;
+  // G4: the Answer key's expected Rewordable gaps, and those of them that the
+  // Student would see as Rewordable with a suggestion that passed FR-17.
+  readonly g4Expected: readonly string[];
+  readonly g4Found: readonly string[];
 };
 
 /**
  * Judges one Fixture's raw Gaps output against its Answer key. The Missing
  * keywords are the Answer key's, in its order, as the recorder asked for them.
- * Throws when the output is not a Gaps answer.
+ * Suggestions are read with rewording on, as in the app: structure step, FR-15,
+ * then FR-17. FR-17 holds a suggestion against the whole Missing list the AI
+ * was asked about: the Answer key's, plus any other keyword the output answers
+ * (the recorder adds the ones phase 1 finds in Test mode). A longer list can
+ * only discard more, so G4 is never flattered. Throws when the output is not a
+ * Gaps answer.
  */
 export function evaluateGaps(input: {
   readonly answerKey: AnswerKey;
   readonly cvText: string;
   readonly output: unknown;
+  // The Keyword vocabulary, so FR-17 finds a Missing keyword by its aliases
+  // too, as the app does. Without it a keyword is found by its own words.
+  readonly vocabulary?: Vocabulary;
 }): GapsEvaluation {
   const { answerKey } = input;
   const parsed = gapsOutputSchema.safeParse(input.output);
   if (!parsed.success) throw new Error("The output has no list of gaps");
   const missing = answerKey.keywords.missing;
-  const structured = structureGaps(missing, parsed.data.gaps);
-  // Citations are checked against the CV text the model was sent.
-  const checked = checkGapCitations(
-    structured,
-    stripContactDetails(input.cvText),
+  const structured = structureGaps(missing, parsed.data.gaps, true);
+  // Citations and suggestions are checked against the CV text the model was
+  // sent.
+  const sentCvText = stripContactDetails(input.cvText);
+  const checked = checkGapCitations(structured, sentCvText);
+  const askedAbout = [...missing];
+  for (const { keyword } of parsed.data.gaps) {
+    const key = normalise(keyword);
+    if (key !== "" && !askedAbout.some((term) => normalise(term) === key)) {
+      askedAbout.push(keyword);
+    }
+  }
+  const guarded = checkGapSuggestions(
+    checked.gaps,
+    askedAbout,
+    sentCvText,
+    input.vocabulary,
   );
+  const shown = (keyword: string) =>
+    guarded.gaps.some(
+      (gap) =>
+        gap.kind === "rewordable" &&
+        gap.suggestion !== null &&
+        normalise(gap.keyword) === normalise(keyword),
+    );
+  const expected = answerKey.gaps.rewordable.map(({ keyword }) => keyword);
   const rewordable = (gaps: readonly Gap[], keyword: string) =>
     gaps.some(
       (gap) =>
@@ -69,8 +114,11 @@ export function evaluateGaps(input: {
     );
   const never = answerKey.mustNeverSuggest.map(({ keyword }) => keyword);
   return {
-    gaps: checked.gaps,
+    gaps: guarded.gaps,
     downgraded: checked.downgraded,
+    discarded: guarded.discarded,
+    g4Expected: expected,
+    g4Found: expected.filter(shown),
     g2Failures: never.filter((keyword) => rewordable(checked.gaps, keyword)),
     g2Caught: never.filter(
       (keyword) =>
@@ -97,7 +145,7 @@ export function formatReport(
     const count = (kind: Gap["kind"]) =>
       gaps.filter((gap) => gap.kind === kind).length;
     lines.push(
-      `${id}: ${gaps.length} gaps, ${count("rewordable")} rewordable, ${count("real")} real, ${evaluation.downgraded} downgraded by FR-15 (${meta.promptVersion}, ${meta.model})`,
+      `${id}: ${gaps.length} gaps, ${count("rewordable")} rewordable, ${count("real")} real, ${evaluation.downgraded} downgraded by FR-15, ${evaluation.discarded} suggestion${evaluation.discarded === 1 ? "" : "s"} discarded by FR-17 (${meta.promptVersion}, ${meta.model})`,
     );
     for (const keyword of evaluation.g2Failures) {
       lines.push(`  G2 FAIL ${id}: «${keyword}» is Rewordable`);
@@ -106,6 +154,15 @@ export function formatReport(
       lines.push(
         `  G2 caught by FR-15 ${id}: «${keyword}» was called Rewordable, its citation is not in the CV`,
       );
+    }
+    const missed = evaluation.g4Expected.filter(
+      (keyword) => !evaluation.g4Found.includes(keyword),
+    );
+    lines.push(
+      `  G4 ${id}: ${evaluation.g4Found.length} of ${evaluation.g4Expected.length} expected Rewordable gaps shown with a suggestion that passed FR-17`,
+    );
+    for (const keyword of missed) {
+      lines.push(`  G4 not shown ${id}: «${keyword}»`);
     }
   }
   for (const id of skipped) lines.push(`${id}: no gaps output found, skipped`);
@@ -125,6 +182,19 @@ export function formatReport(
         ? "G2: no must-never-suggest keyword is Rewordable"
         : `G2: ${failures} failure${failures === 1 ? "" : "s"}`,
   );
+  if (reports.length > 0) {
+    const found = reports.reduce(
+      (sum, report) => sum + report.evaluation.g4Found.length,
+      0,
+    );
+    const expected = reports.reduce(
+      (sum, report) => sum + report.evaluation.g4Expected.length,
+      0,
+    );
+    lines.push(
+      `G4: ${found} of ${expected} expected Rewordable gaps found and shown with a suggestion that passed FR-17 (${expected === 0 ? 0 : Math.round((100 * found) / expected)} %; a count, not a verdict; SM-5 asks for at least 70 %)`,
+    );
+  }
   return `${lines.join("\n")}\n`;
 }
 
@@ -147,6 +217,7 @@ export async function compareAll(options: {
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
     .map((entry) => entry.name)
     .sort();
+  const vocabulary = vocabularySchema.parse(await readJson(VOCABULARY_FILE));
   const reports: FixtureReport[] = [];
   const skipped: string[] = [];
   const unreadable: string[] = [];
@@ -173,7 +244,12 @@ export async function compareAll(options: {
       const data = (output as { data?: unknown } | null)?.data;
       reports.push({
         id,
-        evaluation: evaluateGaps({ answerKey, cvText, output: data }),
+        evaluation: evaluateGaps({
+          answerKey,
+          cvText,
+          output: data,
+          vocabulary,
+        }),
         meta: { promptVersion: meta.promptVersion, model: meta.model },
       });
     } catch {

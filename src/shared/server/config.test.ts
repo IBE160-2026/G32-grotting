@@ -23,7 +23,7 @@ describe("FR-27 mode detection", () => {
     expect(config.features).toEqual({
       accounts: false,
       gaps: true,
-      rewording: false,
+      rewording: true,
       keywordFallback: true,
     });
   });
@@ -117,7 +117,7 @@ describe("FR-27 mode detection", () => {
     expect(config.features).toEqual({
       accounts: true,
       gaps: true,
-      rewording: false,
+      rewording: true,
       keywordFallback: false,
     });
     expect(() => parseConfig({ FEATURE_GAPS: "yes" })).toThrow(/FEATURE_GAPS/);
@@ -136,6 +136,32 @@ describe("FR-27 mode detection", () => {
     ).toBe(false);
     expect(
       parseConfig({ ...hostedEnv, FEATURE_GAPS: "false" }).features.gaps,
+    ).toBe(false);
+  });
+
+  it("Story 5.4 switches rewording suggestions on by default and lets FEATURE_REWORDING turn them off", () => {
+    expect(FEATURE_DEFAULTS.rewording).toBe(true);
+    expect(parseConfig({}).features.rewording).toBe(true);
+    expect(parseConfig({ FEATURE_REWORDING: "true" }).features.rewording).toBe(
+      true,
+    );
+    expect(parseConfig({ FEATURE_REWORDING: "false" }).features.rewording).toBe(
+      false,
+    );
+    expect(() => parseConfig({ FEATURE_REWORDING: "yes" })).toThrow(
+      /FEATURE_REWORDING/,
+    );
+  });
+
+  it("keeps rewording off on Hosted, which has no AI (D23), whatever the environment says", () => {
+    expect(parseConfig(hostedEnv).features.rewording).toBe(false);
+    expect(
+      parseConfig({ ...hostedEnv, FEATURE_REWORDING: "true" }).features
+        .rewording,
+    ).toBe(false);
+    expect(
+      parseConfig({ ...hostedEnv, FEATURE_REWORDING: "false" }).features
+        .rewording,
     ).toBe(false);
   });
 
