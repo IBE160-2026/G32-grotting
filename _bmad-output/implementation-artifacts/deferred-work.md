@@ -124,3 +124,7 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-3-4-write-the-letter-on-the-server.md`
   summary: Check the AI Letter answer for length (250-400 words, at most 300 for Direkte), language and leftover placeholders such as «[Ditt navn]».
   evidence: `generateLetter` accepts any non-blank text; an over-long, English or placeholder-filled answer is returned as a successful Letter. Belongs to `checkTone` (Story 3.5) and the integrity guard (Story 3.10); unverified how often the model does it.
+
+## Deferred from: code review of spec-3-12-freeze-the-hosted-version-and-pass-the-core-flow-checkpoint (2026-11-21)
+
+- The SM-2 target in the PRD says «on every Fixture … equal the Answer key exactly» and then excepts the held-out Fixture; the PRD checkpoint bullet for SM-1 (l. 226-227) was not reworded as SM-2's was; the `epics.md` Story 3.12 AC has a broken sentence («SM-2 passes; (both are worded …); and the wrong-input tour»). Deferred: the fix edits the PRD and `epics.md`, and Helene already has the SM-2 wording open in `.logs/helise-26/issues.md`.

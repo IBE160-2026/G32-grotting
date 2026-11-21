@@ -22,7 +22,7 @@ Drafted 2026-11-15 from the public terms. **Not yet confirmed in the dashboards.
 
 ## 2. Set-up (once)
 
-Do these in order. The first Production build starts when the story's pull request is merged to `main`, so finish steps 1 and 2 before merging.
+Do these in order. Since the freeze (2026-11-19, D23) a merge to `main` deploys nothing: the first Production build starts from the import page (Deploy) or from Vercel → Deployments → Redeploy, so finish steps 1 and 2 before that.
 
 ### Supabase
 
@@ -33,7 +33,7 @@ Do these in order. The first Production build starts when the story's pull reque
 
 ### Vercel
 
-1. Import the GitHub repository as a Hobby project. Framework preset: Next.js. `vercel.json` sets the region, build command and branch rule; do not override them in the dashboard. The import page has an Environment Variables section: fill in step 2 there, before pressing Deploy. If you press Deploy first, the first build fails with «Invalid configuration» naming the missing setting; add the variable and redeploy `main`.
+1. Import the GitHub repository as a Hobby project. Framework preset: Next.js. `vercel.json` sets the region, build command and branch rule; do not override them in the dashboard. The import page has an Environment Variables section: fill in step 2 there, before pressing Deploy. If you press Deploy first, the first build fails with «Invalid configuration» naming the missing setting; add the variable and redeploy in Vercel (Deployments → Redeploy).
 2. Environment Variables, **Production only** (untick Preview and Development; Settings → Environment Variables once the project exists):
 
 | Name             | Value                                                                                                            |
@@ -44,7 +44,7 @@ Do these in order. The first Production build starts when the story's pull reque
 
 3. Do **not** set `AI_PROVIDER`, `AI_MODEL`, `AI_API_KEY` or any `FEATURE_*`. Without them the Hosted version runs in Test mode and the AI sections are unavailable.
 4. Settings → Git: check that only `main` deploys to Production.
-5. Merge the pull request, or redeploy `main`. The build runs `npm run db:migrate`, then `next build`.
+5. Press Deploy on the import page, or Redeploy the latest deployment in Vercel (a merge to `main` deploys nothing since D23). The build runs `npm run db:migrate`, then `next build`.
 6. If the build fails: the log names the setting («Invalid configuration: …») and never prints its value. A wrong `DATABASE_URL` fails the build at `db:migrate`. Fix the variable and redeploy.
 
 ### GitHub
@@ -55,7 +55,7 @@ Do these in order. The first Production build starts when the story's pull reque
 
 ## 3. FR-30 manual row (skeleton)
 
-FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-through on a laptop and a phone is recorded in Story 3.12. All rows were checked on 2026-11-15: the curl rows by Claude, the rest (Access code, deployments, variables, dashboards) by Helene.
+FR-30 is verified by hand. This row covers the skeleton; the core-flow walk-through on a laptop and a phone runs against the local app (D23) and is recorded in `core-flow-checkpoint-2026-11-20.md`. Each row carries its own date: the rows dated 2026-11-15 were checked then (the curl rows by Claude, the rest (Access code, deployments, variables, dashboards) by Helene); the last row is dated 2026-11-20.
 
 | Check                                                                                             | Procedure                                                                                              | Result                                                                                                                                                                                                                                            | Date       |
 | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -64,11 +64,11 @@ FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-throug
 | Right code                                                                                        | Enter the Access code on `/tilgang`                                                                  | pass: shows Hjem; `/soknad` opens                                                                                                                                                                                                               | 2026-11-15 |
 | Health                                                                                            | `curl https://<host>/api/health`                                                                     | pass: 200, `{"ok":true,"data":{"hosted":true}}`                                                                                                                                                                                                 | 2026-11-15 |
 | HTTPS only                                                                                        | `curl -I http://<host>/`                                                                             | pass: 308 Permanent Redirect to `https://`                                                                                                                                                                                                      | 2026-11-15 |
-| Only `main` deploys (replaced on 2026-11-19, D23: `main` no longer deploys; see the last row) | Push a branch; then merge to `main`                                                                  | pass: the branch gets no deployment, `main` gets a Production deployment (Vercel → Deployments)                                                                                                                                                | 2026-11-15 |
+| Only `main` deploys (replaced on 2026-11-19, D23: `main` no longer deploys; see the last row) | Push a branch; then merge to `main`                                                                  | pass on 2026-11-15, no longer true: the branch got no deployment, `main` got a Production deployment (Vercel → Deployments); since 2026-11-19 `main` deploys nothing                                                                                                                                                | 2026-11-15 |
 | EU region                                                                                         | Response header `x-vercel-id`; Vercel project → Settings → Functions; Supabase project → Settings | pass: the function ran in `fra1` (Frankfurt) and the Supabase project is in `eu-west-1` (Ireland); both are in the EU. Deviation: the architecture spine names Frankfurt for Supabase, see the note below. Vercel dashboard checked by Helene | 2026-11-15 |
 | No AI                                                                                             | Vercel Production variables                                                                            | pass: no `AI_*` variable                                                                                                                                                                                                                        | 2026-11-15 |
 | Keep-alive                                                                                        | Actions → keep-alive → Run workflow                                                                  | pass: manual run succeeded in 9 s                                                                                                                                                                                                                 | 2026-11-15 |
-| Frozen, no AI, no keys                                                                            | Vercel project → Settings → Environment Variables → Production                                      | pass                                                                                                                                                                                                                                              | 2026-11-20 |
+| Frozen, no AI, no keys                                                                            | Vercel project → Settings → Environment Variables → Production                                      | pass: Helene saw in the dashboard that Production has no `AI_*`, `FEATURE_*` or `ENCRYPTION_KEY` variable (confirmed 2026-11-21, in the code review of Story 3.12) | 2026-11-20 |
 
 `regions` in `vercel.json` sets where the functions run. The Access-code gate and every API route run there. Static files come from Vercel's CDN and hold no Student data.
 
@@ -80,6 +80,6 @@ FR-30 is verified by hand. This row covers the skeleton; the live-AI walk-throug
 - Supabase Free pauses a project after 7 days without activity; the keep-alive prevents that. A paused project is resumed in the dashboard.
 - Cut 0 (PRD §5.1): applied on 2026-11-19. `main` is `false` in `git.deploymentEnabled` in `vercel.json`, so the Hosted version stays at its last deploy. To deploy again, set it back to `true` (and the test in `scripts/hosted-config.test.ts`).
 - After grading: delete the Vercel and Supabase projects (FR-23).
-- The Access code is handed in with the submission and never committed (NFR-7). To change it, edit `ACCESS_CODE` in Vercel and redeploy `main`: a changed variable applies only to a new build. Everyone then needs the new code.
+- The Access code is handed in with the submission and never committed (NFR-7). To change it, edit `ACCESS_CODE` in Vercel and redeploy the latest deployment (Deployments → Redeploy; a merge to `main` deploys nothing since D23): a changed variable applies only to a new build. Everyone then needs the new code.
 - `/api/health` is open without the code on purpose (the keep-alive calls it). It answers only `ok` and `hosted`.
 - Cut 0 stops deploys but not the keep-alive. Leave the keep-alive on, so the frozen Hosted version keeps a database that is not paused.

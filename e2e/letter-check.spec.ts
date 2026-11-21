@@ -244,6 +244,16 @@ test.describe("FR-11 flags in the Letter", () => {
   });
 });
 
+// The outcome line of «Sjekk igjen» is set 600 ms after the click, so the
+// screen reader has finished speaking the heading that focus moved to (Windows
+// Narrator dropped it when it was set 20 ms after focus; manual row 17). The
+// text alone cannot show that: `toHaveText` retries and passes at any time.
+// Called after the line has appeared, it checks the time since just before the
+// click (a lower bound, since the page counts from after the click).
+function expectHeldUntilFocusSpoken(clickedAt: number) {
+  expect(Date.now() - clickedAt).toBeGreaterThanOrEqual(590);
+}
+
 test.describe("FR-11 a check that cannot be made", () => {
   test("keeps the Letter with a notice (never an alert); «Sjekk igjen» sends the check only and adds the flags", async ({
     page,
@@ -272,12 +282,14 @@ test.describe("FR-11 a check that cannot be made", () => {
     await expect(page.locator("#live-action")).not.toHaveText(/sjekk/i);
 
     failing = false;
+    const clickedAt = Date.now();
     await retryCheck(page).click();
     await expect(warnings(page)).toBeVisible();
     await expect(page.getByText(UNCHECKED)).toHaveCount(0);
     await expect(page.locator("#live-action")).toHaveText(
       "Fant 2 ord å sjekke i brevet.",
     );
+    expectHeldUntilFocusSpoken(clickedAt);
     // Focus follows to the section heading, as for «Prøv igjen».
     await expect(
       page.getByRole("heading", { level: 2, name: "Søknadsbrev" }),
@@ -298,10 +310,12 @@ test.describe("FR-11 a check that cannot be made", () => {
     );
     await submitExample(page);
     await expect(page.getByText(UNCHECKED)).toBeVisible();
+    const clickedAt = Date.now();
     await retryCheck(page).click();
     await expect(page.locator("#live-action")).toHaveText(
       "Brevet er fortsatt ikke sjekket mot CV-en.",
     );
+    expectHeldUntilFocusSpoken(clickedAt);
     await expect(page.getByText(UNCHECKED)).toBeVisible();
     await expect(retryCheck(page)).toBeVisible();
   });
