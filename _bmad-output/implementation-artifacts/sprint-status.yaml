@@ -251,5 +251,5 @@ action_items:
     action: "Change the Gaps prompt to raise G4 recall (gaps-4), record the four gaps.json
       once each, keep G2 clean"
     owner: "dev loop"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-5-retro-2026-11-21.md"

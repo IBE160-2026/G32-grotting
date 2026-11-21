@@ -227,7 +227,7 @@ describe("FR-13 analyseGaps", () => {
     expect(result.value.gaps[0]?.kind).toBe("rewordable");
     expect(result.value.meta).toMatchObject({
       source: "mock",
-      promptVersion: "gaps-3",
+      promptVersion: "gaps-4",
     });
   });
 

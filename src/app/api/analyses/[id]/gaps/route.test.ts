@@ -151,7 +151,7 @@ describe("FR-13, FR-14 POST /api/analyses/[id]/gaps", () => {
     ).toBe(true);
     expect(json.data.meta).toMatchObject({
       source: "mock",
-      promptVersion: "gaps-3",
+      promptVersion: "gaps-4",
     });
     expect(runAi).toHaveBeenCalledTimes(1);
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -312,7 +312,7 @@ describe("FR-13, FR-14 POST /api/analyses/[id]/gaps", () => {
     const prompt = request?.buildPrompt(inputs.cvText) ?? "";
     expect(request).toMatchObject({
       task: "gaps",
-      promptVersion: "gaps-3",
+      promptVersion: "gaps-4",
       cvText: inputs.cvText,
       jobAd: inputs.jobAd,
     });

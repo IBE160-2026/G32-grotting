@@ -9,8 +9,8 @@ const prompt = (overrides: Partial<typeof base> = {}, cv = "CV-TEKST") =>
   gapsPromptBuilder({ ...base, ...overrides })(cv);
 
 describe("FR-13 gaps prompt", () => {
-  it("has the version gaps-3", () => {
-    expect(PROMPT_VERSION).toBe("gaps-3");
+  it("has the version gaps-4", () => {
+    expect(PROMPT_VERSION).toBe("gaps-4");
   });
 
   it("lists every Missing keyword in order", () => {
@@ -47,6 +47,44 @@ describe("FR-13 gaps prompt", () => {
     const text = prompt();
     expect(text).toContain("hedge");
     expect(text).toContain("dekker trolig dette – vurder å ta det med");
+  });
+
+  it("gaps-4: judges by meaning, keeps Real for what the CV does not show, and keeps the honesty rules", () => {
+    for (const rewording of [false, true]) {
+      const text = gapsPromptBuilder({ ...base, rewording })("CV-TEKST");
+      expect(text).toContain("Judge by meaning, not by the ad's wording.");
+      expect(text).toContain("a synonym or near-synonym");
+      expect(text).toContain("a compound word split into parts");
+      expect(text).toContain("another inflection of the word");
+      expect(text).toContain("Norwegian where the ad is English");
+      expect(text).toContain("the employer's word for the same task");
+      expect(text).toContain('"real" is for what the CV does not show');
+      expect(text).toContain(
+        "but not one that asks for experience, work or a role",
+      );
+      expect(text).toContain(
+        'If you doubt that the CV shows the thing at all, answer "real".',
+      );
+      expect(text).toContain("Use ONLY what the CV text shows.");
+      expect(text).toContain(
+        "Do not suggest wording to add and do not invite the student to claim it.",
+      );
+    }
+  });
+
+  it("gaps-4: the examples in the prompt are generic, not taken from the Fixtures", () => {
+    const text = gapsPromptBuilder({ ...base, rewording: true })("CV-TEKST");
+    for (const word of [
+      "kvale",
+      "fjord",
+      "sårvurdering",
+      "smertelindring",
+      "årsavslutning",
+      "skriver rapporter",
+      "hygiene",
+    ]) {
+      expect(text.toLowerCase()).not.toContain(word.toLowerCase());
+    }
   });
 
   it("forbids any claim that an ATS rejects or ranks the CV", () => {

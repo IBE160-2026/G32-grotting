@@ -28,7 +28,7 @@ export const gapsOutputSchema = z.object({ gaps: z.array(gapItemSchema) });
 
 // Bumped whenever the wording below changes: Cached responses are recorded for
 // one version, and CI fails when the Example pair's differs (AD-15, Story 4.3).
-export const PROMPT_VERSION = "gaps-3";
+export const PROMPT_VERSION = "gaps-4";
 
 export type GapsPromptInput = {
   readonly jobAd: string;
@@ -77,7 +77,7 @@ ${keywords.join("\n")}
 
 Return a JSON object with one field, "gaps": a list with one item per keyword, in the same order. Each item has these fields:
 - "keyword": the keyword exactly as listed above.
-- "kind": "rewordable" if one entry in the CV already shows what the keyword asks for, in other words. Otherwise "real".
+- "kind": "rewordable" if one entry in the CV already shows what the keyword asks for, even if it uses other words than the ad. Otherwise "real".
 - "explanation": one or two sentences in Norwegian bokmål, referring to the ad, in this order: what the ad asks for that is missing, why it matters for the job, and (only for "rewordable") the CV entry that covers it.
 - "citation": for "rewordable", the supporting CV entry copied word for word from the CV, as one continuous piece of text, with no changes, no ellipsis, no translation and no quotation marks around it. For "real", null.${
     rewording
@@ -87,8 +87,10 @@ Return a JSON object with one field, "gaps": a list with one item per keyword, i
   }
 
 Rules:
-- Use ONLY what the CV text shows. Never invent or upgrade a qualification, tool, employer, date, number or role. When the CV does not clearly show it, or you cannot copy a supporting entry exactly as it stands, the answer is "real".
+- Use ONLY what the CV text shows. Never invent or upgrade a qualification, tool, employer, date, number or role. When the CV does not show it, not even in other words, or you cannot copy a supporting entry exactly as it stands, the answer is "real".
 - A formal requirement (degree, certification, licence, language level, work permit) can be "rewordable" only if the CV states it explicitly. A related course, a similar title or a guess is "real".
+- Judge by meaning, not by the ad's wording. Do not answer "real" just because the CV lacks the ad's exact word. An entry that says the same thing in other words makes the keyword "rewordable". That includes: a synonym or near-synonym (the ad says "quality assurance", the CV says "checked that every delivery met the standard"); a compound word split into parts, or parts joined into a compound; another inflection of the word; Norwegian where the ad is English, or the other way round; and the student's own word for a task where the ad uses the employer's word for the same task (the ad says "stock control", the CV says "kept track of the warehouse inventory"). The entry need not be as detailed or as formal as the ad, as long as it names the same activity, skill or subject. For a formal requirement, the rule above still applies.
+- "real" is for what the CV does not show: no entry names the same activity, skill, subject or tool; an entry names something different that only sounds similar; or an entry states a lower level than the keyword asks for (taking part where the ad wants leading, a course where the ad wants experience). A school subject, course or exam paper names a topic the student has studied: it can make a keyword that asks for knowledge or competence "rewordable", but not one that asks for experience, work or a role. If you doubt that the CV shows the thing at all, answer "real". Do not answer "real" only because you doubt the wording.
 - For "rewordable", hedge the explanation, for example «Linjen din dekker trolig dette – vurder å ta det med.» Do not state it as certain.
 - For "real", say plainly that the CV does not show it. Do not suggest wording to add and do not invite the student to claim it.
 ${
