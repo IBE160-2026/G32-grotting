@@ -69,3 +69,28 @@ Hjelpe med de manuelle feiltestene i `letter-manual-checks.md` (rad 8–17), fø
 - `fix/check-retry-announcement` og `chore/qa-stub-proxy` er ikke pushet eller merget.
 
 Rad 17 kjørt på nytt av Helene etter rettelsen (kl. 18): bestått. Årsaken er dermed den målte timingen (live-linja 20 ms etter fokus), ikke bare en antakelse. Ført i `letter-manual-checks.md` (ukommittert sammen med Helenes øvrige rader). Åpent: `fix/check-retry-announcement` må pushes og merges.
+
+## 2026-11-21 kl. 12:44 — Helise-26
+
+### Oppgave
+Uavhengig kodegjennomgang av story 3.12 (`bmad-code-review`, full modus), som issues.md ba om etter den innebygde gjennomgangen 2026-11-20. Deretter anvende rettelsene.
+
+### Plan
+- Diff: `23ccf6c` (frysing), `e833eb3` (Hosted-regelen) og `7e7ea25..7371110` (spec-baseline til merge av sjekkpunktet), 27 filer.
+- Fire subagenter: Blind Hunter, Edge Case Hunter, Verification Gap og Acceptance Auditor; triage mot koden og commit-meldingene.
+- Tre avgjørelser fra Helene, deretter «anvend alle» på en ny gren `fix/3.12-review-patches`.
+
+### Resultat
+Funn er skrevet i `### Review Findings` i `_bmad-output/implementation-artifacts/spec-3-12-freeze-the-hosted-version-and-pass-the-core-flow-checkpoint.md` (3 avgjørelser, 4 patcher, 1 utsatt, 8 forkastet). Ett punkt er utsatt i `deferred-work.md`. Alle 7 patcher er anvendt og ukommittert på grenen:
+- `config.ts` + test: Hosted avviser nå `AI_PROVIDER` uten `AI_MODEL` (valg 2); en komplett AI-config godtas, og kommentaren sier at det er deployen som holder AI borte.
+- `check-letter.test.ts`: ny test som sjekker alle tre cachede brev mot den lagrede KI-lista (via `proposeKeywords` og `findKeyword`). Den feiler på det gamle Formell-brevet (verifisert ved å legge det tilbake midlertidig) og består nå.
+- `e2e/letter-check.spec.ts`: `expectHeldUntilFocusSpoken` i begge «Sjekk igjen»-testene; feiler med forsinkelsen satt til 0 (verifisert, så filen ble satt tilbake).
+- `ai-notice-manual-checks.md` rad 1: «pass (host terms read, Helene, 2026-11-21)», uten «not verified». `hosted-deployment.md`: Vercel-raden navngir Helene; gammelt «merge deployer»-språk rettet. `letter-manual-checks.md` rad 13: `partial`. `core-flow-checkpoint-2026-11-20.md`: §6 og §7 rettet og testen nevnt i §5.
+- `issues.md`: seks 3.12-punkter lukket (Vercel-raden, UJ-1, sprint-status, review, telefon, `fix/check-retry-announcement` merget som #69).
+- Kontroll: `biome check` ren, `tsc --noEmit` ren, `npx vitest run` 110 filer, 1296 bestått og 3 forventet feil. Playwright kjørt for de tre «cannot be made»-testene; hele e2e-suiten og Docker-kjøringen er ikke kjørt etter rettelsene.
+- Sprint-status: 3-12 står som `done` (uendret), `last_updated` satt.
+
+### Åpne punkter
+- Rettelsene ligger ukommittert på `fix/3.12-review-patches` sammen med Helenes egne endringer i `gaps-manual-checks.md`.
+- Tilfellet «en overstyrt sjekk holder seg stille» er ikke dekket av noen test (kun tidsgrensen er).
+- Rad 1 i `ai-notice-manual-checks.md` sier nå at vertsvilkårene er lest, men hva de sa er ikke ført.
