@@ -4,98 +4,98 @@
       {
         "keyword": "Power BI",
         "kind": "real",
-        "explanation": "Annonsen nevner Power BI til rapportering som et pluss. CV-en viser ikke erfaring med Power BI, bare Excel med pivottabeller.",
+        "explanation": "Annonsen nevner Power BI til rapportering som et pluss. CV-en viser Excel med pivottabeller, men ikke Power BI eller et tilsvarende rapporteringsverktøy.",
         "citation": null,
         "suggestion": null
       },
       {
         "keyword": "automatisering av rutiner",
         "kind": "real",
-        "explanation": "Annonsen nevner erfaring med automatisering av rutiner som et pluss. CV-en viser ingen automatisering av arbeidsrutiner.",
+        "explanation": "Annonsen nevner erfaring med automatisering av rutiner som et pluss. CV-en viser ikke at du har automatisert arbeidsoppgaver.",
         "citation": null,
         "suggestion": null
       },
       {
         "keyword": "bokføring",
         "kind": "rewordable",
-        "explanation": "Annonsen ber om erfaring med løpende bokføring, som er kjernen i stillingen. Linjen din om løpende regnskap for kunder i Visma dekker trolig dette – vurder å bruke annonsens ord.",
+        "explanation": "Annonsen ønsker erfaring med løpende bokføring, som er kjernen i stillingen. Linjen din om å føre løpende regnskap i Visma dekker trolig dette – vurder å bruke annonsens ord.",
         "citation": "Førte løpende regnskap for omtrent 40 kunder i regnskapssystemet Visma.",
         "suggestion": "Utførte løpende bokføring for omtrent 40 kunder i regnskapssystemet Visma."
       },
       {
         "keyword": "utdanning innen regnskap",
         "kind": "rewordable",
-        "explanation": "Annonsen krever utdanning innen regnskap, for eksempel fagskole. Fagskoleutdanningen din i regnskap og økonomi dekker trolig dette – vurder å bruke annonsens formulering.",
+        "explanation": "Annonsen krever utdanning innen regnskap, og det er en forutsetning for stillingen. Fagskoleutdanningen din i regnskap og økonomi dekker trolig dette – vurder å bruke annonsens formulering.",
         "citation": "Fagskole i regnskap og økonomi, Rogaland fagskole (fiktiv), 2021–2023",
         "suggestion": "Utdanning innen regnskap og økonomi: fagskole, Rogaland fagskole (fiktiv), 2021–2023"
       },
       {
         "keyword": "norskkunnskaper",
         "kind": "rewordable",
-        "explanation": "Annonsen ber om gode norskkunnskaper, muntlig og skriftlig, siden du følger opp kunder på telefon og e-post. Språklinjen din dekker trolig dette – vurder å bruke ordet norskkunnskaper.",
+        "explanation": "Annonsen ber om gode norskkunnskaper fordi du skal kommunisere med kunder skriftlig og muntlig. Ferdighetslinjen din med norsk som morsmål dekker trolig dette – vurder å bruke ordet norskkunnskaper.",
         "citation": "Norsk (morsmål), engelsk (godt)",
         "suggestion": "Norskkunnskaper: morsmål. Engelskkunnskaper: godt."
       },
       {
         "keyword": "årsavslutning",
-        "kind": "real",
-        "explanation": "Annonsen ber om kjennskap til årsavslutning, som er en del av ansvaret for kundeporteføljen. CV-en viser ikke at du har arbeidet med årsavslutning, bare et emne om årsregnskap i utdanningen.",
-        "citation": null,
-        "suggestion": null
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om kjennskap til årsavslutning for aksjeselskaper, siden stillingen går helt til årsoppgjør. Emnet ditt om årsregnskap for aksjeselskaper dekker trolig kunnskapen – vurder å ta det med i annonsens ord.",
+        "citation": "Årsregnskap: Resultat, balanse og noter for aksjeselskaper.",
+        "suggestion": "Kjennskap til årsavslutning for aksjeselskaper: resultat, balanse og noter."
       },
       {
         "keyword": "skatteoppgjør",
         "kind": "real",
-        "explanation": "Annonsen ber om kjennskap til skatteoppgjør. CV-en viser ingen erfaring eller opplæring innen skatteoppgjør.",
+        "explanation": "Annonsen ber om kjennskap til skatteoppgjør. CV-en viser ikke skatteoppgjør, verken i utdanning eller erfaring.",
         "citation": null,
         "suggestion": null
       },
       {
         "keyword": "årsoppgjør",
         "kind": "real",
-        "explanation": "Annonsen sier at du får ansvar for kunder fra løpende bokføring til årsoppgjør. CV-en viser ikke arbeid med årsoppgjør, bare et emne om årsregnskap i utdanningen.",
+        "explanation": "Annonsen sier at du får ansvar for kundeporteføljen fra løpende bokføring til årsoppgjør. CV-en viser årsregnskap bare som et emne på skolen, ikke erfaring med å utføre årsoppgjør.",
         "citation": null,
         "suggestion": null
       },
       {
         "keyword": "autorisert regnskapsfører",
         "kind": "real",
-        "explanation": "Annonsen sier at du skal jobbe tett med en autorisert regnskapsfører. Dette er ikke et krav til deg, og CV-en viser ingen slik autorisasjon.",
+        "explanation": "Annonsen sier at du skal jobbe tett med en autorisert regnskapsfører. CV-en viser ikke at du har slik autorisasjon, og annonsen krever det heller ikke av deg.",
         "citation": null,
         "suggestion": null
       },
       {
         "keyword": "bachelor i økonomi og administrasjon",
         "kind": "real",
-        "explanation": "Annonsen nevner bachelor i økonomi og administrasjon som eksempel på utdanning. CV-en viser fagskole og ingen bachelorgrad.",
+        "explanation": "Annonsen nevner bachelor i økonomi og administrasjon som eksempel på utdanning. CV-en viser fagskole i regnskap og økonomi, ikke en bachelorgrad.",
         "citation": null,
         "suggestion": null
       },
       {
         "keyword": "avstemming av bank og reskontro",
         "kind": "rewordable",
-        "explanation": "Annonsen ber om erfaring med avstemming av bank og reskontro, en fast oppgave i løpende regnskap. Linjen din om månedlig avstemming dekker trolig dette – vurder å bruke annonsens ord.",
+        "explanation": "Annonsen ønsker erfaring med avstemming av bank og reskontro, en fast oppgave i regnskapsarbeidet. Linjen din om månedlig avstemming av bank og kundereskontro dekker trolig dette – vurder å bruke annonsens ord.",
         "citation": "Avstemte bank og kundereskontro hver måned.",
-        "suggestion": "Utførte avstemming av bank og reskontro hver måned."
+        "suggestion": "Utførte avstemming av bank og kundereskontro hver måned."
       },
       {
         "keyword": "mva-regelverket",
-        "kind": "real",
-        "explanation": "Annonsen ber om at du kjenner mva-regelverket. CV-en viser mva-oppgjør og et emne om mva-koder, men ikke tydelig kjennskap til regelverket.",
-        "citation": null,
-        "suggestion": null
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du kjenner mva-regelverket, som er viktig for å levere riktige oppgjør for kundene. Emnet ditt om merverdiavgift dekker trolig kunnskapen – vurder å bruke annonsens ord.",
+        "citation": "Merverdiavgift: Mva-koder og mva-oppgjør for små bedrifter.",
+        "suggestion": "Kunnskap om mva-regelverket: mva-koder og mva-oppgjør for små bedrifter."
       },
       {
         "keyword": "mva-melding",
         "kind": "rewordable",
-        "explanation": "Annonsen ber om erfaring med å levere mva-melding, som må gjøres riktig og i tide for kundene. Linjen din om å levere mva-oppgjør hver andre måned dekker trolig dette – vurder å bruke annonsens ord.",
+        "explanation": "Annonsen ber om erfaring med å levere mva-melding, en gjentakende frist for kundene. Linjen din om å levere mva-oppgjør hver andre måned dekker trolig dette – vurder å bruke annonsens ord.",
         "citation": "Leverte mva-oppgjør hver andre måned og ryddet opp i feil sammen med kunden.",
-        "suggestion": "Leverte mva-melding hver andre måned og ryddet opp i feil sammen med kunden."
+        "suggestion": "Leverte mva-meldinger hver andre måned og ryddet opp i feil sammen med kunden."
       },
       {
         "keyword": "skatteoppgjør for aksjeselskaper",
         "kind": "real",
-        "explanation": "Annonsen ber om kjennskap til skatteoppgjør for aksjeselskaper. CV-en viser et emne om årsregnskap for aksjeselskaper, men ingen erfaring med skatteoppgjør.",
+        "explanation": "Annonsen ber om kjennskap til skatteoppgjør for aksjeselskaper. CV-en viser årsregnskap for aksjeselskaper som emne, men ikke skatteoppgjør.",
         "citation": null,
         "suggestion": null
       }
@@ -105,7 +105,7 @@
     "source": "live",
     "provider": "openrouter",
     "model": "anthropic/claude-sonnet-5.5",
-    "promptVersion": "gaps-3",
-    "createdAt": "2026-11-21T16:26:57.808Z"
+    "promptVersion": "gaps-4",
+    "createdAt": "2026-11-21T19:00:38.237Z"
   }
 }

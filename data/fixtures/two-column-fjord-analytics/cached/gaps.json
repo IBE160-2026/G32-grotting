@@ -4,21 +4,21 @@
       {
         "keyword": "prosjektledelse",
         "kind": "real",
-        "explanation": "Annonsen ber om erfaring med prosjektledelse, for eksempel fra et studieprosjekt, fordi du får ansvar for delprosjekter og skal holde orden på fremdrift og frister. CV-en viser et gruppeprosjekt, men ikke at du ledet eller hadde ansvar for fremdrift, så dette kommer ikke frem.",
+        "explanation": "Annonsen ber om erfaring med prosjektledelse, for eksempel fra et studieprosjekt, fordi du får ansvar for delprosjekter og skal holde orden på fremdrift og frister. CV-en viser gruppearbeid der oppgavene ble delt og det var ukentlige møter, men ikke at du ledet prosjektet. Emnet om ledelse er teori og viser ikke erfaring.",
         "citation": null,
         "suggestion": null
       },
       {
         "keyword": "skriver rapporter",
-        "kind": "real",
-        "explanation": "Annonsen ber om at du skriver korte, tydelige rapporter som kundene forstår, siden rapportene er en viktig del av jobben. CV-en sier at gruppen leverte en rapport, men viser ikke at du selv skrev den, så dette kommer ikke tydelig frem.",
-        "citation": null,
-        "suggestion": null
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du skriver rapporter som er korte, tydelige og lette å bruke, siden kundene skal forstå analysene. Linjen din om semesterprosjektet dekker trolig noe av dette, siden gruppen leverte en rapport – vurder å ta det med.",
+        "citation": "Vi leverte rapporten og presenterte funnene for faglærer",
+        "suggestion": "Leverte sammen med gruppen rapporten fra salgsanalysen og presenterte funnene for faglærer og et annet kull."
       },
       {
         "keyword": "Python",
         "kind": "real",
-        "explanation": "Annonsen nevner Python som et pluss, ikke et krav, for analysearbeidet. CV-en viser SQL, Power BI, Excel og R, men ikke Python.",
+        "explanation": "Annonsen nevner Python som et pluss, fordi det er nyttig i analysearbeid. CV-en viser SQL, R, Excel og Power BI, men ikke Python.",
         "citation": null,
         "suggestion": null
       }
@@ -28,7 +28,7 @@
     "source": "live",
     "provider": "openrouter",
     "model": "anthropic/claude-sonnet-5.5",
-    "promptVersion": "gaps-3",
-    "createdAt": "2026-11-21T16:27:36.186Z"
+    "promptVersion": "gaps-4",
+    "createdAt": "2026-11-21T19:01:17.817Z"
   }
 }
