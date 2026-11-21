@@ -7,6 +7,12 @@ export type {
   LetterSpan,
 } from "./check-letter";
 export { checkLetter } from "./check-letter";
+export type {
+  CheckSuggestionInput,
+  SuggestibleGap,
+  SuggestionVerdict,
+} from "./check-suggestion";
+export { checkSuggestion } from "./check-suggestion";
 export type { ToneCheck, ToneName, ToneProblem } from "./check-tone";
 export {
   checkTone,
@@ -19,5 +25,6 @@ export {
   ANECDOTE_MARKERS,
   MOTIVATION_PHRASES,
   UPGRADE_WORD_CV_FORMS,
+  UPGRADE_WORD_SAME_FORMS,
   UPGRADE_WORDS,
 } from "./word-lists";

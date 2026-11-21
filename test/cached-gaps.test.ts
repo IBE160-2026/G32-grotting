@@ -297,6 +297,92 @@ describe("FR-16 the Cached Gaps with rewording on (Story 5.1)", () => {
   );
 });
 
+// Story 5.2: the recordings through FR-17 with the app's own Missing list (the
+// Answer key's list plus phase 1's in Test mode, which is the list the recorder
+// asked about). Nothing is edited to pass. Every recorded suggestion passes
+// today (zero discards in all four Fixtures); the Helene checks (G1-G5) judge
+// what the guard does not see, such as an added fact outside the Missing list.
+describe("FR-17 the Cached Gaps through the suggestion check (Story 5.2)", () => {
+  it.each(IDS)(
+    "%s: every recorded suggestion is judged, and a discard leaves citation and explanation",
+    async (id) => {
+      const fixture = (await loadFixtures()).find((f) => f.id === id);
+      if (fixture === undefined) throw new Error(`no Fixture ${id}`);
+      const vocabulary = vocabularySchema.parse(
+        JSON.parse(readFileSync("data/vocabulary/nb.json", "utf8")),
+      );
+      const missingTerms = gapsMissingList(
+        answerKeyOf(id).keywords.missing,
+        await testModeMissingTerms(
+          `data/fixtures/${id}`,
+          fixture.cvText,
+          fixture.jobAd,
+          vocabulary,
+        ),
+      );
+      const run = (withVocabulary: boolean) =>
+        analyseGaps(
+          {
+            inputs: {
+              cvText: fixture.cvText,
+              jobAd: fixture.jobAd,
+              jobTitle: fixture.jobTitle,
+              employer: fixture.employer,
+            },
+            missingTerms,
+            rewording: true,
+            ...(withVocabulary ? { vocabulary } : {}),
+          },
+          CTX,
+          { adapter: createCachedAdapter(), testMode: true },
+        );
+      const result = await run(true);
+      if (!result.ok) throw new Error(`expected ok for ${id}`);
+      const raw = gapsOutputSchema.parse(rawOf(fixture).data);
+      for (const gap of result.value.gaps) {
+        const item = raw.gaps.find(
+          (candidate) =>
+            normalise(candidate.keyword) === normalise(gap.keyword),
+        );
+        // Whatever the guard does, citation and explanation are the recorded ones.
+        if (gap.kind === "rewordable") {
+          expect(gap.citation, `${id} ${gap.keyword}`).toBe(
+            item?.citation?.trim(),
+          );
+          expect(gap.explanation, `${id} ${gap.keyword}`).toEqual({
+            text: item?.explanation?.trim(),
+          });
+        }
+        if (gap.suggestion !== null) {
+          expect(gap.suggestion, `${id} ${gap.keyword}`).toBe(
+            item?.suggestion?.trim(),
+          );
+        }
+      }
+      // The recorded suggestions all pass FR-17 today (no invention and no
+      // Upgrade word found), with and without the vocabulary. A recording that
+      // later fails here has a suggestion the guard throws away.
+      const discarded = result.value.gaps.filter(
+        (gap) =>
+          gap.kind === "rewordable" &&
+          gap.suggestion === null &&
+          raw.gaps.some(
+            (item) =>
+              normalise(item.keyword) === normalise(gap.keyword) &&
+              (item.suggestion ?? "").trim() !== "",
+          ),
+      );
+      expect(
+        discarded.map((gap) => gap.keyword),
+        id,
+      ).toEqual([]);
+      const without = await run(false);
+      if (!without.ok) throw new Error(`expected ok for ${id}`);
+      expect(without.value.gaps, id).toEqual(result.value.gaps);
+    },
+  );
+});
+
 // The evaluation `scripts/qa-compare.ts` makes, on the recorded file.
 function evaluateGapsOf(id: string) {
   const content = JSON.parse(

@@ -194,6 +194,87 @@ describe("FR-13, FR-14 POST /api/analyses/[id]/gaps", () => {
     expect(prompt).toContain('"suggestion"');
   });
 
+  it("FR-17: with features.rewording on, a suggestion naming another Missing keyword or an Upgrade word the CV lacks is null, the citation and explanation stay", async () => {
+    flags.rewording = true;
+    const missing = (await phaseOne()).result.missing.map(({ term }) => term);
+    const [first, second, ...rest] = missing;
+    const citation = inputs.cvText
+      .split("\n")
+      .find((line) => line.trim() !== "");
+    if (first === undefined || second === undefined || citation === undefined) {
+      throw new Error("setup");
+    }
+    expect(inputs.cvText.toLowerCase()).not.toContain("grunnla");
+    const rewordable = (term: string, suggestion: string) => ({
+      keyword: term,
+      kind: "rewordable",
+      explanation: "Linjen din dekker trolig dette.",
+      citation: citation.trim(),
+      suggestion,
+    });
+    answer.value = {
+      gaps: [
+        rewordable(first, `Brukte ${first} og ${second}.`),
+        rewordable(second, `Grunnla gruppen for ${second}.`),
+        ...rest.map((term) => ({
+          keyword: term,
+          kind: "real",
+          explanation: "CV-en viser ikke dette.",
+          citation: null,
+          suggestion: null,
+        })),
+      ],
+    };
+    const json = await (await post(await body())).json();
+    expect(json.ok).toBe(true);
+    const [one, two] = json.data.gaps;
+    for (const gap of [one, two]) {
+      expect(gap.kind).toBe("rewordable");
+      expect(gap.citation).toBe(citation.trim());
+      expect(gap.explanation).toEqual({
+        text: "Linjen din dekker trolig dette.",
+      });
+      expect(gap.suggestion).toBeNull();
+    }
+  });
+
+  it("FR-17: the route hands the vocabulary to the check, so a Missing keyword named by an alias is found", async () => {
+    flags.rewording = true;
+    const vocabulary = await loadVocabulary();
+    const missing = (await phaseOne()).result.missing.map(({ term }) => term);
+    const named = missing.find(
+      (term) => (vocabulary.aliases[term]?.length ?? 0) > 0,
+    );
+    const alias =
+      named === undefined ? undefined : vocabulary.aliases[named]?.[0];
+    const own = missing.find((term) => term !== named);
+    const citation = inputs.cvText
+      .split("\n")
+      .find((line) => line.trim() !== "");
+    if (own === undefined || alias === undefined || citation === undefined) {
+      throw new Error("setup: the Example pair misses a keyword with an alias");
+    }
+    expect(alias.toLowerCase()).not.toContain(own.toLowerCase());
+    answer.value = {
+      gaps: [
+        {
+          keyword: own,
+          kind: "rewordable",
+          explanation: "Linjen din dekker trolig dette.",
+          citation: citation.trim(),
+          suggestion: `Brukte ${alias} i prosjektet.`,
+        },
+      ],
+    };
+    const json = await (await post(await body())).json();
+    expect(json.ok).toBe(true);
+    const gap = json.data.gaps.find(
+      (candidate: { keyword: string }) => candidate.keyword === own,
+    );
+    expect(gap.kind).toBe("rewordable");
+    expect(gap.suggestion).toBeNull();
+  });
+
   it("FR-16: with features.rewording off, no suggestion is asked for and every suggestion is null", async () => {
     answer.value = { gaps: await reversedAnswer() };
     const response = await post(await body());

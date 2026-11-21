@@ -21,12 +21,14 @@ export type AiLogEvent = {
   readonly errorCode: MessageKey | null;
 };
 
-// One per Gap analysis (AD-14, FR-15): how many Rewordable gaps were turned into
-// the Real-gap template because their citation is not in the CV text. A count
-// only, never a citation, a keyword or CV text.
+// One per Gap analysis (AD-14): how many Rewordable gaps were turned into the
+// Real-gap template because their citation is not in the CV text (FR-15), and
+// how many suggestions were discarded for inventing or upgrading (FR-17).
+// Counts only, never a citation, a suggestion, a keyword or CV text.
 export type GapsLogEvent = {
   readonly kind: "gaps";
   readonly downgraded: number;
+  readonly discarded: number;
 };
 
 export type LogEvent = ErrorLogEvent | AiLogEvent | GapsLogEvent;

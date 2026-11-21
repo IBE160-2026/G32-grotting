@@ -55,3 +55,12 @@ export const UPGRADE_WORDS = [
 export const UPGRADE_WORD_CV_FORMS: Readonly<
   Record<string, readonly string[]>
 > = { "ansvarlig for": ["ansvar for"] };
+
+// Other word forms that count as the same Upgrade word when a Suggestion is
+// checked (FR-17): «forsket», «forsker» and «forskning» are one word to a
+// Student, although «forskning» stems differently. A form here clears the word
+// when the CV entry holds it, and makes the word count when the Suggestion
+// uses it. The Letter check (FR-11) does not read this list.
+export const UPGRADE_WORD_SAME_FORMS: Readonly<
+  Record<string, readonly string[]>
+> = { forsket: ["forsker", "forskning"] };

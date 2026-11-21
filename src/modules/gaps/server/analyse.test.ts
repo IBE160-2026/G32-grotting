@@ -7,6 +7,7 @@ import {
   type AiGapItem,
   analyseGaps,
   checkGapCitations,
+  checkGapSuggestions,
   structureGaps,
 } from "./analyse";
 
@@ -472,7 +473,7 @@ describe("FR-15 analyseGaps checks citations against the sent CV text", () => {
     expect(result.value.gaps[0]).toEqual(template("TypeScript"));
     expect(result.value.gaps[1]?.kind).toBe("rewordable");
     const events = gapsEvents();
-    expect(events).toEqual([{ kind: "gaps", downgraded: 1 }]);
+    expect(events).toEqual([{ kind: "gaps", downgraded: 1, discarded: 0 }]);
     const logged = JSON.stringify(events);
     expect(logged).not.toContain("ola@example.no");
     expect(logged).not.toContain("Git");
@@ -484,7 +485,9 @@ describe("FR-15 analyseGaps checks citations against the sent CV text", () => {
       adapter: adapterOf(() => ({ gaps: [real("TypeScript")] })),
       testMode: true,
     });
-    expect(gapsEvents()).toEqual([{ kind: "gaps", downgraded: 0 }]);
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 0, discarded: 0 },
+    ]);
   });
 
   it("logs nothing when no request is made, and nothing when the request fails", async () => {
@@ -497,6 +500,191 @@ describe("FR-15 analyseGaps checks citations against the sent CV text", () => {
       testMode: true,
     });
     expect(gapsEvents()).toEqual([]);
+  });
+});
+
+describe("FR-17 checkGapSuggestions", () => {
+  const CV = "Jeg skrev eksamensoppgave om sår.\nJeg brukte Git.";
+  const withSuggestion = (
+    keyword: string,
+    citation: string | null,
+    suggestion: string | null,
+  ) => ({ ...gapOf(keyword, citation), suggestion });
+
+  it("keeps a clean suggestion and leaves Real gaps and Gaps with no suggestion alone", () => {
+    const gaps = [
+      withSuggestion("Git", "Jeg brukte Git.", "Brukte Git i prosjektet."),
+      gapOf("TypeScript", null),
+      withSuggestion("sår", "Jeg skrev eksamensoppgave om sår.", null),
+    ];
+    expect(checkGapSuggestions(gaps, ["Git", "TypeScript", "sår"], CV)).toEqual(
+      { gaps, discarded: 0 },
+    );
+  });
+
+  it("turns a discarded suggestion into null while citation and explanation stay, and counts it", () => {
+    const gap = withSuggestion(
+      "sår",
+      "Jeg skrev eksamensoppgave om sår.",
+      "Forsket på sår.",
+    );
+    const other = withSuggestion(
+      "Git",
+      "Jeg brukte Git.",
+      "Brukte Git og TypeScript.",
+    );
+    const kept = withSuggestion(
+      "x",
+      "Jeg brukte Git.",
+      "Brukte det i prosjektet.",
+    );
+    const result = checkGapSuggestions(
+      [gap, other, kept],
+      ["sår", "Git", "TypeScript", "x"],
+      CV,
+    );
+    expect(result.discarded).toBe(2);
+    expect(result.gaps[0]).toEqual({ ...gap, suggestion: null });
+    expect(result.gaps[1]).toEqual({ ...other, suggestion: null });
+    expect(result.gaps[1]?.explanation).toEqual({ text: "AI-forklaring." });
+    expect(result.gaps[1]?.citation).toBe("Jeg brukte Git.");
+    expect(result.gaps[2]).toBe(kept);
+  });
+});
+
+describe("FR-17 analyseGaps: the order and the log", () => {
+  beforeEach(() => vi.mocked(log).mockClear());
+
+  const run = (gaps: unknown[], missingTerms: string[], rewording = true) =>
+    analyseGaps({ inputs, missingTerms, rewording }, CTX, {
+      adapter: adapterOf(() => ({ gaps })),
+      testMode: true,
+    });
+
+  it("discards a suggestion that names another Missing keyword, keeps citation and explanation, and logs a count only", async () => {
+    const result = await run(
+      [
+        {
+          ...rewordable("TypeScript", "Jeg brukte Git."),
+          suggestion: "Brukte Git sammen med REST-API.",
+        },
+        {
+          ...rewordable("REST-API", "Jeg brukte Git."),
+          suggestion: "Brukte Git i prosjektet.",
+        },
+      ],
+      ["TypeScript", "REST-API"],
+    );
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps[0]).toMatchObject({
+      keyword: "TypeScript",
+      kind: "rewordable",
+      citation: "Jeg brukte Git.",
+      explanation: { text: expect.any(String) },
+      suggestion: null,
+    });
+    expect(result.value.gaps[1]?.suggestion).toBe("Brukte Git i prosjektet.");
+    const events = gapsEvents();
+    expect(events).toEqual([{ kind: "gaps", downgraded: 0, discarded: 1 }]);
+    const logged = JSON.stringify(events);
+    expect(logged).not.toContain("Git");
+    expect(logged).not.toContain("REST-API");
+  });
+
+  it("discards an Upgrade word the cited entry lacks", async () => {
+    const result = await run(
+      [
+        {
+          ...rewordable("TypeScript", "Jeg brukte Git."),
+          suggestion: "Ledet bruken av Git.",
+        },
+      ],
+      ["TypeScript"],
+    );
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps[0]?.suggestion).toBeNull();
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 0, discarded: 1 },
+    ]);
+  });
+
+  it("runs FR-15 before FR-17: a downgraded gap is the template and is not also counted as discarded", async () => {
+    const result = await run(
+      [
+        {
+          ...rewordable("TypeScript", "Finnes ikke i CV-en."),
+          suggestion: "Ledet bruken av REST-API.",
+        },
+      ],
+      ["TypeScript", "REST-API"],
+    );
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps[0]).toEqual(template("TypeScript"));
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 1, discarded: 0 },
+    ]);
+  });
+
+  it("runs the structure step before FR-17: a blank suggestion is null and is not counted", async () => {
+    const result = await run(
+      [{ ...rewordable("TypeScript", "Jeg brukte Git."), suggestion: "  " }],
+      ["TypeScript"],
+    );
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps[0]?.suggestion).toBeNull();
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 0, discarded: 0 },
+    ]);
+  });
+
+  it("with rewording off every suggestion is already null and nothing is discarded", async () => {
+    const result = await run(
+      [
+        {
+          ...rewordable("TypeScript", "Jeg brukte Git."),
+          suggestion: "Ledet REST-API.",
+        },
+      ],
+      ["TypeScript", "REST-API"],
+      false,
+    );
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.value.gaps[0]?.suggestion).toBeNull();
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 0, discarded: 0 },
+    ]);
+  });
+
+  it("finds another Missing keyword by an alias when given the vocabulary", async () => {
+    const response = {
+      gaps: [
+        {
+          ...rewordable("REST-API", "Jeg brukte Git."),
+          suggestion: "Brukte Git og TS.",
+        },
+      ],
+    };
+    const vocabulary = {
+      vocabularyVersion: "v1-00000000",
+      terms: ["TypeScript"],
+      aliases: { TypeScript: ["TS"] },
+    };
+    const analyse = (withVocabulary: boolean) =>
+      analyseGaps(
+        {
+          inputs,
+          missingTerms: ["REST-API", "TypeScript"],
+          rewording: true,
+          ...(withVocabulary ? { vocabulary } : {}),
+        },
+        CTX,
+        { adapter: adapterOf(() => response), testMode: true },
+      );
+    const without = await analyse(false);
+    const withIt = await analyse(true);
+    if (!without.ok || !withIt.ok) throw new Error("expected ok");
+    expect(without.value.gaps[0]?.suggestion).toBe("Brukte Git og TS.");
+    expect(withIt.value.gaps[0]?.suggestion).toBeNull();
   });
 });
 
@@ -567,7 +755,9 @@ describe("FR-15 planted Cached responses", () => {
       template(keyword),
     );
     expect(gaps.every((gap) => gap.kind === "real")).toBe(true);
-    expect(gapsEvents()).toEqual([{ kind: "gaps", downgraded: 1 }]);
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 1, discarded: 0 },
+    ]);
   });
 
   it("passes an exact citation in other case and with other line breaks", async () => {
@@ -583,6 +773,92 @@ describe("FR-15 planted Cached responses", () => {
     expect(canonVerbatim(pair.cvText)).toContain(
       canonVerbatim(gap?.citation ?? ""),
     );
-    expect(gapsEvents()).toEqual([{ kind: "gaps", downgraded: 0 }]);
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 0, discarded: 0 },
+    ]);
+  });
+});
+
+// Planted FR-17 responses: the nursing Fixture's exam-paper entry (Story 5.2).
+describe("FR-17 planted Cached responses", () => {
+  beforeEach(() => vi.mocked(log).mockClear());
+
+  const nursing = {
+    cvText: readFileSync("data/fixtures/nursing-sarvurdering/cv.txt", "utf8"),
+    jobAd: readFileSync("data/fixtures/nursing-sarvurdering/ad.txt", "utf8"),
+    jobTitle: "Sykepleier",
+    employer: "Fjordheimen",
+  };
+  const NURSING_MISSING = (
+    JSON.parse(
+      readFileSync(
+        "data/fixtures/nursing-sarvurdering/answer-key.json",
+        "utf8",
+      ),
+    ) as { keywords: { missing: string[] } }
+  ).keywords.missing;
+
+  async function runNursing(file: string) {
+    const planted = JSON.parse(
+      readFileSync(`data/fixtures/_planted/${file}.json`, "utf8"),
+    ) as { data: { gaps: AiGapItem[] } };
+    const result = await analyseGaps(
+      { inputs: nursing, missingTerms: NURSING_MISSING, rewording: true },
+      CTX,
+      { adapter: adapterOf(() => planted.data), testMode: true },
+    );
+    if (!result.ok) throw new Error("expected ok");
+    return { planted: planted.data.gaps, gaps: result.value.gaps };
+  }
+
+  it("discards «Forsket på sårvurdering» for the exam-paper entry; citation and explanation stay", async () => {
+    const { planted, gaps } = await runNursing(
+      "gaps-fr17-upgrade-exam-paper-as-research",
+    );
+    const item = planted.find((entry) => entry.keyword === "sårvurdering");
+    expect(item?.suggestion).toBe("Forsket på sårvurdering");
+    expect(item?.kind).toBe("rewordable");
+    // The plant stays a plant: the citation really is in the CV.
+    expect(canonVerbatim(nursing.cvText)).toContain(
+      canonVerbatim(item?.citation ?? ""),
+    );
+    const gap = gaps.find((entry) => entry.keyword === "sårvurdering");
+    expect(gap).toMatchObject({
+      kind: "rewordable",
+      citation: item?.citation,
+      explanation: { text: item?.explanation },
+      suggestion: null,
+    });
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 0, discarded: 1 },
+    ]);
+  });
+
+  it("keeps «Kompetanse i sårvurdering»", async () => {
+    const { gaps } = await runNursing("gaps-fr17-kept-no-upgrade");
+    expect(gaps.find((gap) => gap.keyword === "sårvurdering")?.suggestion).toBe(
+      "Kompetanse i sårvurdering",
+    );
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 0, discarded: 0 },
+    ]);
+  });
+
+  it("discards a suggestion that names another Missing keyword", async () => {
+    const { planted, gaps } = await runNursing(
+      "gaps-fr17-names-other-missing-keyword",
+    );
+    const item = planted.find(
+      (entry) => entry.keyword === "legemiddelhåndtering",
+    );
+    expect(item?.suggestion).toContain("smertelindring");
+    expect(NURSING_MISSING).toContain("smertelindring");
+    const gap = gaps.find((entry) => entry.keyword === "legemiddelhåndtering");
+    expect(gap?.kind).toBe("rewordable");
+    expect(gap?.citation).toBe(item?.citation);
+    expect(gap?.suggestion).toBeNull();
+    expect(gapsEvents()).toEqual([
+      { kind: "gaps", downgraded: 0, discarded: 1 },
+    ]);
   });
 });
