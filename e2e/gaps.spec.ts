@@ -790,6 +790,9 @@ test.describe("Story 4.5 the Letter check with the Gap analysis", () => {
     await expect.poll(() => checks.length).toBe(1);
     await page.waitForTimeout(500);
     await expect(warningItems(page)).toHaveCount(0);
+    // A check still in flight must not outlive the test: its `route.fetch()`
+    // would end with «Test ended» and fail the whole run.
+    await page.unrouteAll({ behavior: "ignoreErrors" });
   });
 });
 
