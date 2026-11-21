@@ -1,0 +1,67 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "legemiddelhåndtering",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med legemiddelhåndtering og dobbeltkontroll, som er sentralt for trygg pleie av beboerne. Praksisen på sykehus dekker trolig dette – vurder å ta det med.",
+        "citation": "Fulgte med på legemidlene som ble gitt, og lærte å dobbeltsjekke sammen"
+      },
+      {
+        "keyword": "smertelindring",
+        "kind": "real",
+        "explanation": "Annonsen ber om kunnskap om smertelindring hos eldre, som er viktig for komforten til beboerne. CV-en viser smertekartlegging, men ikke smertelindring.",
+        "citation": null
+      },
+      {
+        "keyword": "tverrfaglig samarbeid",
+        "kind": "rewordable",
+        "explanation": "Annonsen sier at du skal delta i tverrfaglig samarbeid med lege, fysioterapeut og ergoterapeut, fordi planene for beboerne utarbeides sammen. Praksisen på sykehjem dekker trolig dette – vurder å ta det med.",
+        "citation": "Deltok på møter der legen og fysioterapeuten gikk gjennom de nye planene."
+      },
+      {
+        "keyword": "erfaring med demens",
+        "kind": "real",
+        "explanation": "Annonsen nevner erfaring med demens som et pluss, siden mange beboere på sykehjem har demens. CV-en viser demens bare som et emne i studiet, ikke som erfaring.",
+        "citation": null
+      },
+      {
+        "keyword": "sårvurdering",
+        "kind": "real",
+        "explanation": "Annonsen krever kompetanse i sårvurdering, som er grunnlaget for riktig sårbehandling. CV-en viser sårstell og valg av bandasjer, men ikke at du har vurdert sår.",
+        "citation": null
+      },
+      {
+        "keyword": "erfaring med forskning",
+        "kind": "real",
+        "explanation": "Annonsen ber om erfaring med forskning og bruk av ny kunnskap for å forbedre rutinene på avdelingen. CV-en viser ikke forskningserfaring.",
+        "citation": null
+      },
+      {
+        "keyword": "norskkunnskaper",
+        "kind": "rewordable",
+        "explanation": "Annonsen krever gode norskkunnskaper, muntlig og skriftlig, fordi jobben innebærer kontakt med beboere, pårørende og journalføring. Språklinjen din dekker trolig dette – vurder å ta det med.",
+        "citation": "Språk: norsk (morsmål), engelsk (godt)"
+      },
+      {
+        "keyword": "behandling av trykksår og diabetessår",
+        "kind": "real",
+        "explanation": "Annonsen ber om kjennskap til behandling av trykksår og diabetessår, som er vanlige problemer hos beboerne. CV-en viser en eksamensoppgave om emnet, men ikke at du har behandlet slike sår.",
+        "citation": null
+      },
+      {
+        "keyword": "infeksjonsforebygging",
+        "kind": "real",
+        "explanation": "Annonsen ber om at du følger opp rutiner for infeksjonsforebygging, som er viktig for å beskytte skrøpelige beboere. CV-en viser hygiene som emne og ferdighet, men ikke infeksjonsforebygging.",
+        "citation": null
+      }
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "gaps-2",
+    "createdAt": "2026-11-21T11:19:26.189Z"
+  }
+}

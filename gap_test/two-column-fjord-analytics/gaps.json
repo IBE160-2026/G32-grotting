@@ -1,0 +1,31 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "prosjektledelse",
+        "kind": "real",
+        "explanation": "Annonsen ber om erfaring med prosjektledelse, for eksempel fra et studieprosjekt, fordi du får ansvar for delprosjekter og skal holde orden på fremdrift og frister. CV-en viser ikke at du har ledet et prosjekt eller hatt ansvar for fremdriften i gruppen.",
+        "citation": null
+      },
+      {
+        "keyword": "skriver rapporter",
+        "kind": "real",
+        "explanation": "Annonsen vil ha en som skriver korte, tydelige rapporter som kundene forstår, fordi rapportene er en viktig leveranse til kundene. CV-en viser ikke at du selv har skrevet rapporter, bare at gruppen leverte en rapport.",
+        "citation": null
+      },
+      {
+        "keyword": "Python",
+        "kind": "real",
+        "explanation": "Annonsen nevner Python som et pluss, ikke et krav, fordi det kan være nyttig i analysearbeidet. CV-en viser ikke Python, bare SQL, R, Power BI og Excel.",
+        "citation": null
+      }
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "gaps-2",
+    "createdAt": "2026-11-21T11:19:35.511Z"
+  }
+}
