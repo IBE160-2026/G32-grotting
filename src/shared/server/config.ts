@@ -126,12 +126,19 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
         "Invalid configuration: TEST_MODE cannot be true on Hosted",
       );
     }
-    // Hosted is the frozen skeleton with no AI (D23). An AI setting there is
-    // either a mistake or a half-set live config, so it fails at startup and
-    // names the setting, never its value.
+    // Hosted is the frozen skeleton with no AI (D23). A half-set AI config
+    // there is a mistake, so it fails at startup and names the setting, never
+    // its value. A complete one (provider, key and model) is accepted here: it
+    // is the deploy that keeps AI off Hosted (`vercel.json`, no `AI_*` in
+    // Production), not this rule.
     if (e.AI_PROVIDER !== undefined && e.AI_API_KEY === undefined) {
       throw new Error(
         "Invalid configuration: AI_API_KEY is required when AI_PROVIDER is set on Hosted",
+      );
+    }
+    if (e.AI_PROVIDER !== undefined && e.AI_MODEL === undefined) {
+      throw new Error(
+        "Invalid configuration: AI_MODEL is required when AI_PROVIDER is set on Hosted",
       );
     }
     if (e.AI_PROVIDER === undefined && e.AI_API_KEY !== undefined) {

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { findKeyword, proposeKeywords } from "@/modules/keywords/core";
 import type { Vocabulary } from "@/shared/core/vocabulary";
 import { loadVocabulary } from "@/shared/server/data-files";
 import { type CheckableGap, checkCitation } from "./check-citation";
@@ -304,6 +305,50 @@ describe("FR-11 the Example pair's Cached Letters", () => {
         missing: key.keywords.missing.map((term) => ({ term })),
         gaps: null,
         vocabulary: await loadVocabulary(),
+      });
+      expect(flags).toEqual([]);
+    },
+  );
+
+  // In Test mode the Missing list is the saved AI list's, not the Answer key's
+  // (D25): a Cached Letter that names one of those words is flagged on screen.
+  // This is what flagged the Formell Letter in CI (Story 3.12), so all three
+  // are checked against the list the app really uses.
+  it.each(["formell", "personlig", "direkte"])(
+    "the %s Letter has no flag against the saved AI list",
+    async (tone) => {
+      const vocabulary = await loadVocabulary();
+      const cvText = readFileSync(`${dir}/cv.txt`, "utf8");
+      const saved = JSON.parse(
+        readFileSync(`${dir}/cached/keywords.json`, "utf8"),
+      ) as { data: { keywords: string[] } };
+      const missing = proposeKeywords(
+        readFileSync(`${dir}/ad.txt`, "utf8"),
+        saved.data.keywords,
+        vocabulary,
+      )
+        .filter(
+          (keyword) => findKeyword(cvText, keyword, vocabulary).length === 0,
+        )
+        .map((keyword) => ({ term: keyword.term }));
+      // The list must have Missing words, or the check below proves nothing.
+      expect(missing.length).toBeGreaterThan(0);
+
+      const letter = (
+        JSON.parse(
+          readFileSync(`${dir}/cached/letter-${tone}.json`, "utf8"),
+        ) as {
+          data: { text: string };
+        }
+      ).data.text;
+      const flags = checkLetter({
+        letter,
+        cvText,
+        jobTitle: meta.jobTitle,
+        employer: meta.employer,
+        missing,
+        gaps: null,
+        vocabulary,
       });
       expect(flags).toEqual([]);
     },

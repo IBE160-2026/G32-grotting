@@ -271,6 +271,34 @@ describe("NFR-7 startup fails on bad Hosted config (AD-3)", () => {
     );
   });
 
+  it("fails on Hosted when AI_PROVIDER and AI_API_KEY are set without AI_MODEL", () => {
+    expect(() =>
+      parseConfig({
+        ...hostedEnv,
+        AI_PROVIDER: "openrouter",
+        AI_API_KEY: "secret-key-value",
+      }),
+    ).toThrow(/AI_MODEL/);
+    expect(() =>
+      parseConfig({
+        ...hostedEnv,
+        AI_PROVIDER: "openrouter",
+        AI_API_KEY: "secret-key-value",
+      }),
+    ).toThrow(/^(?!.*secret-key-value)/);
+  });
+
+  it("accepts a complete AI config on Hosted: the deploy, not this rule, keeps AI off", () => {
+    expect(() =>
+      parseConfig({
+        ...hostedEnv,
+        AI_PROVIDER: "openrouter",
+        AI_API_KEY: "k",
+        AI_MODEL: "m",
+      }),
+    ).not.toThrow();
+  });
+
   it("never prints an AI value in the Hosted AI errors", () => {
     expect(() =>
       parseConfig({ ...hostedEnv, AI_API_KEY: "secret-key-value" }),

@@ -58,7 +58,7 @@ Changes, on 2026-11-20:
 - The Formell Letter of the Example pair was recorded again with `npm run fixtures:record -- example-nordic-digital --tone Formell` (1 request, first try; written by the script, not edited). The new Letter has 273 words and no flag against the saved AI list; the Letter unit tests (124) pass.
 - With the new Letter the test passes 20 of 20 runs.
 
-Not changed: the Personlig and Direkte Letters (no flags), and the prompt. Only the Example pair has Cached Letters; a second probe of every Cached Letter against its Fixture's saved AI list gave no flag for any of the three Tones.
+Not changed: the Personlig and Direkte Letters (no flags), and the prompt. Only the Example pair has Cached Letters; a second probe of every Cached Letter against its Fixture's saved AI list gave no flag for any of the three Tones. That probe is now a permanent test: `src/modules/integrity/core/check-letter.test.ts` «the %s Letter has no flag against the saved AI list» (added in the code review of 2026-11-21; it fails on the old Formell Letter).
 
 ## 6. Done by a person
 
@@ -67,10 +67,9 @@ Not changed: the Personlig and Direkte Letters (no flags), and the prompt. Only 
 | 2026-11-20 | Helene | UJ-1 (without accounts) on a laptop, against the local app | **pass**, works as expected |
 | 2026-11-20 | Helene | UJ-1 (without accounts) on a real phone, against the local app on the same network (plain http at the laptop's address) | **pass**, works as expected, after the fix in #68. The first try on the phone failed: «Analyser og skriv utkast» did nothing, because `crypto.randomUUID` is missing on a page that is not https or localhost. Fixed with `newId()` (#68) and tried again after a rebuild |
 | 2026-11-20 | Helene | Manual rows for Stories 3.6 to 3.10 | filled in `ai-notice-manual-checks.md` and `letter-manual-checks.md`. Row 17 failed first with Windows Narrator and passed after the fix in #69. Row 13 was run in a browser without a screen reader |
-| 2026-11-20 | Helene | Vercel dashboard row, `hosted-deployment.md` section 3 | filled in as «pass», without a date written in the row |
+| 2026-11-20 | Helene | Vercel dashboard row, `hosted-deployment.md` section 3 | filled in as «pass»; the row carries the date 2026-11-20 and, since the code review of 2026-11-21, Helene's name |
 
 ## 7. Still open
 
 - Row 13 of `letter-manual-checks.md` with a screen reader (it was run without one).
-- A date on the Vercel row in `hosted-deployment.md` section 3.
 - The decision on what «SM-1 passes» needs on the screen with a live key (the browser, all three Tones), if Helene wants more than the API-level run in section 2.
