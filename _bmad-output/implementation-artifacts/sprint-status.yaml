@@ -90,7 +90,7 @@ development_status:
   epic-5: in-progress
   5-1-ask-for-a-rewording-suggestion-with-each-rewordable-gap: done
   5-2-discard-suggestions-that-invent-or-upgrade: done
-  5-3-copy-a-suggestion-from-the-gapanalyse: backlog
+  5-3-copy-a-suggestion-from-the-gapanalyse: done
   5-4-switch-on-suggestions-and-run-the-first-live-checklist: backlog
   epic-5-retrospective: optional
 
@@ -199,7 +199,7 @@ action_items:
     action: "Fix stale Gaps/Letter response adoption across submissions and add a
       browser test for Gaps consent wiring in live mode"
     owner: "dev loop"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-4-retro-2026-11-20.md"
   - id: "epic-4-retro-item-13-carry-the-subagent-rules-no-git-checkout"
     epic: 4

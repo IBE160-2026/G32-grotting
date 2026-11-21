@@ -20,6 +20,15 @@ const FALLBACK_PORT = 3103;
 // the default server runs the Gaps and Letter requests together; this one keeps
 // the Letter-only phase 2 under test.
 const LETTER_ONLY_PORT = 3104;
+// A sixth server is the third with the Gap analysis on, as it is by default
+// since Story 4.6 (the third switches it off, so that its tests need only the
+// Letter stub). Its Gaps and Letter requests are answered in the browser, so
+// the made-up key is never used and nothing reaches a provider.
+const LIVE_GAPS_PORT = 3105;
+// A seventh server is the default one with rewording switched on
+// (FEATURE_REWORDING=true), which stays off by default until Story 5.4: the
+// Gap analysis shows the suggestions of the Cached Gaps, in Test mode.
+const REWORDING_PORT = 3106;
 // Repeated in e2e/access.spec.ts.
 const HOSTED_ACCESS_CODE = "e2e-access-code-0123456789";
 
@@ -100,6 +109,36 @@ export default defineConfig({
         APP_ENV: "local",
         DATABASE_URL: "pglite://memory",
         FEATURE_GAPS: "false",
+        E2E: "1",
+      },
+    },
+    {
+      command: `next start -p ${LIVE_GAPS_PORT}`,
+      url: `http://localhost:${LIVE_GAPS_PORT}`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: {
+        TEST_MODE: "false",
+        APP_ENV: "local",
+        DATABASE_URL: "pglite://memory",
+        AI_PROVIDER: "openrouter",
+        AI_MODEL: "anthropic/claude-sonnet-5.5",
+        AI_API_KEY: "e2e-not-a-real-key",
+        FEATURE_KEYWORD_FALLBACK: "false",
+        // On, as by default: the tests answer both phase-2 requests.
+        FEATURE_GAPS: "true",
+      },
+    },
+    {
+      command: `next start -p ${REWORDING_PORT}`,
+      url: `http://localhost:${REWORDING_PORT}`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: {
+        TEST_MODE: "true",
+        APP_ENV: "local",
+        DATABASE_URL: "pglite://memory",
+        FEATURE_REWORDING: "true",
         E2E: "1",
       },
     },

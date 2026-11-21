@@ -49,12 +49,15 @@ export type GapsOutcome = {
  * One phase-2 Gaps request (FR-13, AD-6): inputs, fingerprint and consent.
  * `ANALYSIS_STALE` reruns phase 1 once and sends the request again with the new
  * fingerprint; a second one is the answer (the section error), so it never
- * loops.
+ * loops. An answer for an earlier submission (`isCurrent` false) is not
+ * followed up: no rerun and no resend, since each one counts toward the cap.
  */
 export async function requestGaps(
   job: GapsJob,
   consent: GapsRequest["consent"],
   io: GapsIo = browserGapsIo,
+  // False once a new submission has started: nothing more is sent for this one.
+  isCurrent: () => boolean = () => true,
 ): Promise<GapsOutcome> {
   const send = (fingerprint: string) =>
     io.sendGaps({
@@ -65,7 +68,7 @@ export async function requestGaps(
     });
 
   const first = await send(job.fingerprint);
-  if (first.ok || first.error.code !== "ANALYSIS_STALE") {
+  if (first.ok || first.error.code !== "ANALYSIS_STALE" || !isCurrent()) {
     return { answer: first };
   }
   const rerun = await io.analyse({
@@ -74,5 +77,7 @@ export async function requestGaps(
     consent,
   });
   if (!rerun.ok) return { answer: rerun };
+  // A new submission started while phase 1 reran: this one is no longer asked.
+  if (!isCurrent()) return { answer: first };
   return { answer: await send(rerun.data.fingerprint), rerun: rerun.data };
 }

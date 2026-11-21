@@ -27,10 +27,14 @@ export function GapsSection({
   phase,
   onRetry,
   headingRef,
+  rewording = false,
 }: {
   phase: GapsPhase;
   onRetry: () => void;
   headingRef?: Ref<HTMLHeadingElement>;
+  // `features.rewording` (FR-16): a Rewordable gap shows its suggestion, or the
+  // line that says there is none.
+  rewording?: boolean;
 }) {
   // `undefined` children keep the slot a placeholder (aria-busy, «Skrives»).
   let settled: ReactNode;
@@ -38,7 +42,12 @@ export function GapsSection({
     settled = (
       <ul className="m-0 list-none p-0">
         {phase.gaps.map((gap, index) => (
-          <GapEntry key={gap.keyword} gap={gap} index={index} />
+          <GapEntry
+            key={gap.keyword}
+            gap={gap}
+            index={index}
+            rewording={rewording}
+          />
         ))}
       </ul>
     );

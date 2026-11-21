@@ -311,3 +311,102 @@ test.describe("AD-13, FR-24 «Lag nytt utkast» refused for the notice", () => {
     await expect(dialog(page)).toBeHidden();
   });
 });
+
+// The live-settings server with the Gap analysis on (playwright.config.ts, as
+// it is by default since Story 4.6). Made-up key: the browser answers both
+// phase-2 requests, so nothing reaches a provider. Epic 4 retro, item 12.
+const LIVE_GAPS = "http://localhost:3105";
+const GAPS_ROUTE = "**/api/analyses/*/gaps";
+const MISSING = "section[aria-labelledby=missing-heading] li h3";
+const GAPS_HEADING = "section[aria-labelledby=gaps-h2]";
+
+type GapsBody = { consent: { noticeVersion: string } | null };
+
+// A Gaps answer for one Real gap; it never reaches the server.
+function gapsAnswer(keyword: string) {
+  return {
+    ok: true,
+    data: {
+      gaps: [
+        {
+          keyword,
+          kind: "real",
+          explanation: { key: "REAL_GAP", params: { keyword } },
+          citation: null,
+          suggestion: null,
+        },
+      ],
+      meta: null,
+    },
+  };
+}
+
+// The Gaps requests the browser sends, answered one by one, then the last.
+async function stubGaps(page: Page, answers: object[]) {
+  const calls: GapsBody[] = [];
+  await page.route(GAPS_ROUTE, (route) => {
+    const answer = answers[Math.min(calls.length, answers.length - 1)];
+    calls.push(route.request().postDataJSON() as GapsBody);
+    return route.fulfill({ json: answer });
+  });
+  return calls;
+}
+
+test.describe("FR-24, AD-13 the Gaps request and the AI notice, Test mode off", () => {
+  test.use({ baseURL: LIVE_GAPS });
+
+  test("the Gaps request carries the accepted notice version as consent", async ({
+    page,
+  }) => {
+    const letters = letterCalls(page);
+    await stubLetters(page, [letterAnswer("Formell")]);
+    const gaps = await stubGaps(page, [gapsAnswer("TypeScript")]);
+    await fillExample(page);
+    await submit(page).click();
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(page.locator("article")).toBeVisible();
+    await expect(page.locator(GAPS_HEADING).locator("li")).toHaveCount(1);
+    const accepted = (await session(page))?.noticeVersion;
+    expect(accepted).toMatch(/^notice-/);
+    expect(gaps).toHaveLength(1);
+    expect(gaps[0]?.consent).toEqual({ noticeVersion: accepted });
+    expect(letters).toHaveLength(1);
+    expect(letters[0]?.consent).toEqual({ noticeVersion: accepted });
+  });
+
+  test("AI_NOTICE_REQUIRED from the Gaps request opens the notice again and leaves the score alone; «Godta og fortsett» resends only the Gaps request", async ({
+    page,
+  }) => {
+    const analyses = analysisCalls(page);
+    const letters = letterCalls(page);
+    await stubLetters(page, [letterAnswer("Formell")]);
+    const gaps = await stubGaps(page, [
+      failure("AI_NOTICE_REQUIRED"),
+      gapsAnswer("TypeScript"),
+    ]);
+    await openNotice(page);
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    // The server refused the Gaps request: the notice comes back, and the
+    // score, the Missing list and the Letter stand as they were.
+    await expect(dialog(page)).toBeVisible();
+    await expect(page.getByText(EXAMPLE_CODE_SENTENCE)).toBeVisible();
+    await expect(page.locator(MISSING).first()).toBeVisible();
+    await expect(page.locator("article")).toBeVisible();
+    expect(gaps).toHaveLength(1);
+    await dialog(page)
+      .getByRole("button", { name: "Godta og fortsett" })
+      .click();
+    await expect(page.locator(GAPS_HEADING).locator("li")).toHaveCount(1);
+    await expect(dialog(page)).toBeHidden();
+    expect(gaps).toHaveLength(2);
+    const accepted = (await session(page))?.noticeVersion;
+    expect(gaps[1]?.consent).toEqual({ noticeVersion: accepted });
+    expect(letters).toHaveLength(1);
+    expect(analyses).toHaveLength(1);
+    await expect(page.getByText(EXAMPLE_CODE_SENTENCE)).toBeVisible();
+  });
+});

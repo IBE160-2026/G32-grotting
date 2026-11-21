@@ -7,3 +7,4 @@ export {
   type GapsOutcome,
   requestGaps,
 } from "./request-gaps";
+export { SuggestionBox } from "./suggestion-box";
