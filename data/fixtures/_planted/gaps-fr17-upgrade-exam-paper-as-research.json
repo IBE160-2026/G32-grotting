@@ -1,0 +1,76 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "sårvurdering",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om kompetanse i sårvurdering. Eksamensoppgaven om diabetiske fotsår og trykksår dekker trolig dette – vurder å bruke annonsens ord.",
+        "citation": "Skrev eksamensoppgave om diabetiske fotsår vs trykksår (likheter og forskjeller)",
+        "suggestion": "Forsket på sårvurdering"
+      },
+      {
+        "keyword": "legemiddelhåndtering",
+        "kind": "real",
+        "explanation": "Annonsen ber om legemiddelhåndtering. CV-en viser ikke dette.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "smertelindring",
+        "kind": "real",
+        "explanation": "Annonsen ber om smertelindring. CV-en viser ikke dette.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "tverrfaglig samarbeid",
+        "kind": "real",
+        "explanation": "Annonsen ber om tverrfaglig samarbeid. CV-en viser ikke dette.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "erfaring med demens",
+        "kind": "real",
+        "explanation": "Annonsen ber om erfaring med demens. CV-en viser ikke dette.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "erfaring med forskning",
+        "kind": "real",
+        "explanation": "Annonsen ber om erfaring med forskning. CV-en viser ikke forskningserfaring.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "norskkunnskaper",
+        "kind": "real",
+        "explanation": "Annonsen ber om norskkunnskaper. CV-en viser ikke dette.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "behandling av trykksår og diabetessår",
+        "kind": "real",
+        "explanation": "Annonsen ber om behandling av trykksår og diabetessår. CV-en viser ikke dette.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "infeksjonsforebygging",
+        "kind": "real",
+        "explanation": "Annonsen ber om infeksjonsforebygging. CV-en viser ikke dette.",
+        "citation": null,
+        "suggestion": null
+      }
+    ]
+  },
+  "meta": {
+    "source": "cached",
+    "provider": "planted",
+    "model": "planted-1",
+    "promptVersion": "gaps-3",
+    "createdAt": "2026-11-21T18:00:00.000Z"
+  }
+}

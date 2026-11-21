@@ -1,6 +1,7 @@
 import { findKeyword, stem, tokenise } from "@/modules/keywords/core";
 import type { Vocabulary } from "@/shared/core/vocabulary";
 import { type CheckableGap, checkCitation } from "./check-citation";
+import { hasRun, stemsOf } from "./stem-runs";
 import { UPGRADE_WORD_CV_FORMS, UPGRADE_WORDS } from "./word-lists";
 
 export type LetterFlagKind = "UNSUPPORTED_CLAIM" | "UPGRADE_WORD";
@@ -103,17 +104,6 @@ function upgradeSpans(lines: readonly Line[], wordStems: string[]) {
   return spans;
 }
 
-// Whether the CV, read as one stream of words, holds a run that is the same
-// word as the Upgrade word.
-function cvHas(cvStems: readonly string[], wordStems: readonly string[]) {
-  for (let from = 0; from + wordStems.length <= cvStems.length; from++) {
-    if (wordStems.every((value, offset) => cvStems[from + offset] === value)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 // The Gap analysis stands behind a keyword only when it is a Rewordable gap
 // whose citation is found in the CV text word for word, checked now (FR-15).
 function supportedByCv(
@@ -162,7 +152,7 @@ export function checkLetter(input: CheckLetterInput): LetterFlag[] {
     });
   }
 
-  const cvStems = tokenise(input.cvText).map((token) => stem(token.text));
+  const cvStems = stemsOf(input.cvText);
   for (const term of UPGRADE_WORDS) {
     const wordStems = tokenise(term).map((token) => stem(token.text));
     if (wordStems.length === 0) continue;
@@ -170,7 +160,7 @@ export function checkLetter(input: CheckLetterInput): LetterFlag[] {
     const cvForms = [term, ...(UPGRADE_WORD_CV_FORMS[term] ?? [])].map((form) =>
       tokenise(form).map((token) => stem(token.text)),
     );
-    if (cvForms.some((forms) => cvHas(cvStems, forms))) continue;
+    if (cvForms.some((forms) => hasRun(cvStems, forms))) continue;
     const spans = upgradeSpans(lines, wordStems);
     if (spans.length === 0) continue;
     flags.push({

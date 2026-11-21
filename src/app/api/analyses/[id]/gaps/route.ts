@@ -33,7 +33,8 @@ export async function POST(
 
     // No `ai` option: the Keyword list is the one phase 1 saved, never a new
     // request, so this route makes exactly one AI request.
-    const analysed = await analyseInputs(parsed.inputs, await loadVocabulary());
+    const vocabulary = await loadVocabulary();
+    const analysed = await analyseInputs(parsed.inputs, vocabulary);
     if (!analysed.ok) {
       throw new ApiError("INVALID_INPUT", { field: "inputs.jobAd" });
     }
@@ -46,6 +47,7 @@ export async function POST(
         inputs: parsed.inputs,
         missingTerms: analysed.value.result.missing.map(({ term }) => term),
         rewording: getConfig().features.rewording,
+        vocabulary,
       },
       { studentId: null, consent: parsed.consent },
     );

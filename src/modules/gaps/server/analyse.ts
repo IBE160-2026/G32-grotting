@@ -2,9 +2,10 @@ import { z } from "zod";
 import { type AiContext, type AiFailure, GAPS_TASK, runAi } from "@/modules/ai";
 import type { AiResultMeta } from "@/modules/ai/contracts";
 import type { AnalysisInputs } from "@/modules/application/contracts";
-import { checkCitation } from "@/modules/integrity/core";
+import { checkCitation, checkSuggestion } from "@/modules/integrity/core";
 import { canon } from "@/shared/core/canon";
 import { err, ok, type Result } from "@/shared/core/result";
+import type { Vocabulary } from "@/shared/core/vocabulary";
 import { log } from "@/shared/server/log";
 import { type Gap, REAL_GAP_KEY } from "../contracts";
 import {
@@ -26,6 +27,13 @@ const itemSchema = z.object({
 });
 
 export type AiGapItem = z.infer<typeof itemSchema>;
+
+// No term and no alias: `findKeyword` then searches a keyword by its own words.
+const NO_VOCABULARY: Vocabulary = {
+  vocabularyVersion: "v1-00000000",
+  terms: [],
+  aliases: {},
+};
 
 const keyOf = (keyword: string) => canon(keyword).toLowerCase();
 
@@ -118,6 +126,36 @@ export function checkGapCitations(
   return { gaps: checked, downgraded };
 }
 
+/**
+ * FR-17, after FR-15 (AD-14): a suggestion that names a Missing keyword other
+ * than its own Gap's, or uses an Upgrade word the cited CV entry lacks, is
+ * discarded: it becomes `null` while the citation and the explanation stay.
+ * Real gaps and Gaps with no suggestion pass unchanged. `discarded` is the
+ * number of suggestions thrown out. `missingTerms` is the whole Missing list.
+ */
+export function checkGapSuggestions(
+  gaps: readonly Gap[],
+  missingTerms: readonly string[],
+  sentCvText: string,
+  vocabulary: Vocabulary = NO_VOCABULARY,
+): { gaps: Gap[]; discarded: number } {
+  let discarded = 0;
+  const checked = gaps.map((gap) => {
+    if (gap.kind !== "rewordable" || gap.suggestion === null) return gap;
+    const verdict = checkSuggestion({
+      suggestion: gap.suggestion,
+      gap,
+      missing: missingTerms,
+      sentCvText,
+      vocabulary,
+    });
+    if (verdict.ok) return gap;
+    discarded += 1;
+    return { ...gap, suggestion: null };
+  });
+  return { gaps: checked, discarded };
+}
+
 export type AnalyseGapsInput = {
   readonly inputs: AnalysisInputs;
   // The Missing keywords from the server's own phase-1 analysis, in order.
@@ -125,6 +163,9 @@ export type AnalyseGapsInput = {
   // `features.rewording`, read by the caller. Off (the default) asks for no
   // suggestion and returns none.
   readonly rewording?: boolean;
+  // The Keyword vocabulary, so a suggestion that names a Missing keyword by an
+  // alias is found too (FR-17). Without it a keyword is found by its own words.
+  readonly vocabulary?: Vocabulary;
 };
 
 type RunOptions = Parameters<typeof runAi>[2];
@@ -133,8 +174,9 @@ type RunOptions = Parameters<typeof runAi>[2];
  * One `runAi` call for the Gap analysis (FR-13, FR-14). With no Missing
  * keyword there is nothing to judge and no request is made. Every `AiFailure`
  * passes through. After the structure step every Rewordable citation is
- * checked against the sent CV text (FR-15) and the downgrades are logged as a
- * count. `options` is the test seam of `runAi`.
+ * checked against the sent CV text (FR-15), then every suggestion against the
+ * Missing list and the cited CV entry (FR-17); downgrades and discards are
+ * logged as counts. `options` is the test seam of `runAi`.
  */
 export async function analyseGaps(
   input: AnalyseGapsInput,
@@ -181,11 +223,14 @@ export async function analyseGaps(
     rewording,
   );
   // Citations are checked against the CV text that was sent, not the raw one.
-  const { gaps, downgraded } = checkGapCitations(
-    structured,
+  const cited = checkGapCitations(structured, run.value.sentCvText);
+  const { gaps, discarded } = checkGapSuggestions(
+    cited.gaps,
+    missingTerms,
     run.value.sentCvText,
+    input.vocabulary,
   );
-  // A count only (AD-14): never a keyword, a citation or any CV text.
-  log({ kind: "gaps", downgraded });
+  // Counts only (AD-14): never a keyword, a citation, a suggestion or CV text.
+  log({ kind: "gaps", downgraded: cited.downgraded, discarded });
   return ok({ gaps, meta: run.value.meta });
 }
