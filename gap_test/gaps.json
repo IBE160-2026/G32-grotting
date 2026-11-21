@@ -1,0 +1,43 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "TypeScript",
+        "kind": "real",
+        "explanation": "Annonsen ber om at du bruker TypeScript sammen med React, noe som er sentralt i frontend-arbeidet hos Nordic Digital. CV-en viser ikke erfaring med TypeScript.",
+        "citation": null
+      },
+      {
+        "keyword": "REST-API",
+        "kind": "real",
+        "explanation": "Annonsen ber om at du kan jobbe med REST API-er, som er viktig for å hente og sende data i kundeløsningene. CV-en viser ikke arbeid med REST API-er.",
+        "citation": null
+      },
+      {
+        "keyword": "pull requests",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med Git og samarbeid i pull requests, som er sentralt i teamets arbeidsflyt. Linjen din om gjennomgang av endringer dekker trolig dette – vurder å ta det med.",
+        "citation": "Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen."
+      },
+      {
+        "keyword": "testing",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med testing av frontend-kode, siden du skal jobbe tett med testere. Linjen din om tester for skjemaene dekker trolig dette – vurder å ta det med.",
+        "citation": "Jeg skrev enkle tester for skjemaene våre."
+      },
+      {
+        "keyword": "responsive nettsider",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du bygger responsive nettsider som fungerer godt på mobil, noe som er viktig for kundenes brukere. Emnebeskrivelsen din om en nettside som tilpasser seg mobilskjermer dekker trolig dette – vurder å ta det med.",
+        "citation": "Bygde en nettside som\ntilpasser seg mobilskjermer."
+      }
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "gaps-2",
+    "createdAt": "2026-11-21T11:10:15.963Z"
+  }
+}
