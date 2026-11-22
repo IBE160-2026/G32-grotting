@@ -1,0 +1,76 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "TypeScript",
+        "kind": "real",
+        "explanation": "Annonsen krever at du bruker TypeScript sammen med React i frontend-arbeidet. CV-en viser JavaScript og React, men ikke TypeScript.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "REST-API",
+        "kind": "real",
+        "explanation": "Annonsen ber om at du kan jobbe med REST-API-er, som er sentralt for å hente og sende data fra frontend. CV-en viser ikke arbeid med API-er, bare SQL og enkel datamodellering.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "pull requests",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med samarbeid i pull requests, som er vanlig arbeidsmåte i teamet. Linjen om gjennomgang av endringer i prosjektet dekker trolig dette – vurder å ta det med.",
+        "citation": "Vi brukte Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen.",
+        "suggestion": "Brukte Git og GitHub i gruppe, der alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen."
+      },
+      {
+        "keyword": "testing",
+        "kind": "rewordable",
+        "explanation": "Annonsen sier du skal jobbe tett med testere og ha erfaring med testing, noe som sikrer kvalitet i løsningene. Linjen om at du skrev tester i prosjektet dekker trolig dette – vurder å ta det med.",
+        "citation": "Jeg skrev enkle tester for skjemaene våre.",
+        "suggestion": "Skrev enkle tester for skjemaene i gruppeprosjektets nettside."
+      },
+      {
+        "keyword": "responsive nettsider",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du bygger responsive nettsider som fungerer godt på mobil, noe kundene forventer. Emnet Webutvikling 1 dekker trolig dette – vurder å ta det med.",
+        "citation": "Webutvikling 1: HTML, CSS og JavaScript. Bygde en nettside som",
+        "suggestion": "Bygde en responsiv nettside med HTML, CSS og JavaScript som tilpasser seg mobilskjermer."
+      },
+      {
+        "keyword": "stakeholders",
+        "kind": "rewordable",
+        "explanation": "Annonsen sier du skal følge opp stakeholders i kundens organisasjon sammen med prosjektlederen. Linjen om møter med organisasjonen i semesterprosjektet dekker trolig dette – vurder å ta det med.",
+        "citation": "Vi hadde møter med organisasjonen hver andre uke, og jeg viste frem og forklarte hva vi hadde laget.",
+        "suggestion": "Hadde møter med den frivillige organisasjonen hver andre uke, der jeg viste frem og forklarte det vi hadde laget."
+      },
+      {
+        "keyword": "testing av frontend-kode",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med testing av frontend-kode, siden du skal levere pålitelige brukergrensesnitt. Linjen om tester for skjemaene i React-prosjektet dekker trolig dette – vurder å ta det med.",
+        "citation": "Jeg skrev enkle tester for skjemaene våre.",
+        "suggestion": "Skrev enkle tester for skjemaene i frontend-delen av gruppeprosjektets nettside."
+      },
+      {
+        "keyword": "tilgjengelighet",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du bryr deg om universell utforming og tilgjengelighet, slik at løsningene kan brukes av alle. Emnet om universell utforming av nettsider dekker trolig dette – vurder å ta det med.",
+        "citation": "Brukeropplevelse: Prototyping i Figma og universell utforming av",
+        "suggestion": "Lærte universell utforming av nettsider og prototyping i Figma i emnet Brukeropplevelse."
+      },
+      {
+        "keyword": "REST API-er",
+        "kind": "real",
+        "explanation": "Annonsen ber om at du kan jobbe med REST API-er, som frontend-utviklere bruker for å hente data. CV-en viser ikke arbeid med API-er.",
+        "citation": null,
+        "suggestion": null
+      }
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "gaps-4",
+    "createdAt": "2026-11-22T08:39:28.509Z"
+  }
+}

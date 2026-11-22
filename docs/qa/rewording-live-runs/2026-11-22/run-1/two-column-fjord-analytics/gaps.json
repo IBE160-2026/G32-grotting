@@ -1,0 +1,34 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "prosjektledelse",
+        "kind": "real",
+        "explanation": "Annonsen ber om erfaring med prosjektledelse, for eksempel fra et studieprosjekt, og du skal få ansvar for delprosjekter og holde orden på fremdrift og frister. CV-en viser gruppearbeid og møter, men ikke at du ledet noe, og emnet om ledelse viser kunnskap, ikke erfaring.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "skriver rapporter",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du skriver rapporter som kundene forstår, siden analysene skal leveres til kunder. Linjen din om semesterprosjektet dekker trolig dette – vurder å ta det med.",
+        "citation": "Vi leverte rapporten og presenterte funnene for faglærer og et",
+        "suggestion": "Leverte rapport om salgstallene til et kaffebrenneri i gruppeprosjekt og presenterte funnene for faglærer og et annet kull."
+      },
+      {
+        "keyword": "Python",
+        "kind": "real",
+        "explanation": "Annonsen nevner Python som et pluss, noe som kan være nyttig i analysearbeidet. CV-en viser SQL, Power BI, Excel og R, men ikke Python.",
+        "citation": null,
+        "suggestion": null
+      }
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "gaps-4",
+    "createdAt": "2026-11-22T08:40:31.697Z"
+  }
+}
