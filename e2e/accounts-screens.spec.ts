@@ -58,9 +58,15 @@ const submit = (page: Page, name: string) =>
 
 // The buttons ease their colours for 160 ms; axe measures mid-transition otherwise.
 async function settled(page: Page) {
-  await page.evaluate(() =>
-    Promise.all(document.getAnimations().map((a) => a.finished)),
-  );
+  await page.evaluate(async () => {
+    // A cancelled transition rejects `finished`, and a restarted one needs
+    // another round, so look again until none is left.
+    for (let round = 0; round < 5; round++) {
+      const running = document.getAnimations();
+      if (running.length === 0) return;
+      await Promise.all(running.map((a) => a.finished.catch(() => undefined)));
+    }
+  });
 }
 
 async function fillRegister(
