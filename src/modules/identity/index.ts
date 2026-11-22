@@ -19,6 +19,11 @@ export {
   type StudentSession,
 } from "./server/handle-student";
 export { loginAccount } from "./server/login";
+export {
+  getPageSession,
+  LOGIN_PATH,
+  requireStudentPage,
+} from "./server/page-session";
 export { registerAccount } from "./server/register";
 export { buildSessionView } from "./server/session-view";
 export { deleteSessionByToken, renewSession } from "./server/sessions";

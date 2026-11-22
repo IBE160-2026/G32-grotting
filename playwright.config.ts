@@ -35,6 +35,10 @@ const REWORDING_OFF_PORT = 3106;
 // in a browser. The key is made up: 32 bytes, base64.
 const ACCOUNTS_PORT = 3107;
 const ACCOUNTS_ENCRYPTION_KEY = "ZTItYWNjb3VudHMta2V5LTMyLWJ5dGVzLTAxMjM0NTY=";
+// A ninth server is Hosted with accounts on (Story 6.4), so that the Tilgangskode
+// field on Registrer deg can be tested in a browser. Same made-up key as above.
+const HOSTED_ACCOUNTS_PORT = 3108;
+const HOSTED_ACCOUNTS_ACCESS_CODE = "e2e-hosted-code-0123456789";
 // Repeated in e2e/access.spec.ts.
 const HOSTED_ACCESS_CODE = "e2e-access-code-0123456789";
 
@@ -159,6 +163,20 @@ export default defineConfig({
         DATABASE_URL: "pglite://memory",
         FEATURE_ACCOUNTS: "true",
         ENCRYPTION_KEY: ACCOUNTS_ENCRYPTION_KEY,
+        E2E: "1",
+      },
+    },
+    {
+      command: `next start -p ${HOSTED_ACCOUNTS_PORT}`,
+      url: `http://localhost:${HOSTED_ACCOUNTS_PORT}/registrer`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: {
+        APP_ENV: "hosted",
+        ACCESS_CODE: HOSTED_ACCOUNTS_ACCESS_CODE,
+        FEATURE_ACCOUNTS: "true",
+        ENCRYPTION_KEY: ACCOUNTS_ENCRYPTION_KEY,
+        DATABASE_URL: "pglite://memory",
         E2E: "1",
       },
     },

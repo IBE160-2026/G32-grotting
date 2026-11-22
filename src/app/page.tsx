@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { analyseExample, type ExampleAnalysis } from "@/modules/application";
+import { getPageSession } from "@/modules/identity";
 import { PulsePlot } from "@/modules/match/ui";
+import { getConfig } from "@/shared/server/config";
 import { log } from "@/shared/server/log";
 import { Link } from "@/shared/ui/components/link";
 import { messages } from "@/shared/ui/messages.nb";
@@ -13,6 +15,12 @@ export const metadata: Metadata = { title: pageTitle(messages.nav.home) };
 // computes, so the browser makes no request for it (FR-8, UX-DR34).
 export default async function Home() {
   const { home } = messages;
+  // With accounts on, the button goes to Registrer deg while logged out and to
+  // Søknad once logged in (UX-DR34), and the «prøv eksempelet» line is gone
+  // (it was true only before accounts, FR-18). With accounts off: as before.
+  const accounts = getConfig().features.accounts;
+  const target =
+    accounts && (await getPageSession()) === null ? "/registrer" : "/soknad";
   // The plot is decoration: an unreadable Example pair costs Hjem the plot,
   // not the page.
   let example: ExampleAnalysis | undefined;
@@ -34,11 +42,11 @@ export default async function Home() {
         </h1>
         <p className="mt-5 text-lede text-ink-2">{home.lede}</p>
         <div className="mt-7">
-          <Link kind="button" href="/soknad">
+          <Link kind="button" href={target}>
             {home.primaryAction}
           </Link>
         </div>
-        <p className="mt-4 text-ink-2">{home.tryExample}</p>
+        {accounts ? null : <p className="mt-4 text-ink-2">{home.tryExample}</p>}
       </div>
 
       {example ? (

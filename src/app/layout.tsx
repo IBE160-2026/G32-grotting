@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Archivo, DM_Mono, Schibsted_Grotesk } from "next/font/google";
 import { connection } from "next/server";
+import { getPageSession } from "@/modules/identity";
 import { getConfig } from "@/shared/server/config";
 import { toRunMode } from "@/shared/server/run-mode";
 import { LIVE_REGION_IDS } from "@/shared/ui/announce";
 import { AppBar } from "@/shared/ui/components/app-bar";
 import { Banner } from "@/shared/ui/components/banner";
+import type { AccountNav } from "@/shared/ui/components/nav-items";
 import { messages } from "@/shared/ui/messages.nb";
 import { QueryProvider } from "@/shared/ui/query-provider";
 import { RunModeProvider } from "@/shared/ui/run-mode";
@@ -38,6 +40,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   await connection();
   const config = getConfig();
   const runMode = toRunMode(config);
+  // With accounts on, the app bar shows the logged-out or the logged-in set
+  // (UX-DR5). The lookup is shared with the page that asks for it.
+  const account: AccountNav = !config.features.accounts
+    ? "off"
+    : (await getPageSession()) === null
+      ? "out"
+      : "in";
 
   return (
     <html
@@ -53,7 +62,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             {messages.skipLink}
           </a>
           <header>
-            <AppBar />
+            <AppBar account={account} />
             <Banner />
           </header>
           <main

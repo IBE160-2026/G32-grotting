@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ApplicationForm } from "@/modules/application/ui";
+import { requireStudentPage } from "@/modules/identity";
 import { type ExamplePair, loadExamplePair } from "@/shared/server/data-files";
 import { log } from "@/shared/server/log";
 import { messages } from "@/shared/ui/messages.nb";
@@ -15,6 +16,9 @@ export const metadata: Metadata = {
 // server reads the Example pair and hands it over as a plain prop, so
 // «Bruk eksempelet» needs no request from the browser (FR-27, AD-15).
 export default async function SoknadPage() {
+  // With accounts on, a logged-out visitor is sent to Logg inn (FR-18); with
+  // accounts off this does nothing.
+  await requireStudentPage();
   // The button is a convenience: an unreadable Example pair costs the form its
   // button, not the page.
   let example: ExamplePair | undefined;
