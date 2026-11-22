@@ -1,0 +1,12 @@
+{
+  "data": {
+    "text": "Til Nordic Digital\n\nSøknad på stillingen «Junior frontendutvikler»\n\nJeg søker med dette på stillingen som junior frontendutvikler hos Nordic Digital. Jeg har en bachelor i informatikk fra Høgskolen i Oslo (2023–2026), og jeg ønsker å arbeide med nettløsninger som brukerne faktisk har nytte av.\n\nI et semesterprosjekt høsten 2025 utviklet vi i en gruppe på fire studenter en nettside for en lokal frivillig organisasjon som trengte en enklere måte å melde seg på arrangementer. Jeg hadde ansvaret for brukergrensesnittet og skrev komponentene i React. Jeg skrev også enkle tester for skjemaene. Dette ga meg praktisk erfaring med å bygge og kontrollere kode som sluttbrukere bruker direkte.\n\nI samme prosjekt brukte vi Git og GitHub, og alle endringer ble gjennomgått av et annet gruppemedlem før de ble slått sammen. Vi hadde også møter med organisasjonen hver andre uke, der jeg viste frem og forklarte hva vi hadde laget. Jeg er derfor vant til å presentere arbeid for en oppdragsgiver på en forståelig måte.\n\nI emnet Programvareutvikling arbeidet jeg med Agile og Scrum i praksis, med to ukers sprinter og retrospektiv. I emnene om webutvikling arbeidet jeg med HTML og CSS og bygget en nettside som tilpasser seg mobilskjermer. I emnet Brukeropplevelse arbeidet jeg med universell utforming av nettsider, og jeg mener at tilgjengelighet bør være en del av arbeidet fra begynnelsen.\n\nJeg vil gjerne bidra i frontend-teamet deres og lære av erfarne kolleger. Jeg tar gjerne imot en invitasjon til samtale og svarer med glede på eventuelle spørsmål.\n\nMed vennlig hilsen\n{{SIGNATUR}}"
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "letter-1",
+    "createdAt": "2026-11-22T08:57:29.856Z"
+  }
+}

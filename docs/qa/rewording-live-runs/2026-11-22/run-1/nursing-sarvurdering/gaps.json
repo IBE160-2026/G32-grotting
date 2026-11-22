@@ -1,0 +1,104 @@
+{
+  "data": {
+    "gaps": [
+      {
+        "keyword": "legemiddelhåndtering",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med legemiddelhåndtering, som er viktig for ansvaret på vakt. Praksislinjen din om legemidler på sykehus dekker trolig dette – vurder å ta det med.",
+        "citation": "Fulgte med på legemidlene som ble gitt",
+        "suggestion": "Fulgte med på legemiddelhåndteringen i praksis på sykehus."
+      },
+      {
+        "keyword": "smertelindring",
+        "kind": "real",
+        "explanation": "Annonsen ber om kunnskap om smertelindring hos eldre. CV-en viser smertekartlegging, men ikke smertelindring eller kunnskap om det.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "tverrfaglig samarbeid",
+        "kind": "rewordable",
+        "explanation": "Annonsen forventer tverrfaglig samarbeid med lege, fysioterapeut og ergoterapeut. Praksislinjen om møter med lege og fysioterapeut dekker trolig dette – vurder å ta det med.",
+        "citation": "Deltok på møter der legen og fysioterapeuten gikk gjennom de nye planene.",
+        "suggestion": "Deltok på tverrfaglige møter med lege og fysioterapeut der de nye planene ble gjennomgått."
+      },
+      {
+        "keyword": "erfaring med demens",
+        "kind": "real",
+        "explanation": "Annonsen nevner erfaring med demens som et pluss. CV-en viser demens bare som emne i studiet, ikke som erfaring fra praksis eller arbeid.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "sårvurdering",
+        "kind": "real",
+        "explanation": "Annonsen ber om kompetanse i sårvurdering. CV-en viser sårstell og valg av bandasjer, men ikke at du vurderte sår.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "erfaring med forskning",
+        "kind": "real",
+        "explanation": "Annonsen ber om erfaring med forskning. CV-en viser ingen forskning, og en eksamensoppgave er ikke forskningserfaring.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "norskkunnskaper",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om gode norskkunnskaper, som er viktig i journalføring og samtaler med beboere. Språklinjen din viser at norsk er morsmålet ditt – vurder å bruke ordet norskkunnskaper.",
+        "citation": "norsk (morsmål)",
+        "suggestion": "Norskkunnskaper: norsk er morsmålet mitt"
+      },
+      {
+        "keyword": "behandling av trykksår og diabetessår",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om at du kjenner til behandling av trykksår og diabetessår. Eksamensoppgaven din om fotsår og trykksår viser trolig kunnskap om temaet – vurder å ta det med.",
+        "citation": "Skrev eksamensoppgave om diabetiske fotsår vs trykksår (likheter og forskjeller)",
+        "suggestion": "Skrev eksamensoppgave om diabetiske fotsår og trykksår, med likheter og forskjeller."
+      },
+      {
+        "keyword": "infeksjonsforebygging",
+        "kind": "real",
+        "explanation": "Annonsen ber om at du følger opp rutiner for infeksjonsforebygging. CV-en nevner hygiene som emne og ferdighet, men viser ikke infeksjonsforebygging eller smittevernrutiner.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "langtidsavdeling",
+        "kind": "real",
+        "explanation": "Stillingen er på langtidsavdelingen. CV-en viser sykehjemspraksis, men sier ikke at det var en langtidsavdeling.",
+        "citation": null,
+        "suggestion": null
+      },
+      {
+        "keyword": "diabetessår",
+        "kind": "rewordable",
+        "explanation": "Annonsen nevner diabetessår som del av sårkompetansen. Eksamensoppgaven din om diabetiske fotsår dekker trolig dette – vurder å bruke annonsens ord.",
+        "citation": "Skrev eksamensoppgave om diabetiske fotsår vs trykksår (likheter og forskjeller)",
+        "suggestion": "Skrev eksamensoppgave om diabetessår i sammenligning med trykksår, med likheter og forskjeller."
+      },
+      {
+        "keyword": "dobbeltkontroll",
+        "kind": "rewordable",
+        "explanation": "Annonsen ber om erfaring med dobbeltkontroll, som er viktig for trygg legemiddelgivning. Praksislinjen din om å dobbeltsjekke legemidler dekker trolig dette – vurder å ta det med.",
+        "citation": "Fulgte med på legemidlene som ble gitt, og lærte å dobbeltsjekke sammen",
+        "suggestion": "Lærte dobbeltkontroll av legemidler sammen med en annen sykepleier i praksis på sykehus."
+      },
+      {
+        "keyword": "forskning",
+        "kind": "real",
+        "explanation": "Annonsen ber om at du bruker ny kunnskap fra forskning til å forbedre rutiner. CV-en viser ingen forskning eller arbeid med forskningsfunn.",
+        "citation": null,
+        "suggestion": null
+      }
+    ]
+  },
+  "meta": {
+    "source": "live",
+    "provider": "openrouter",
+    "model": "anthropic/claude-sonnet-5.5",
+    "promptVersion": "gaps-4",
+    "createdAt": "2026-11-22T08:40:19.454Z"
+  }
+}

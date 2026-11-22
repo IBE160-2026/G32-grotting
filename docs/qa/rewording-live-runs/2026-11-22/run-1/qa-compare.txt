@@ -1,0 +1,17 @@
+
+> jobassistant@0.1.0 qa:compare
+> tsx --conditions=react-server scripts/qa-compare.ts --dir docs/qa/rewording-live-runs/2026-11-22/run-1
+
+example-nordic-digital: 5 gaps, 3 rewordable, 2 real, 0 downgraded by FR-15, 0 suggestions discarded by FR-17 (gaps-4, anthropic/claude-sonnet-5.5)
+  G4 example-nordic-digital: 3 of 3 expected Rewordable gaps shown with a suggestion that passed FR-17
+held-out-regnskap-kvale: 7 gaps, 4 rewordable, 3 real, 0 downgraded by FR-15, 0 suggestions discarded by FR-17 (gaps-4, anthropic/claude-sonnet-5.5)
+  G4 held-out-regnskap-kvale: 4 of 4 expected Rewordable gaps shown with a suggestion that passed FR-17
+nursing-sarvurdering: 9 gaps, 4 rewordable, 5 real, 0 downgraded by FR-15, 0 suggestions discarded by FR-17 (gaps-4, anthropic/claude-sonnet-5.5)
+  G4 nursing-sarvurdering: 4 of 7 expected Rewordable gaps shown with a suggestion that passed FR-17
+  G4 not shown nursing-sarvurdering: «smertelindring»
+  G4 not shown nursing-sarvurdering: «sårvurdering»
+  G4 not shown nursing-sarvurdering: «infeksjonsforebygging»
+two-column-fjord-analytics: 3 gaps, 1 rewordable, 2 real, 0 downgraded by FR-15, 0 suggestions discarded by FR-17 (gaps-4, anthropic/claude-sonnet-5.5)
+  G4 two-column-fjord-analytics: 1 of 1 expected Rewordable gaps shown with a suggestion that passed FR-17
+G2: no must-never-suggest keyword is Rewordable
+G4: 12 of 15 expected Rewordable gaps found and shown with a suggestion that passed FR-17 (80 %; a count, not a verdict; SM-5 asks for at least 70 %)
