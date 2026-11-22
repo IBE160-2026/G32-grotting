@@ -94,8 +94,8 @@ development_status:
   5-4-switch-on-suggestions-and-run-the-first-live-checklist: done
   epic-5-retrospective: done
 
-  epic-6: backlog
-  6-1-encrypt-personal-fields-with-one-key: backlog
+  epic-6: in-progress
+  6-1-encrypt-personal-fields-with-one-key: done
   6-2-register-log-in-and-log-out-through-the-api: backlog
   6-3-keep-my-cv-in-profil: backlog
   6-4-register-and-log-in-on-screen: backlog

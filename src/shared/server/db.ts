@@ -7,6 +7,7 @@ import type { PgliteDatabase } from "drizzle-orm/pglite";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { Sql } from "postgres";
 import { getConfig } from "./config";
+import { initCrypto } from "./crypto";
 
 type PostgresDb = PostgresJsDatabase & { $client: Sql };
 type PgliteDb = PgliteDatabase & { $client: PGlite };
@@ -22,7 +23,10 @@ const holder = globalThis as typeof globalThis & {
 };
 
 async function openDb(): Promise<Db> {
-  const { db } = getConfig();
+  const { db, encryptionKey } = getConfig();
+  // Before migrating, so nothing reads or writes a personal field without it.
+  // Accounts off and no key: nothing personal is stored, so nothing to set up.
+  if (encryptionKey !== undefined) initCrypto(encryptionKey);
   if (db.kind === "pglite") {
     const { PGlite } = await import("@electric-sql/pglite");
     const { drizzle } = await import("drizzle-orm/pglite");
