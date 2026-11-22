@@ -95,6 +95,20 @@ export const messages = {
       CV_NOT_CONFIRMED: "Bekreft CV-teksten før du går videre.",
     },
   },
+  // Profil (Story 6.3): the CV kept on the account. The heading is «CV · navn».
+  profile: {
+    title: "Profil",
+    headingLead: "CV",
+    placeholder: "Lim inn CV-teksten din",
+    save: "Lagre",
+    saveHint: "Lagre blir tilgjengelig når feltet har tekst.",
+    saved: "Lagret.",
+    cvHint:
+      "PDF-er med to kolonner kan blande linjene. Les gjennom og rett det som har havnet feil før du lagrer.",
+    pickerHint:
+      "PDF eller TXT, maks 2 MB. Du kan også lime inn teksten direkte i feltet.",
+    sessionEnded: "Økten din er avsluttet. Logg inn igjen for å fortsette.",
+  },
   application: {
     heading: "Ny søknad",
     jobTitle: "Stillingstittel",
