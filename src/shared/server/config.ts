@@ -45,6 +45,9 @@ export type Config = {
     readonly apiKey: string | undefined;
   };
   readonly db: { readonly kind: DbKind; readonly url: string };
+  // The one key for personal fields (AD-11): base64 of 32 bytes. Never logged,
+  // never sent to the client. Absent unless set; config never invents one.
+  readonly encryptionKey: string | undefined;
   readonly features: Features;
   readonly aiNotice: AiNotice;
 };
@@ -53,6 +56,12 @@ export const LOCAL_DATABASE_URL =
   "postgres://jobassistant:jobassistant@127.0.0.1:54320/jobassistant";
 
 const ACCESS_CODE_MIN_LENGTH = 16;
+
+export const DEFAULT_SECRETS_FILE = ".data/secrets.env";
+
+// Base64 of exactly 32 bytes in canonical form: 43 characters, one `=`, and
+// the unused low bits of the last character zero.
+const ENCRYPTION_KEY_FORMAT = /^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/;
 
 const flag = z
   .enum(["true", "false"])
@@ -72,6 +81,8 @@ const envSchema = z.object({
   AI_API_KEY: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   ACCESS_CODE: z.string().optional(),
+  ENCRYPTION_KEY: z.string().optional(),
+  SECRETS_FILE: z.string().optional(),
   VERCEL: z.string().optional(),
   VITEST: z.string().optional(),
   E2E: z.string().optional(),
@@ -155,6 +166,17 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     }
   }
 
+  // The message names the setting and never the value.
+  if (
+    e.ENCRYPTION_KEY !== undefined &&
+    !ENCRYPTION_KEY_FORMAT.test(e.ENCRYPTION_KEY)
+  ) {
+    throw new Error(
+      "Invalid configuration: ENCRYPTION_KEY must be 32 bytes, base64",
+    );
+  }
+  const accounts = e.FEATURE_ACCOUNTS ?? FEATURE_DEFAULTS.accounts;
+
   const url = e.DATABASE_URL ?? LOCAL_DATABASE_URL;
   const kind = dbKind(url);
   if (isTestRun && kind === "postgres") {
@@ -174,7 +196,7 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
   const testMode = e.TEST_MODE === true || !hasKey;
 
   const features: Features = {
-    accounts: e.FEATURE_ACCOUNTS ?? FEATURE_DEFAULTS.accounts,
+    accounts,
     // Hosted has no AI (D23), so the Gap analysis is off there whatever the
     // environment says, as the Keyword fallback is.
     gaps: hosted ? false : (e.FEATURE_GAPS ?? FEATURE_DEFAULTS.gaps),
@@ -204,6 +226,7 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
       apiKey: isTestRun ? undefined : e.AI_API_KEY,
     },
     db: { kind, url },
+    encryptionKey: e.ENCRYPTION_KEY,
     features,
     aiNotice: {
       version: [
@@ -222,24 +245,80 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
   };
 }
 
+type Env = Record<string, string | undefined>;
+
+const isSet = (value: string | undefined): value is string =>
+  value !== undefined && value !== "";
+
+// A test run: VITEST set (empty counts as unset) or E2E=1, as `parseConfig`
+// reads it.
+export function isTestRunEnv(env: Env = process.env): boolean {
+  return isSet(env.VITEST) || env.E2E === "1";
+}
+
+// The file with the local secrets (AD-17). Only config reads it; setup asks
+// here for the path it may write.
+export function secretsFilePath(env: Env = process.env): string {
+  return isSet(env.SECRETS_FILE) ? env.SECRETS_FILE : DEFAULT_SECRETS_FILE;
+}
+
+// The environment as the app sees it. On a local run outside tests the secrets
+// file is merged under `env`, which wins; Hosted and test runs never read it.
+// A missing file is fine; an unreadable one fails naming the setting.
+export function readEnv(env: Env = process.env): Env {
+  const local = !isSet(env.APP_ENV) || env.APP_ENV === "local";
+  if (!local || isTestRunEnv(env)) return env;
+  // Through the process so the Edge-runtime analysis of this module stays
+  // quiet; this branch only runs on Node.
+  const node = globalThis.process;
+  if (typeof node?.getBuiltinModule !== "function") return env;
+  let text: string;
+  try {
+    text = node
+      .getBuiltinModule("node:fs")
+      .readFileSync(secretsFilePath(env), "utf8");
+  } catch (error) {
+    if ((error as { code?: unknown }).code === "ENOENT") return env;
+    throw new Error("Invalid configuration: SECRETS_FILE could not be read");
+  }
+  const fromFile = node.getBuiltinModule("node:util").parseEnv(text);
+  const present = Object.fromEntries(
+    Object.entries(env).filter(([, value]) => isSet(value)),
+  );
+  return { ...fromFile, ...present };
+}
+
 let memo: Config | undefined;
 
 // Lazy and memoised. Call it only inside handlers and startup hooks, never at
 // module top level, so `next build` never reads run-time settings.
 export function getConfig(): Config {
-  memo ??= parseConfig(process.env);
+  memo ??= parseConfig(readEnv());
   return memo;
 }
 
 // Startup check, called from instrumentation on the Node runtime only. A failed
 // instrumentation hook leaves `next start` serving 500s, so the process ends.
 // The message names the setting and never its value.
-export function assertStartupConfig(
-  env: Record<string, string | undefined> = process.env,
+// With accounts on, the key must exist at start (AD-3): Hosted fails, and a
+// local run stops and says to run setup. Kept out of `parseConfig` so that
+// reading a config stays possible before setup has written the key. Names the
+// setting, never a value.
+export function assertEncryptionKey(
+  config: Pick<Config, "hosted" | "encryptionKey" | "features">,
 ): void {
-  if (env.NEXT_RUNTIME !== "nodejs") return;
+  if (!config.features.accounts || config.encryptionKey !== undefined) return;
+  throw new Error(
+    config.hosted
+      ? "Invalid configuration: ENCRYPTION_KEY is required on Hosted when FEATURE_ACCOUNTS is on"
+      : "Invalid configuration: ENCRYPTION_KEY is missing: run setup (npm run dev, or docker compose up)",
+  );
+}
+
+export function assertStartupConfig(env?: Env): void {
+  if ((env ?? process.env).NEXT_RUNTIME !== "nodejs") return;
   try {
-    parseConfig(env);
+    assertEncryptionKey(parseConfig(env ?? readEnv()));
   } catch (error) {
     const reason =
       error instanceof Error ? error.message : "Invalid configuration";
