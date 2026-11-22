@@ -1,6 +1,12 @@
 "use client";
 
-import { type RefObject, useEffect, useRef, useState } from "react";
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { formatCount } from "@/shared/core/format-count";
 import { announce } from "@/shared/ui/announce";
 import { callApi } from "@/shared/ui/api-client";
@@ -18,8 +24,12 @@ import {
 } from "../contracts";
 
 type CvInputProps = {
+  // «confirm» is Søknad's slot: confirm, then collapse. «save» is Profil's: the
+  // text is saved by its own button, so the slot never collapses and has no
+  // «Bekreft» button.
+  mode?: "confirm" | "save";
   draft: string;
-  confirmed: boolean;
+  confirmed?: boolean;
   // The error text for the field, already in bokmål.
   error: string | undefined;
   // Every call is an edit: the value changed.
@@ -28,9 +38,17 @@ type CvInputProps = {
   // The text of an uploaded file: an edit like any other, so it is left
   // unconfirmed (FR-3).
   onExtracted: (text: string) => void;
-  // Returns true when the text was confirmed, so the slot can collapse.
-  onConfirm: () => boolean;
+  // Returns true when the text was confirmed, so the slot can collapse. Only
+  // «confirm» mode has a confirm button.
+  onConfirm?: () => boolean;
   inputRef: RefObject<HTMLTextAreaElement | null>;
+  placeholder?: string;
+  // Under the field, unless the paste hint of a scanned PDF replaces it.
+  hint?: string;
+  // Under the file picker.
+  pickerHint?: string;
+  // Rendered under the field, in place of the confirm button (the save button).
+  after?: ReactNode;
 };
 
 // What the file picker shows. It lives in this component only: the file name
@@ -60,14 +78,19 @@ function serverFileError(field: string | undefined) {
 // form owns the text, the confirmation and the session; this part owns the
 // picker, what is open and where focus goes (UX-DR36).
 export function CvInput({
+  mode = "confirm",
   draft,
-  confirmed,
+  confirmed = false,
   error,
   onChange,
   onBlur,
   onExtracted,
   onConfirm,
   inputRef,
+  placeholder,
+  hint,
+  pickerHint,
+  after,
 }: CvInputProps) {
   const reopenRef = useRef<HTMLButtonElement>(null);
   // Reopening a confirmed text does not clear the confirmation; an edit does.
@@ -78,7 +101,7 @@ export function CvInput({
   const [picker, setPicker] = useState<PickerState>(IDLE);
   // The newest choice wins: an answer to an older one is ignored.
   const latestChoice = useRef(0);
-  const collapsed = confirmed && !reopened;
+  const collapsed = mode === "confirm" && confirmed && !reopened;
 
   // An answer that lands after the Student has left must not rewrite the form.
   useEffect(() => {
@@ -179,6 +202,9 @@ export function CvInput({
         invalid={scanned}
         onChoose={choose}
       >
+        {pickerHint === undefined ? null : (
+          <p className="mt-2 text-hint text-ink-2">{pickerHint}</p>
+        )}
         {scanned ? (
           <Alert className="mt-2">{messages.cv.file.scanned}</Alert>
         ) : null}
@@ -189,7 +215,8 @@ export function CvInput({
       <TextArea
         ref={inputRef}
         label={messages.cv.label}
-        hint={scanned ? messages.cv.pasteHint : undefined}
+        hint={scanned ? messages.cv.pasteHint : hint}
+        placeholder={placeholder}
         counter={messages.counter(
           formatCount(draft.length),
           formatCount(CV_MAX),
@@ -203,25 +230,28 @@ export function CvInput({
         onChange={(event) => onChange(event.target.value)}
         onBlur={onBlur}
       />
-      <div>
-        <Button
-          variant="secondary"
-          // Pressing the button must not blur the field first: its error would
-          // clear, the button would move up, and the click would be lost.
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={() => {
-            if (onConfirm()) {
-              // The picker's state belongs to the text that was just settled.
-              latestChoice.current++;
-              setPicker(IDLE);
-              setReopened(false);
-              setMoveFocusTo("reopen");
-            }
-          }}
-        >
-          {messages.cv.confirm}
-        </Button>
-      </div>
+      {mode === "confirm" ? (
+        <div>
+          <Button
+            variant="secondary"
+            // Pressing the button must not blur the field first: its error would
+            // clear, the button would move up, and the click would be lost.
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              if (onConfirm?.()) {
+                // The picker's state belongs to the text that was just settled.
+                latestChoice.current++;
+                setPicker(IDLE);
+                setReopened(false);
+                setMoveFocusTo("reopen");
+              }
+            }}
+          >
+            {messages.cv.confirm}
+          </Button>
+        </div>
+      ) : null}
+      {after}
     </div>
   );
 }

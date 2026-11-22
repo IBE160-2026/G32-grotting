@@ -45,7 +45,7 @@ export async function callApi<T>(
   path: string,
   schema: z.ZodType<T>,
   init: {
-    method?: "GET" | "POST";
+    method?: "GET" | "POST" | "PUT";
     body?: unknown;
     // The Letter waits for an AI answer, which is far slower than the rest.
     timeoutMs?: number;

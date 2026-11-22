@@ -30,6 +30,11 @@ const LIVE_GAPS_PORT = 3105;
 // default server shows the suggestions; this one keeps the Gap analysis without
 // them under test.
 const REWORDING_OFF_PORT = 3106;
+// An eighth server is the default one with accounts on (FEATURE_ACCOUNTS=true,
+// Story 6.3), still in Test mode, so Profil and the account routes can be tested
+// in a browser. The key is made up: 32 bytes, base64.
+const ACCOUNTS_PORT = 3107;
+const ACCOUNTS_ENCRYPTION_KEY = "ZTItYWNjb3VudHMta2V5LTMyLWJ5dGVzLTAxMjM0NTY=";
 // Repeated in e2e/access.spec.ts.
 const HOSTED_ACCESS_CODE = "e2e-access-code-0123456789";
 
@@ -140,6 +145,20 @@ export default defineConfig({
         APP_ENV: "local",
         DATABASE_URL: "pglite://memory",
         FEATURE_REWORDING: "false",
+        E2E: "1",
+      },
+    },
+    {
+      command: `next start -p ${ACCOUNTS_PORT}`,
+      url: `http://localhost:${ACCOUNTS_PORT}`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: {
+        TEST_MODE: "true",
+        APP_ENV: "local",
+        DATABASE_URL: "pglite://memory",
+        FEATURE_ACCOUNTS: "true",
+        ENCRYPTION_KEY: ACCOUNTS_ENCRYPTION_KEY,
         E2E: "1",
       },
     },
