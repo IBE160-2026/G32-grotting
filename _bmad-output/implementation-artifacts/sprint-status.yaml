@@ -96,7 +96,7 @@ development_status:
 
   epic-6: in-progress
   6-1-encrypt-personal-fields-with-one-key: done
-  6-2-register-log-in-and-log-out-through-the-api: backlog
+  6-2-register-log-in-and-log-out-through-the-api: done
   6-3-keep-my-cv-in-profil: backlog
   6-4-register-and-log-in-on-screen: backlog
   6-5-warn-before-the-session-ends-and-keep-my-work-if-it-does: backlog
