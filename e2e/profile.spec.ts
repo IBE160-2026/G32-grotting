@@ -127,10 +127,11 @@ test.describe("Profil with accounts on", () => {
     );
     await expect(page.getByText(COLUMN_HINT)).toBeVisible();
     await expect(page.getByText(PICKER_HINT)).toBeVisible();
-    // Profil is not in the app bar yet.
+    // Story 6.4 put Profil in the logged-in app bar, so the test no longer
+    // says it is missing: it is the current page.
     await expect(
       page.getByRole("navigation").getByRole("link", { name: "Profil" }),
-    ).toHaveCount(0);
+    ).toHaveAttribute("aria-current", "page");
   });
 
   test("saves a pasted CV: «Lagret.» shows and is announced, and a reload keeps the text", async ({
@@ -266,13 +267,11 @@ test.describe("Profil with accounts on", () => {
     await other.close();
   });
 
-  test("without a session the page says so, and no raw error shows", async ({
-    page,
-  }) => {
+  // Story 6.4 replaces the session-ended alert for a logged-out visit: the
+  // server sends the visitor to Logg inn.
+  test("without a session the page redirects to Logg inn", async ({ page }) => {
     await page.goto("/profil");
-    await expect(
-      page.getByRole("alert").filter({ hasText: SESSION_ENDED }),
-    ).toBeVisible();
+    await expect(page).toHaveURL(/\/logg-inn$/);
     await expect(cvField(page)).toHaveCount(0);
   });
 });

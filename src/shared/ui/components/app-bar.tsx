@@ -5,7 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { messages } from "../messages.nb";
 import { Button } from "./button";
 import { Link } from "./link";
-import { navItems } from "./nav-items";
+import { type AccountNav, navItems } from "./nav-items";
 
 // Three amber pulse lines, drawn with the product's one icon stroke.
 function PulseGlyph() {
@@ -48,7 +48,9 @@ function MenuIcon({ open }: { open: boolean }) {
   );
 }
 
-export function AppBar() {
+// `account` is what the server knew when the page loaded (Story 6.4): the nav
+// follows it, and a login or logout loads the page afresh.
+export function AppBar({ account = "off" }: { account?: AccountNav }) {
   const pathname = usePathname();
   // The menu belongs to the page it was opened on, so back/forward or any
   // navigation closes it without an effect.
@@ -102,7 +104,7 @@ export function AppBar() {
           className={`max-640:-mx-page-x-mobile max-640:basis-[calc(100%+2*var(--spacing-page-x-mobile))] ${open ? "" : "max-640:hidden"}`}
         >
           <ul className="m-0 flex list-none gap-1 p-0 max-640:flex-col max-640:gap-0">
-            {navItems(pathname).map((item) => (
+            {navItems(pathname, account).map((item) => (
               <li
                 key={item.href}
                 className="max-640:border-t max-640:border-rule"

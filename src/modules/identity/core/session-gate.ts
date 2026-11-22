@@ -27,8 +27,9 @@ function withoutTrailingSlash(path: string): string {
 
 // Pure (AD-12): the proxy cannot reach the database, so it asks only whether a
 // session cookie is there; the route checks that it is a live session. Pages
-// are not gated here (Story 6.4 sends a logged-out Student to Logg inn). With
-// accounts off nothing changes.
+// are not gated here: each Student page asks `requireStudentPage` for a live
+// session and sends a logged-out Student to Logg inn (Story 6.4). With accounts
+// off nothing changes.
 export function sessionDecision(input: SessionGateInput): SessionGateDecision {
   if (!input.accountsOn || !isApi(input.path)) return "pass";
   if (input.hasSessionCookie) return "pass";

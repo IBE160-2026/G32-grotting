@@ -7,6 +7,12 @@ export const messages = {
     label: "Hovedmeny",
     home: "Hjem",
     application: "Søknad",
+    // The items accounts add (Story 6.4, UX-DR5): logged out and logged in.
+    login: "Logg inn",
+    register: "Registrer deg",
+    profile: "Profil",
+    history: "Historikk",
+    account: "Konto",
     menuOpen: "Meny",
     menuClose: "Lukk",
   },
@@ -108,6 +114,49 @@ export const messages = {
     pickerHint:
       "PDF eller TXT, maks 2 MB. Du kan også lime inn teksten direkte i feltet.",
     sessionEnded: "Økten din er avsluttet. Logg inn igjen for å fortsette.",
+  },
+  // Registrer deg and Logg inn (Story 6.4). Wording follows EXPERIENCE.md, Key
+  // strings; the field errors that the Key strings do not name are the simplest
+  // sentence that says what to fix.
+  register: {
+    title: "Registrer deg",
+    name: "Navn",
+    email: "E-post",
+    password: "Passord",
+    passwordHint: "Minst 8 tegn. Velg et passord du ikke bruker andre steder.",
+    accessCodeHint: "Minst 16 tegn. Koden får du av utvikleren.",
+    trust: "CV-en din og dokumentene som lages, lagres kryptert.",
+    submit: "Registrer deg",
+    haveAccount: "Har du allerede en konto? Logg inn",
+    errors: {
+      nameRequired: "Skriv inn navnet ditt.",
+      nameTooLong: "Navnet kan ha høyst 200 tegn.",
+      emailRequired: "Skriv inn e-postadressen din.",
+      emailInvalid: "Skriv inn en gyldig e-postadresse.",
+      emailTaken: "Denne e-postadressen er allerede registrert.",
+      passwordShort: "Passordet må ha minst 8 tegn.",
+      passwordLong: "Passordet kan ha høyst 1000 tegn.",
+    },
+  },
+  login: {
+    title: "Logg inn",
+    email: "E-post",
+    password: "Passord",
+    submit: "Logg inn",
+    noAccount: "Har du ingen konto? Registrer deg",
+    errors: {
+      emailRequired: "Skriv inn e-postadressen din.",
+      passwordRequired: "Skriv inn passordet ditt.",
+      credentials: "Feil e-post eller passord.",
+    },
+  },
+  // Historikk and Konto stand as plain pages until Story 6.8 and 6.10 build
+  // them: a title and one honest line, no promise.
+  placeholderPage: {
+    history: "Historikk",
+    account: "Konto",
+    body: "Denne siden er ikke ferdig ennå.",
+    toApplication: "Til Søknad",
   },
   application: {
     heading: "Ny søknad",
