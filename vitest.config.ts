@@ -15,11 +15,8 @@ export default defineConfig({
     // PGlite starts and migrates in each worker; parallel files make it slow,
     // most of all in the Docker test container, where Story 3.11's tests (the
     // saved Keyword lists need the database in phase 1) started more of them.
-    // Story 6.3 added three more files that open a database, and three route
-    // tests (phase 1 through the database) then ran past 40 s there, though they
-    // pass in a few seconds on their own.
-    testTimeout: 90_000,
-    hookTimeout: 120_000,
+    testTimeout: 40_000,
+    hookTimeout: 60_000,
     include: ["src/**/*.test.ts", "scripts/**/*.test.ts", "test/**/*.test.ts"],
     env: {
       APP_ENV: "local",
