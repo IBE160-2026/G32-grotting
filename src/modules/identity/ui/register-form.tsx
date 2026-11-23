@@ -2,6 +2,7 @@
 
 import { type FormEvent, useId, useRef, useState } from "react";
 import { callApi } from "@/shared/ui/api-client";
+import { forgetOtherStudentsWork } from "@/shared/ui/client-session";
 import { Alert } from "@/shared/ui/components/alert";
 import { Button } from "@/shared/ui/components/button";
 import { Link } from "@/shared/ui/components/link";
@@ -147,6 +148,8 @@ export function RegisterForm() {
       },
     });
     if (login.ok) {
+      // A new account on a tab that holds another Student's kept work.
+      forgetOtherStudentsWork(registered.current?.email ?? values.email);
       // Stays busy: the page is leaving.
       goTo("/profil");
       return;

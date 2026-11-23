@@ -361,6 +361,9 @@ test.describe("Logg inn", () => {
     await fillRegister(page, { email });
     await submit(page, "Registrer deg").click();
     await expect(page).toHaveURL(/\/profil$/);
+    // Profil's own requests must be answered before the session goes: one that
+    // finds it gone now sends the page to Logg inn (Story 6.5).
+    await page.waitForLoadState("networkidle");
     await logOut(page);
     await page.goto("/logg-inn");
     await field(page, "E-post").fill(email);

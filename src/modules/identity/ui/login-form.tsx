@@ -1,7 +1,11 @@
 "use client";
 
-import { type FormEvent, useId, useRef, useState } from "react";
+import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { callApi } from "@/shared/ui/api-client";
+import {
+  forgetOtherStudentsWork,
+  readSession,
+} from "@/shared/ui/client-session";
 import { Alert } from "@/shared/ui/components/alert";
 import { Button } from "@/shared/ui/components/button";
 import { Link } from "@/shared/ui/components/link";
@@ -17,7 +21,12 @@ type Errors = { email?: string; password?: string };
 // Logg inn (Story 6.4, FR-18): E-post and Passord; success lands on Søknad. A
 // wrong email or password is one error on the password field that does not say
 // which part was wrong; the email and the password stay as typed (NFR-5).
-export function LoginForm() {
+export function LoginForm({
+  sessionEnded = false,
+}: {
+  // The session ran out and the Student was sent here (Story 6.5, FR-18).
+  sessionEnded?: boolean;
+}) {
   const emailId = useId();
   const passwordId = useId();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -28,6 +37,13 @@ export function LoginForm() {
   const [shown, setShown] = useState(false);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // The email the Student had in this tab is prefilled, unless they have
+  // already started typing another.
+  useEffect(() => {
+    const last = readSession().lastEmail;
+    if (last !== undefined) setEmail((typed) => (typed === "" ? last : typed));
+  }, []);
 
   // Editing either part drops the credentials error, which belongs to both.
   function editEmail(value: string) {
@@ -62,6 +78,9 @@ export function LoginForm() {
       body: { email, password },
     });
     if (result.ok) {
+      // What the tab kept after an ended session is for the Student who lost
+      // it, not for another who logs in on the same tab.
+      forgetOtherStudentsWork(email);
       // Stays busy: the page is leaving.
       goTo("/soknad");
       return;
@@ -80,6 +99,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
+      {sessionEnded ? <Alert>{messages.session.ended}</Alert> : null}
       {failed ? <Alert>{messages.networkFailure}</Alert> : null}
       <TextField
         id={emailId}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, DM_Mono, Schibsted_Grotesk } from "next/font/google";
 import { connection } from "next/server";
 import { getPageSession } from "@/modules/identity";
+import { SessionWatch } from "@/modules/identity/ui";
 import { getConfig } from "@/shared/server/config";
 import { toRunMode } from "@/shared/server/run-mode";
 import { LIVE_REGION_IDS } from "@/shared/ui/announce";
@@ -42,9 +43,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const runMode = toRunMode(config);
   // With accounts on, the app bar shows the logged-out or the logged-in set
   // (UX-DR5). The lookup is shared with the page that asks for it.
+  const session = config.features.accounts ? await getPageSession() : null;
   const account: AccountNav = !config.features.accounts
     ? "off"
-    : (await getPageSession()) === null
+    : session === null
       ? "out"
       : "in";
 
@@ -70,7 +72,17 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             tabIndex={-1}
             className="flex-1 px-page-x pt-page-top pb-page-bottom max-640:px-page-x-mobile max-640:pt-page-top-mobile max-640:pb-page-bottom-mobile"
           >
-            <QueryProvider>{children}</QueryProvider>
+            <QueryProvider>
+              {children}
+              {session === null ? null : (
+                // The expiry warning and the keep-alive (Story 6.5); a
+                // logged-in Student only, so never with accounts off.
+                <SessionWatch
+                  expiresAt={session.expiresAt.toISOString()}
+                  serverNow={Date.now()}
+                />
+              )}
+            </QueryProvider>
           </main>
         </RunModeProvider>
         <div

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  forgetOtherStudentsWork,
   readSession,
   SESSION_KEY,
   type SessionStorage,
@@ -133,5 +134,71 @@ describe("FR-10 the Tone in the client session", () => {
       readSession(memoryStorage(JSON.stringify({ v: 1, inputs: {}, tone: 3 })))
         .tone,
     ).toBeUndefined();
+  });
+});
+
+describe("FR-18 the email and the restored notices in the client session", () => {
+  it("keeps the last email through edits and reads none from a foreign session", () => {
+    const storage = memoryStorage();
+    writeSession({ lastEmail: "kari@example.test" }, storage);
+    writeSession({ inputs: { jobAd: "a" } }, storage);
+    expect(readSession(storage).lastEmail).toBe("kari@example.test");
+    const foreign = JSON.stringify({ v: 1, inputs: {}, lastEmail: 3 });
+    expect(readSession(memoryStorage(foreign)).lastEmail).toBeUndefined();
+  });
+
+  it("sets, consumes one part of, and removes restoredAfterExpiry", () => {
+    const storage = memoryStorage();
+    writeSession(
+      { restoredAfterExpiry: { soknad: true, profil: true } },
+      storage,
+    );
+    writeSession({ inputs: { jobAd: "a" } }, storage);
+    expect(readSession(storage).restoredAfterExpiry).toEqual({
+      soknad: true,
+      profil: true,
+    });
+    writeSession(
+      { restoredAfterExpiry: { soknad: false, profil: true } },
+      storage,
+    );
+    expect(readSession(storage).restoredAfterExpiry).toEqual({ profil: true });
+    writeSession({ restoredAfterExpiry: { profil: false } }, storage);
+    expect(storage.dump()).not.toContain("restoredAfterExpiry");
+    writeSession({ restoredAfterExpiry: { soknad: true } }, storage);
+    writeSession({ restoredAfterExpiry: null }, storage);
+    expect(readSession(storage).restoredAfterExpiry).toBeUndefined();
+  });
+});
+
+describe("FR-18 another Student on the same tab", () => {
+  const kept = () =>
+    memoryStorage(
+      JSON.stringify({
+        v: 1,
+        lastEmail: "kari@example.test",
+        restoredAfterExpiry: { soknad: true },
+        inputs: { jobAd: "annonse", cvDraft: "utkast" },
+      }),
+    );
+
+  it("drops the whole client session when the email is another one", () => {
+    const storage = kept();
+    forgetOtherStudentsWork("ola@example.test", storage);
+    expect(readSession(storage)).toEqual({ v: 1, inputs: {} });
+  });
+
+  it("keeps it for the same Student, whatever the case or spaces", () => {
+    const storage = kept();
+    forgetOtherStudentsWork("  Kari@Example.test ", storage);
+    expect(readSession(storage).inputs.jobAd).toBe("annonse");
+  });
+
+  it("keeps it when the tab holds no email", () => {
+    const storage = memoryStorage(
+      JSON.stringify({ v: 1, inputs: { jobAd: "annonse" } }),
+    );
+    forgetOtherStudentsWork("ola@example.test", storage);
+    expect(readSession(storage).inputs.jobAd).toBe("annonse");
   });
 });

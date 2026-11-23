@@ -29,6 +29,7 @@ import { readSession, writeSession } from "@/shared/ui/client-session";
 import { Alert } from "@/shared/ui/components/alert";
 import { Button } from "@/shared/ui/components/button";
 import { CatalogueHeading } from "@/shared/ui/components/catalogue-heading";
+import { Notice } from "@/shared/ui/components/notice";
 import { ProgressLine } from "@/shared/ui/components/progress-line";
 import { TextArea, TextField } from "@/shared/ui/components/text-field";
 import { messages } from "@/shared/ui/messages.nb";
@@ -135,9 +136,22 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   });
   // Nothing is written until what the tab held has been read back (AD-16).
   const [restored, setRestored] = useState(false);
+  // The session ended and the Student logged in again: the Job ad the tab kept
+  // is back, and this says so, once (FR-18, AD-16).
+  const [adKept, setAdKept] = useState(false);
+  const adKeptRead = useRef(false);
 
   useEffect(() => {
-    const { inputs } = readSession();
+    const { inputs, restoredAfterExpiry } = readSession();
+    if (!adKeptRead.current) {
+      adKeptRead.current = true;
+      if (restoredAfterExpiry?.soknad === true) {
+        setAdKept((inputs.jobAd ?? "").trim() !== "");
+        writeSession({
+          restoredAfterExpiry: { ...restoredAfterExpiry, soknad: false },
+        });
+      }
+    }
     setValues({
       jobTitle: inputs.jobTitle ?? "",
       employer: inputs.employer ?? "",
@@ -425,6 +439,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
         {messages.application.heading}
       </CatalogueHeading>
       <form onSubmit={onSubmit} noValidate className="mt-8 flex flex-col gap-6">
+        {adKept ? (
+          <Notice label={messages.session.restoredLabel}>
+            {messages.session.restoredAd}
+          </Notice>
+        ) : null}
         {failed ? <Alert>{messages.networkFailure}</Alert> : null}
         <CvInput
           key={exampleRuns}

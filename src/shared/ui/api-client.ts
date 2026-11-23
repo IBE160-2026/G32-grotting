@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { MESSAGE_KEYS, type MessageKey } from "@/shared/core/message-key";
+import { noteSessionHeaders } from "./session-clock";
+import { endSession } from "./session-end";
 
 export type ApiFailure = {
   readonly code: MessageKey;
@@ -58,6 +60,8 @@ export async function callApi<T>(
       method: init.method ?? (init.body === undefined ? "GET" : "POST"),
       ...requestBody(init.body),
     });
+    // Every authenticated response says when the session ends.
+    noteSessionHeaders(response.headers);
     body = await response.json();
   } catch {
     return fail("NETWORK_ERROR", true);
@@ -68,6 +72,12 @@ export async function callApi<T>(
     .safeParse(body);
   if (success.success) return { ok: true, data: success.data.data };
   const failure = failureSchema.safeParse(body);
-  if (failure.success) return { ok: false, error: failure.data.error };
+  if (failure.success) {
+    // Any request can find the session gone (AD-16, FR-18): the client keeps
+    // what the Student typed and goes to «Logg inn». The failure is returned
+    // too, for a caller that has to free a busy button while the page leaves.
+    if (failure.data.error.code === "SESSION_EXPIRED") endSession();
+    return { ok: false, error: failure.data.error };
+  }
   return fail("UNEXPECTED", false);
 }

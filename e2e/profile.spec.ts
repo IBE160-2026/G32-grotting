@@ -302,18 +302,24 @@ const refused = (code: string, field?: string) => ({
 test.describe("Profil when the save does not go through", () => {
   test.use({ baseURL: ACCOUNTS });
 
-  test("an ended session shows its alert, no «Lagret.», and keeps the draft", async ({
+  // Story 6.5: an ended session is no longer an alert without a link on
+  // Profil; `callApi` keeps the draft and goes to Logg inn (e2e/session-expiry).
+  test("an ended session goes to Logg inn with its alert, no «Lagret.», and keeps the draft", async ({
     page,
   }) => {
     await openProfile(page);
     await answerPut(page, (route) => route.fulfill(refused("SESSION_EXPIRED")));
     await cvField(page).fill(CV);
     await saveButton(page).click();
+    await expect(page).toHaveURL(/\/logg-inn\?okt=utlopt$/);
     await expect(
       page.getByRole("alert").filter({ hasText: SESSION_ENDED }),
     ).toBeVisible();
     await expect(savedLine(page)).toHaveCount(0);
-    await expect(cvField(page)).toHaveValue(CV);
+    const kept = await page.evaluate(() =>
+      sessionStorage.getItem("ja.session.v1"),
+    );
+    expect(kept).toContain(CV.slice(0, 40));
   });
 
   test("a field error from the server shows CV_LENGTH, focus in the field and the draft kept", async ({

@@ -136,6 +136,11 @@ export function CvInput({
     if (choice !== latestChoice.current) return;
 
     if (!result.ok) {
+      // An ended session is handled by `callApi`: the page goes to Logg inn.
+      if (result.error.code === "SESSION_EXPIRED") {
+        setPicker({ ...IDLE, file: shown });
+        return;
+      }
       const fileError =
         result.error.code === "INVALID_INPUT"
           ? serverFileError(result.error.field)
