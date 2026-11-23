@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { phaseTwoLine, sectionKindOfFailure } from "./phase-two-line";
+import { messages } from "@/shared/ui/messages.nb";
+import {
+  phaseTwoLine,
+  sectionKindOfFailure,
+  withSavedLine,
+} from "./phase-two-line";
 
 describe("NFR-2 the phase-2 line for the Gap analysis and the Letter", () => {
   it("shares one sentence when both settled the same way", () => {
@@ -49,5 +54,26 @@ describe("NFR-2 the phase-2 line for the Gap analysis and the Letter", () => {
     expect(sectionKindOfFailure("TEST_MODE_UNAVAILABLE")).toBe("testMode");
     expect(sectionKindOfFailure("AI_TIMEOUT")).toBe("failed");
     expect(sectionKindOfFailure("AI_NOTICE_REQUIRED")).toBe("failed");
+  });
+});
+
+describe("Story 6.7 the saved sentence on the phase-2 line", () => {
+  const saved = messages.result.saved("JA-002");
+
+  it("appends it to every outcome when the Application is saved", () => {
+    expect(saved).toBe("Lagret i Historikk som JA-002.");
+    for (const kind of ["done", "failed", "cap", "testMode"] as const) {
+      const line = phaseTwoLine(kind, kind);
+      expect(withSavedLine(line, saved)).toBe(`${line} ${saved}`);
+    }
+    expect(withSavedLine(phaseTwoLine("done", "failed"), saved)).toBe(
+      "Søknadsbrevet er klart. Gapanalysen kunne ikke lages. Lagret i Historikk som JA-002.",
+    );
+  });
+
+  it("leaves the line as it was when nothing is saved", () => {
+    expect(withSavedLine("Søknadsbrevet er klart.")).toBe(
+      "Søknadsbrevet er klart.",
+    );
   });
 });

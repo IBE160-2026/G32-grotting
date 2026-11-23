@@ -10,8 +10,10 @@ import { formatCount } from "@/shared/core/format-count";
 import { Button } from "@/shared/ui/components/button";
 import { CatalogueHeading } from "@/shared/ui/components/catalogue-heading";
 import { CreditsList } from "@/shared/ui/components/credits-list";
+import { Notice } from "@/shared/ui/components/notice";
 import { ProgressLine } from "@/shared/ui/components/progress-line";
 import { messages } from "@/shared/ui/messages.nb";
+import { formatCatalogueNumber } from "../core/catalogue-number";
 import type { PhaseTwo } from "./use-phase-two";
 
 // What the result view shows, kept as it was submitted: the form can change
@@ -25,6 +27,9 @@ export type Outcome = {
   readonly employer: string;
   readonly date: string;
   readonly adParagraphs: readonly string[];
+  // Story 6.7, accounts on: `{ seq }` once the Application is saved, `null`
+  // when the save failed. Absent with accounts off, where nothing is saved.
+  readonly saved?: { readonly seq: number } | null;
 };
 
 type ResultViewProps = {
@@ -48,6 +53,11 @@ export function ResultView({
   const { result } = outcome;
   const { letterPhase, gapsPhase } = phaseTwo;
   const letterPending = (letterPhase?.kind ?? "pending") === "pending";
+  const number =
+    outcome.saved === undefined || outcome.saved === null
+      ? undefined
+      : formatCatalogueNumber(outcome.saved.seq);
+  const notSaved = outcome.saved === null;
 
   // The Letter section; with the Gap analysis one progress line stands above
   // both sections, so the Letter's own is left out.
@@ -69,9 +79,24 @@ export function ResultView({
   return (
     <>
       <div className="max-w-measure">
-        <CatalogueHeading ref={headingRef} employer>
+        <CatalogueHeading ref={headingRef} employer number={number}>
           {outcome.employer}
         </CatalogueHeading>
+        {number === undefined ? null : (
+          // Silent: the phase-2 line speaks the saved sentence, once.
+          <p className="mt-3 text-body text-ink-2">
+            {messages.result.saved(number)}
+          </p>
+        )}
+        {notSaved ? (
+          // Nothing is stored, so phase 2 is not started: its routes need the
+          // row, and nothing is promised that is not saved.
+          <div className="mt-6">
+            <Notice label={messages.application.notSaved.label}>
+              {messages.application.notSaved.text}
+            </Notice>
+          </div>
+        ) : null}
         <div className="mt-6 flex flex-col gap-8">
           <CreditsList
             items={[
@@ -128,7 +153,7 @@ export function ResultView({
         />
       </div>
       <div className="mt-8 max-w-letter">
-        {gapsPhase === null ? (
+        {notSaved ? null : gapsPhase === null ? (
           letterSection(true)
         ) : (
           <div className="flex flex-col gap-8">

@@ -21,7 +21,7 @@ import { CvInput } from "@/modules/cv/ui";
 import { splitParagraphs } from "@/modules/keywords/core";
 import { TONES, type Tone } from "@/modules/letter/contracts";
 import { type LetterJob, ToneChoice } from "@/modules/letter/ui";
-import { PulsePlot } from "@/modules/match/ui";
+import { PulsePlot, phaseOneLine } from "@/modules/match/ui";
 import type { ProfileView } from "@/modules/profile/contracts";
 import {
   PROFILE_KEY,
@@ -54,8 +54,10 @@ import {
   JOB_AD_MAX,
   normaliseNewlines,
 } from "../contracts";
+import { formatCatalogueNumber } from "../core/catalogue-number";
 import { CvDisclosure, NoCvNotice } from "./cv-disclosure";
 import { type Outcome, ResultView } from "./result-view";
+import { NEXT_APPLICATION_KEY, useNextApplication } from "./use-next-number";
 import { usePhaseTwo } from "./use-phase-two";
 
 type Errors = Partial<Record<InputField, InputErrorCode>>;
@@ -133,6 +135,13 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   const queryClient = useQueryClient();
   const profile = useProfile({ enabled: accountsOn });
   const acceptOnAccount = useAcceptAiNotice();
+  // The number the next Application gets (Story 6.7). Pending or failed: the
+  // heading shows no number.
+  const nextApplication = useNextApplication({ enabled: accountsOn });
+  const nextNumber =
+    accountsOn && nextApplication.data !== undefined
+      ? formatCatalogueNumber(nextApplication.data.seq)
+      : undefined;
   // «Bruk eksempelet» with accounts on: a one-off CV for this application,
   // held here only. It is never saved to the Profile and never written to
   // `sessionStorage`.
@@ -493,6 +502,9 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   // one chosen at submit (the form is inert while the notice is open).
   function show(answer: AnalyseResponse, request: AnalyseRequest) {
     const { inputs } = request;
+    // `saved` is absent with accounts off, `{ seq }` when stored, `null` when
+    // the save failed (Story 6.7).
+    const saved = answer.saved;
     const job: LetterJob = {
       applicationId: request.applicationId,
       inputs,
@@ -507,8 +519,27 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       employer: inputs.employer,
       date: DATE.format(new Date()),
       adParagraphs: splitParagraphs(inputs.jobAd),
+      ...(saved === undefined ? {} : { saved }),
     });
-    phaseTwo.begin(job, answer.result);
+    if (saved === null) {
+      // Not stored: phase 2 needs the row, so it does not start. The score
+      // stands, and nothing is promised that is not saved.
+      announce(
+        "phase",
+        `${phaseOneLine(answer.result)} ${messages.application.notSaved.live}`,
+      );
+      return;
+    }
+    if (saved !== undefined) {
+      void queryClient.invalidateQueries({ queryKey: NEXT_APPLICATION_KEY });
+    }
+    phaseTwo.begin(
+      job,
+      answer.result,
+      saved === undefined
+        ? undefined
+        : messages.result.saved(formatCatalogueNumber(saved.seq)),
+    );
   }
 
   function backToForm() {
@@ -540,9 +571,12 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
 
   return (
     <div className="max-w-measure">
-      <CatalogueHeading ref={headingRef}>
+      <CatalogueHeading ref={headingRef} number={nextNumber} dim>
         {messages.application.heading}
       </CatalogueHeading>
+      {nextNumber === undefined ? null : (
+        <p className="mt-4 text-lede text-ink-2">{messages.application.lede}</p>
+      )}
       <form onSubmit={onSubmit} noValidate className="mt-8 flex flex-col gap-6">
         {adKept ? (
           <Notice label={messages.session.restoredLabel}>

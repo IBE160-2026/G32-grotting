@@ -27,6 +27,16 @@ vi.mock("@/shared/server/log", () => ({ log: vi.fn() }));
 const analyseInputs = vi.fn();
 vi.mock("@/modules/application", () => ({
   analyseInputs: (...args: unknown[]) => analyseInputs(...args),
+  // Story 6.7: the Application row is checked and written through these; they
+  // are the replaced repository, so this test still reaches no database table.
+  getApplicationMeta: async () => ({
+    id: "x",
+    seq: 1,
+    fingerprint: "f",
+    letterRev: 0,
+    gapsRev: 0,
+  }),
+  saveGaps: async () => true,
 }));
 const analyseGaps = vi.fn();
 vi.mock("@/modules/gaps", () => ({

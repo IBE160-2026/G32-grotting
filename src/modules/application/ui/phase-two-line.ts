@@ -28,3 +28,13 @@ export function phaseTwoLine(letter: SectionKind, gaps: SectionKind): string {
   sentences.sort((a, b) => Number(b.done) - Number(a.done));
   return sentences.map(({ text }) => text).join(" ");
 }
+
+/**
+ * A phase-2 line with the saved sentence after it («… Lagret i Historikk som
+ * JA-002.»), when the Application is saved. Without one the line is as it was.
+ * It is said for every phase-2 outcome, a failed section too: the Application
+ * is stored whatever the AI did.
+ */
+export function withSavedLine(line: string, savedLine?: string): string {
+  return savedLine === undefined ? line : `${line} ${savedLine}`;
+}
