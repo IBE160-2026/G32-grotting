@@ -39,6 +39,10 @@ const ACCOUNTS_ENCRYPTION_KEY = "ZTItYWNjb3VudHMta2V5LTMyLWJ5dGVzLTAxMjM0NTY=";
 // field on Registrer deg can be tested in a browser. Same made-up key as above.
 const HOSTED_ACCOUNTS_PORT = 3108;
 const HOSTED_ACCOUNTS_ACCESS_CODE = "e2e-hosted-code-0123456789";
+// A tenth server is the third with accounts on (Story 6.5): Test mode is off, so
+// the AI notice shows and the expiry warning can be seen replacing it. The AI
+// key is made up and no test answers a request that would use it.
+const LIVE_ACCOUNTS_PORT = 3109;
 // Repeated in e2e/access.spec.ts.
 const HOSTED_ACCESS_CODE = "e2e-access-code-0123456789";
 
@@ -178,6 +182,25 @@ export default defineConfig({
         ENCRYPTION_KEY: ACCOUNTS_ENCRYPTION_KEY,
         DATABASE_URL: "pglite://memory",
         E2E: "1",
+      },
+    },
+    {
+      command: `next start -p ${LIVE_ACCOUNTS_PORT}`,
+      url: `http://localhost:${LIVE_ACCOUNTS_PORT}`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: {
+        TEST_MODE: "false",
+        APP_ENV: "local",
+        DATABASE_URL: "pglite://memory",
+        AI_PROVIDER: "openrouter",
+        AI_MODEL: "anthropic/claude-sonnet-5.5",
+        AI_API_KEY: "e2e-not-a-real-key",
+        FEATURE_KEYWORD_FALLBACK: "false",
+        FEATURE_GAPS: "false",
+        FEATURE_ACCOUNTS: "true",
+        ENCRYPTION_KEY: ACCOUNTS_ENCRYPTION_KEY,
+        // No E2E: a test run never sees an AI key, so Test mode would stay on.
       },
     },
   ],

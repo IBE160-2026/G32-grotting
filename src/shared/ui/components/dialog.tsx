@@ -16,6 +16,11 @@ type DialogProps = {
   onCancel: () => void;
   // Where focus goes once the dialog has closed.
   returnFocusRef?: RefObject<HTMLElement | null>;
+  // The expiry warning is an `alertdialog`; the AI notice has no role of its own.
+  role?: "alertdialog";
+  // Where focus starts. By default the title, so the body is read before the
+  // buttons; the expiry warning starts on its primary button.
+  initialFocusRef?: RefObject<HTMLElement | null>;
   // Gets the id the body text must carry, so the dialog is described by it.
   children: (ids: { descriptionId: string }) => ReactNode;
 };
@@ -23,12 +28,15 @@ type DialogProps = {
 // The one modal (UX-DR17, UX-DR38): a native `<dialog>` opened with
 // `showModal()`, so the page behind is inert and focus stays inside. Focus
 // starts on the title (`tabindex="-1"`), so the body is read before the
-// buttons. The owner decides what closes it: it keeps `open` in its own state.
+// buttons (or on `initialFocusRef`). The owner decides what closes it: it keeps
+// `open` in its own state.
 export function Dialog({
   open,
   title,
   onCancel,
   returnFocusRef,
+  role,
+  initialFocusRef,
   children,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -43,7 +51,7 @@ export function Dialog({
     if (element === null) return;
     if (open) {
       if (!element.open) element.showModal();
-      titleRef.current?.focus();
+      (initialFocusRef?.current ?? titleRef.current)?.focus();
       wasOpen.current = true;
       return;
     }
@@ -52,11 +60,12 @@ export function Dialog({
       wasOpen.current = false;
       returnFocusRef?.current?.focus();
     }
-  }, [open, returnFocusRef]);
+  }, [open, returnFocusRef, initialFocusRef]);
 
   return (
     <dialog
       ref={ref}
+      role={role}
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
       // Esc equals the cancel button; the owner closes it.

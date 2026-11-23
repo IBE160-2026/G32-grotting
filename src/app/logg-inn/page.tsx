@@ -5,21 +5,31 @@ import { LoginForm } from "@/modules/identity/ui";
 import { getConfig } from "@/shared/server/config";
 import { messages } from "@/shared/ui/messages.nb";
 import { pageTitle } from "@/shared/ui/page-title";
+import {
+  SESSION_ENDED_PARAM,
+  SESSION_ENDED_VALUE,
+} from "@/shared/ui/session-end";
 
 export const metadata: Metadata = { title: pageTitle(messages.login.title) };
 
 // Logg inn (Story 6.4): where a logged-out Student is sent from Søknad, Profil,
 // Historikk and Konto. Exists only while accounts are on.
-export default async function LoggInnPage() {
+export default async function LoggInnPage({
+  searchParams,
+}: PageProps<"/logg-inn">) {
   await connection();
   if (!getConfig().features.accounts) notFound();
+  // The client sends the Student here with a marker once the session has ended
+  // (Story 6.5): the alert says so, and the email is prefilled by the form.
+  const ended =
+    (await searchParams)[SESSION_ENDED_PARAM] === SESSION_ENDED_VALUE;
   return (
     <div className="max-w-measure">
       <h1 className="text-title max-640:text-title-mobile">
         {messages.login.title}
       </h1>
       <div className="mt-8">
-        <LoginForm />
+        <LoginForm sessionEnded={ended} />
       </div>
     </div>
   );

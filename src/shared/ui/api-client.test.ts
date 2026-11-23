@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { callApi } from "./api-client";
+import { readSession, SESSION_KEY, writeSession } from "./client-session";
+import { getDeadline, resetSessionClock } from "./session-clock";
+import { resetEnding, SESSION_ENDED_PATH } from "./session-end";
 
 const schema = z.object({ opened: z.literal(true) });
 
@@ -10,7 +13,11 @@ function stubFetch(impl: () => Promise<Response>) {
   return fetchMock;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  resetSessionClock();
+  resetEnding();
+});
 
 describe("AD-7 api-client", () => {
   it("parses a success envelope with the route's schema", async () => {
@@ -120,5 +127,89 @@ describe("NFR-4 api-client timeout", () => {
     expect(spy).toHaveBeenNthCalledWith(1, 105_000);
     expect(spy).toHaveBeenNthCalledWith(2, 15_000);
     spy.mockRestore();
+  });
+});
+
+// A browser as far as `endSession` can tell: a path, a place to go, a store.
+function stubBrowser(pathname: string) {
+  const items = new Map<string, string>();
+  const replace = vi.fn();
+  vi.stubGlobal("window", {
+    location: { pathname, replace },
+    sessionStorage: {
+      getItem: (key: string) => items.get(key) ?? null,
+      setItem: (key: string, value: string) => items.set(key, value),
+    },
+  });
+  return { replace, items };
+}
+
+const expired = {
+  ok: false,
+  error: { code: "SESSION_EXPIRED", retryable: false },
+};
+
+describe("FR-18, AD-16 api-client and an ended session", () => {
+  it("saves the client session and goes to Logg inn on SESSION_EXPIRED", async () => {
+    const { replace } = stubBrowser("/profil");
+    writeSession({ inputs: { cvDraft: "utkast", jobAd: "annonse" } });
+    stubFetch(async () => Response.json(expired, { status: 401 }));
+    const result = await callApi("/api/profile", schema, {
+      method: "PUT",
+      body: {},
+    });
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "SESSION_EXPIRED", retryable: false },
+    });
+    expect(replace).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenCalledWith(SESSION_ENDED_PATH);
+    const kept = readSession();
+    expect(kept.inputs.cvDraft).toBe("utkast");
+    expect(kept.restoredAfterExpiry).toEqual({ soknad: true, profil: true });
+  });
+
+  it("acts once when several requests find the session gone", async () => {
+    const { replace } = stubBrowser("/soknad");
+    stubFetch(async () => Response.json(expired, { status: 401 }));
+    await Promise.all([
+      callApi("/api/a", schema),
+      callApi("/api/b", schema),
+      callApi("/api/c", schema),
+    ]);
+    expect(replace).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not leave on any other failure", async () => {
+    const { replace, items } = stubBrowser("/soknad");
+    stubFetch(async () =>
+      Response.json(
+        { ok: false, error: { code: "NOT_FOUND", retryable: false } },
+        { status: 404 },
+      ),
+    );
+    await callApi("/api/a", schema);
+    expect(replace).not.toHaveBeenCalled();
+    expect(items.has(SESSION_KEY)).toBe(false);
+  });
+
+  it("reads the end of the session from every response, errors too", async () => {
+    stubFetch(async () =>
+      Response.json(
+        { ok: false, error: { code: "NOT_FOUND", retryable: false } },
+        {
+          status: 404,
+          headers: {
+            "X-Session-Expires-At": new Date(
+              Date.now() + 25 * 60 * 1000,
+            ).toISOString(),
+          },
+        },
+      ),
+    );
+    await callApi("/api/a", schema);
+    const remaining = (getDeadline() ?? 0) - Date.now();
+    expect(remaining).toBeGreaterThan(24 * 60 * 1000);
+    expect(remaining).toBeLessThanOrEqual(25 * 60 * 1000 + 1000);
   });
 });

@@ -5,6 +5,7 @@ import { Button } from "@/shared/ui/components/button";
 import { Dialog } from "@/shared/ui/components/dialog";
 import { messages } from "@/shared/ui/messages.nb";
 import { useRunMode } from "@/shared/ui/run-mode";
+import { useWarningOpen } from "@/shared/ui/session-clock";
 
 type AiNoticeProps = {
   open: boolean;
@@ -25,12 +26,15 @@ export function AiNotice({
   returnFocusRef,
 }: AiNoticeProps) {
   const { aiNotice, features } = useRunMode();
+  // The session-expiry warning replaces the notice while it is open and the
+  // notice reopens when it closes: never two dialogs at once (UX-DR17).
+  const warningOpen = useWarningOpen();
   const { points } = messages.aiNotice;
   const provider =
     messages.aiNotice.provider[aiNotice.providerName] ?? aiNotice.providerName;
   return (
     <Dialog
-      open={open}
+      open={open && !warningOpen}
       title={messages.aiNotice.title}
       onCancel={onCancel}
       returnFocusRef={returnFocusRef}

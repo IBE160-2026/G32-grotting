@@ -113,7 +113,21 @@ export const messages = {
       "PDF-er med to kolonner kan blande linjene. Les gjennom og rett det som har havnet feil før du lagrer.",
     pickerHint:
       "PDF eller TXT, maks 2 MB. Du kan også lime inn teksten direkte i feltet.",
-    sessionEnded: "Økten din er avsluttet. Logg inn igjen for å fortsette.",
+    // The text the Student did not save, kept across a session that ended.
+    restored: "Vi tok vare på endringene du ikke hadde lagret.",
+  },
+  // The session (Story 6.5, FR-18): the warning two minutes before the end, the
+  // alert on «Logg inn» once it has ended, and what Søknad says after login.
+  session: {
+    ended: "Økten din er avsluttet. Logg inn igjen for å fortsette.",
+    restoredLabel: "Tatt vare på",
+    restoredAd: "Vi tok vare på stillingsannonsen du limte inn.",
+    warning: {
+      title: "Økten din avsluttes snart",
+      body: "Du blir logget ut om 2 minutter fordi du ikke har gjort noe på en stund. Det du har skrevet, tas vare på.",
+      continue: "Fortsett økten",
+      logOut: "Logg ut",
+    },
   },
   // Registrer deg and Logg inn (Story 6.4). Wording follows EXPERIENCE.md, Key
   // strings; the field errors that the Key strings do not name are the simplest
