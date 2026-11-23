@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   type FormEvent,
   type RefObject,
@@ -22,6 +22,13 @@ import { splitParagraphs } from "@/modules/keywords/core";
 import { TONES, type Tone } from "@/modules/letter/contracts";
 import { type LetterJob, ToneChoice } from "@/modules/letter/ui";
 import { PulsePlot } from "@/modules/match/ui";
+import type { ProfileView } from "@/modules/profile/contracts";
+import {
+  PROFILE_KEY,
+  ProfileRequestError,
+  useAcceptAiNotice,
+  useProfile,
+} from "@/modules/profile/ui";
 import { formatCount } from "@/shared/core/format-count";
 import { announce } from "@/shared/ui/announce";
 import { callApi } from "@/shared/ui/api-client";
@@ -31,6 +38,7 @@ import { Button } from "@/shared/ui/components/button";
 import { CatalogueHeading } from "@/shared/ui/components/catalogue-heading";
 import { Notice } from "@/shared/ui/components/notice";
 import { ProgressLine } from "@/shared/ui/components/progress-line";
+import { SkeletonRows } from "@/shared/ui/components/skeleton-rows";
 import { TextArea, TextField } from "@/shared/ui/components/text-field";
 import { messages } from "@/shared/ui/messages.nb";
 import { newId } from "@/shared/ui/new-id";
@@ -46,6 +54,7 @@ import {
   JOB_AD_MAX,
   normaliseNewlines,
 } from "../contracts";
+import { CvDisclosure, NoCvNotice } from "./cv-disclosure";
 import { type Outcome, ResultView } from "./result-view";
 import { usePhaseTwo } from "./use-phase-two";
 
@@ -118,9 +127,44 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   // rendered the busy button (NFR-5).
   const sending = useRef(false);
   const runMode = useRunMode();
+  // With accounts on (Story 6.6) the CV is the Profile's and the AI notice is
+  // accepted once per account; with them off the form is the one of Epic 5.
+  const accountsOn = runMode.features.accounts;
+  const queryClient = useQueryClient();
+  const profile = useProfile({ enabled: accountsOn });
+  const acceptOnAccount = useAcceptAiNotice();
+  // «Bruk eksempelet» with accounts on: a one-off CV for this application,
+  // held here only. It is never saved to the Profile and never written to
+  // `sessionStorage`.
+  const [exampleCv, setExampleCv] = useState<string | null>(null);
   // The AI notice is open (FR-24); the request it holds back waits in the ref.
   const [noticeOpen, setNoticeOpen] = useState(false);
   const pending = useRef<AnalyseRequest | null>(null);
+  const accepting = useRef(false);
+  // Bumped by «Avbryt» and Esc: an answer that lands after it is not for the
+  // dialog that is open now.
+  const noticeRound = useRef(0);
+  // The notice version this Student has accepted: on the Profile with accounts
+  // on, in this tab's session otherwise.
+  const acceptedNotice = (): string | undefined =>
+    accountsOn
+      ? (queryClient.getQueryData<ProfileView>(PROFILE_KEY)?.aiNoticeVersion ??
+        undefined)
+      : readSession().noticeVersion;
+  // The CV text every request carries.
+  const cvText = accountsOn
+    ? (exampleCv ?? profile.data?.cvText ?? "")
+    : cv.draft;
+  // With accounts on, submit needs the loaded Profile and a CV text: the
+  // Profile's or the example's. Flag off: the form validates as before.
+  const cvReady =
+    !accountsOn || (profile.data !== undefined && cvText.trim() !== "");
+  const loadFailed =
+    accountsOn && profile.isError && profile.data === undefined;
+  // An ended session is on its way to Logg inn (`callApi`): no failure to show.
+  const profileEnded =
+    profile.error instanceof ProfileRequestError &&
+    profile.error.code === "SESSION_EXPIRED";
   const analysis = useMutation({
     mutationFn: (request: AnalyseRequest) =>
       callApi("/api/analyses", analyseResponseSchema, { body: request }),
@@ -133,6 +177,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     // A silent rerun of phase 1 changed the result the page holds.
     onRerun: (result, job) =>
       setOutcome((held) => (held === null ? held : { ...held, result, job })),
+    acceptedNotice,
   });
   // Nothing is written until what the tab held has been read back (AD-16).
   const [restored, setRestored] = useState(false);
@@ -157,10 +202,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
       employer: inputs.employer ?? "",
       jobAd: inputs.jobAd ?? "",
     });
-    setCv(restoreCv(inputs));
+    // With accounts on the CV is the Profile's; nothing of it is read back.
+    if (!accountsOn) setCv(restoreCv(inputs));
     setTone(storedTone());
     setRestored(true);
-  }, []);
+  }, [accountsOn]);
 
   const refs: Record<
     InputField,
@@ -268,21 +314,27 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     };
     const draft = normaliseNewlines(example.cvText);
     setValues(filled);
-    setCv({ draft, confirmed: true });
     setErrors({});
     setAdUnclear(false);
     setFailed(false);
     setExampleRuns((count) => count + 1);
-    writeSession({
-      applicationId: null,
-      inputs: { ...filled, cvDraft: draft, cvText: draft },
-    });
+    if (accountsOn) {
+      // The CV is a one-off override held in memory, never stored (Story 6.6).
+      setExampleCv(draft);
+      writeSession({ applicationId: null, inputs: filled });
+    } else {
+      setCv({ draft, confirmed: true });
+      writeSession({
+        applicationId: null,
+        inputs: { ...filled, cvDraft: draft, cvText: draft },
+      });
+    }
     submitRef.current?.focus();
     announce("action", messages.application.exampleFilled);
   }
 
   function blur(field: JobField) {
-    setError(field, inputErrors({ cvText: cv.draft, ...values })[field]);
+    setError(field, inputErrors({ cvText, ...values })[field]);
     if (field === "jobAd") {
       announce(
         "action",
@@ -296,11 +348,18 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const found: Errors = inputErrors({ cvText: cv.draft, ...values });
-    // The CV is also blocked while it is valid but not confirmed (FR-3).
-    const cvCode = cvSubmitError(cv.draft, cv.confirmed);
-    if (cvCode === undefined) delete found.cvText;
-    else found.cvText = cvCode;
+    const found: Errors = inputErrors({ cvText, ...values });
+    if (accountsOn) {
+      // The CV is the Profile's, judged when it was saved; no CV at all keeps
+      // the button unavailable. Nothing is confirmed here.
+      delete found.cvText;
+      if (!cvReady) return;
+    } else {
+      // The CV is also blocked while it is valid but not confirmed (FR-3).
+      const cvCode = cvSubmitError(cv.draft, cv.confirmed);
+      if (cvCode === undefined) delete found.cvText;
+      else found.cvText = cvCode;
+    }
     setErrors(found);
     const first = FIELD_ORDER.find((field) => found[field] !== undefined);
     if (first !== undefined) {
@@ -321,11 +380,11 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     }
     const request: AnalyseRequest = {
       applicationId,
-      inputs: { cvText: cv.draft, ...values },
+      inputs: { cvText, ...values },
     };
     // Before anything can leave the app, the Student is asked once per browser
     // session (FR-24). Test mode never asks. Phase 1 waits for the answer.
-    if (noticeRequired(runMode, readSession().noticeVersion)) {
+    if (noticeRequired(runMode, acceptedNotice())) {
       pending.current = request;
       setNoticeOpen(true);
       return;
@@ -334,17 +393,61 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
   }
 
   function acceptNotice() {
+    if (accountsOn) {
+      void storeNoticeOnAccount();
+      return;
+    }
     writeSession({ noticeVersion: runMode.aiNotice.version });
     setNoticeOpen(false);
+    resumeAfterNotice();
+  }
+
+  function resumeAfterNotice() {
     const request = pending.current;
     pending.current = null;
     if (request !== null) send(request);
     phaseTwo.resumeHeld();
   }
 
+  // With accounts on the version is stored on the Profile first (Story 6.6): on
+  // success the cache holds it and phase 1 starts; on failure the notice closes,
+  // nothing is sent and the next submit asks again.
+  async function storeNoticeOnAccount() {
+    if (accepting.current) return;
+    accepting.current = true;
+    const round = noticeRound.current;
+    let stored = false;
+    let expired = false;
+    try {
+      const answer = await acceptOnAccount.mutateAsync(
+        runMode.aiNotice.version,
+      );
+      stored = answer.ok;
+      expired = !answer.ok && answer.error.code === "SESSION_EXPIRED";
+    } catch {
+      stored = false;
+    } finally {
+      if (round === noticeRound.current) accepting.current = false;
+    }
+    // Cancelled while the save was on its way: the Profile cache holds the
+    // version (onSuccess), but nothing is resumed or shown.
+    if (round !== noticeRound.current) return;
+    setNoticeOpen(false);
+    if (stored) {
+      resumeAfterNotice();
+      return;
+    }
+    // An ended session is on its way to Logg inn (`callApi`).
+    pending.current = null;
+    if (!expired) setFailed(true);
+    phaseTwo.cancelHeld();
+  }
+
   // «Avbryt» and Esc: the inputs stay, nothing is sent, and focus goes back to
   // the submit button once the dialog has closed.
   function cancelNotice() {
+    noticeRound.current += 1;
+    accepting.current = false;
     pending.current = null;
     setNoticeOpen(false);
     phaseTwo.cancelHeld();
@@ -356,7 +459,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     // may be proposed by AI (FR-5b). The server checks the version again.
     const request: AnalyseRequest = {
       ...plain,
-      consent: consentFor(runMode, readSession().noticeVersion),
+      consent: consentFor(runMode, acceptedNotice()),
     };
     sending.current = true;
     setAdUnclear(false);
@@ -410,6 +513,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
 
   function backToForm() {
     phaseTwo.reset();
+    setFailed(false);
     setHeadingFocus((count) => count + 1);
     setOutcome(null);
   }
@@ -422,6 +526,7 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
           phaseTwo={phaseTwo}
           headingRef={headingRef}
           onBack={backToForm}
+          name={accountsOn ? (profile.data?.name ?? null) : null}
         />
         <AiNotice
           open={noticeOpen}
@@ -445,17 +550,45 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
           </Notice>
         ) : null}
         {failed ? <Alert>{messages.networkFailure}</Alert> : null}
-        <CvInput
-          key={exampleRuns}
-          inputRef={cvRef}
-          draft={cv.draft}
-          confirmed={cv.confirmed}
-          error={errorText("cvText")}
-          onChange={changeCv}
-          onBlur={blurCv}
-          onExtracted={extractedCv}
-          onConfirm={confirmCv}
-        />
+        {accountsOn ? (
+          <>
+            {loadFailed && !profileEnded ? (
+              <Alert>{messages.networkFailure}</Alert>
+            ) : null}
+            {exampleCv !== null ? (
+              <CvDisclosure
+                key={exampleRuns}
+                source="example"
+                text={exampleCv}
+              />
+            ) : profile.isPending ? (
+              <div aria-busy="true">
+                <SkeletonRows rows={3} />
+              </div>
+            ) : profile.data === undefined ? null : profile.data.cvText ===
+              null ? (
+              <NoCvNotice />
+            ) : (
+              <CvDisclosure
+                source="profile"
+                text={profile.data.cvText}
+                savedAt={profile.data.cvSavedAt}
+              />
+            )}
+          </>
+        ) : (
+          <CvInput
+            key={exampleRuns}
+            inputRef={cvRef}
+            draft={cv.draft}
+            confirmed={cv.confirmed}
+            error={errorText("cvText")}
+            onChange={changeCv}
+            onBlur={blurCv}
+            onExtracted={extractedCv}
+            onConfirm={confirmCv}
+          />
+        )}
         <TextField
           ref={jobTitleRef}
           label={messages.application.jobTitle}
@@ -508,7 +641,12 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
         />
         <ToneChoice value={tone} onChange={changeTone} />
         <div>
-          <Button ref={submitRef} type="submit" busy={analysis.isPending}>
+          <Button
+            ref={submitRef}
+            type="submit"
+            disabled={!cvReady}
+            busy={analysis.isPending}
+          >
             {messages.application.submit}
           </Button>
         </div>

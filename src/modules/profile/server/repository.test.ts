@@ -3,7 +3,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { DecryptError } from "@/shared/server/crypto";
 import { closeDb, getDb } from "@/shared/server/db";
 import { createProfile } from "./profiles";
-import { getProfile, saveCvText } from "./repository";
+import { getProfile, saveCvText, saveNoticeVersion } from "./repository";
 
 afterAll(closeDb);
 
@@ -37,6 +37,8 @@ describe("Story 6.3 profile repository", () => {
     expect(await getProfile(studentId, db)).toEqual({
       name: "Kari Nordmann",
       cvText: null,
+      cvSavedAt: null,
+      aiNoticeVersion: null,
     });
   });
 
@@ -44,14 +46,14 @@ describe("Story 6.3 profile repository", () => {
     const db = await getDb();
     const studentId = await newStudent();
     await createProfile(db, studentId, "Kari Nordmann");
-    expect(await saveCvText(studentId, db, CV_A)).toEqual({
+    const saved = await saveCvText(studentId, db, CV_A);
+    expect(saved).toEqual({
       name: "Kari Nordmann",
       cvText: CV_A,
+      cvSavedAt: expect.any(String),
+      aiNoticeVersion: null,
     });
-    expect(await getProfile(studentId, db)).toEqual({
-      name: "Kari Nordmann",
-      cvText: CV_A,
-    });
+    expect(await getProfile(studentId, db)).toEqual(saved);
   });
 
   it("replaces the old text on each save", async () => {
@@ -120,5 +122,53 @@ describe("Story 6.3 profile repository", () => {
     await expect(getProfile(studentId, db)).rejects.toBeInstanceOf(
       DecryptError,
     );
+  });
+});
+
+describe("Story 6.6 profile repository", () => {
+  it("sets the save date on each save, as an ISO instant", async () => {
+    const db = await getDb();
+    const studentId = await newStudent();
+    await createProfile(db, studentId, "Kari Nordmann");
+    const before = Date.now();
+    const first = await saveCvText(studentId, db, CV_A);
+    const firstAt = new Date(first?.cvSavedAt ?? "").getTime();
+    expect(first?.cvSavedAt).toMatch(/^\d{4}-\d{2}-\d{2}T.*Z$/);
+    expect(firstAt).toBeGreaterThanOrEqual(before - 1000);
+    expect(firstAt).toBeLessThanOrEqual(Date.now() + 1000);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const second = await saveCvText(studentId, db, CV_B);
+    expect(new Date(second?.cvSavedAt ?? "").getTime()).toBeGreaterThan(
+      firstAt,
+    );
+  });
+
+  it("stores the notice version on that Student's Profile only", async () => {
+    const db = await getDb();
+    const a = await newStudent();
+    const b = await newStudent();
+    await createProfile(db, a, "Anna A");
+    await createProfile(db, b, "Bjørn B");
+    expect(await saveNoticeVersion(a, db, "notice-3:x")).toBe("notice-3:x");
+    expect((await getProfile(a, db))?.aiNoticeVersion).toBe("notice-3:x");
+    expect((await getProfile(b, db))?.aiNoticeVersion).toBeNull();
+  });
+
+  it("keeps the CV text and its date when the notice is accepted", async () => {
+    const db = await getDb();
+    const studentId = await newStudent();
+    await createProfile(db, studentId, "Kari Nordmann");
+    const saved = await saveCvText(studentId, db, CV_A);
+    await saveNoticeVersion(studentId, db, "notice-3:x");
+    const after = await getProfile(studentId, db);
+    expect(after?.cvText).toBe(CV_A);
+    expect(after?.cvSavedAt).toBe(saved?.cvSavedAt);
+  });
+
+  it("stores nothing and answers null for an unknown id", async () => {
+    const db = await getDb();
+    expect(
+      await saveNoticeVersion("00000000-0000-4000-8000-000000000000", db, "v"),
+    ).toBeNull();
   });
 });

@@ -1,10 +1,9 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { cvLengthError } from "@/modules/cv/contracts";
 import { CvInput } from "@/modules/cv/ui";
-import type { MessageKey } from "@/shared/core/message-key";
 import { announce } from "@/shared/ui/announce";
 import { callApi } from "@/shared/ui/api-client";
 import { readSession, writeSession } from "@/shared/ui/client-session";
@@ -14,20 +13,10 @@ import { CatalogueHeading } from "@/shared/ui/components/catalogue-heading";
 import { Notice } from "@/shared/ui/components/notice";
 import { SkeletonRows } from "@/shared/ui/components/skeleton-rows";
 import { messages } from "@/shared/ui/messages.nb";
-import { type ProfileView, profileViewSchema } from "../contracts";
+import { profileViewSchema } from "../contracts";
+import { PROFILE_KEY, ProfileRequestError, useProfile } from "./use-profile";
 
-const PROFILE_KEY = ["profile"] as const;
 const HINT_ID = "profile-save-hint";
-
-// A failed request, kept by its code so the page can tell an ended session
-// from a network failure. Nothing of the answer is shown.
-class ProfileRequestError extends Error {
-  readonly code: MessageKey;
-  constructor(code: MessageKey) {
-    super(code);
-    this.code = code;
-  }
-}
 
 // Windows line endings become LF where text enters the field, as on Søknad.
 function normalise(text: string): string {
@@ -52,14 +41,7 @@ export function ProfilePage() {
   // overwrite the newer text or claim it was saved.
   const edits = useRef(0);
 
-  const profile = useQuery({
-    queryKey: PROFILE_KEY,
-    queryFn: async (): Promise<ProfileView> => {
-      const result = await callApi("/api/profile", profileViewSchema);
-      if (!result.ok) throw new ProfileRequestError(result.error.code);
-      return result.data;
-    },
-  });
+  const profile = useProfile();
   const save = useMutation({
     mutationFn: (cvText: string) =>
       callApi("/api/profile", profileViewSchema, {

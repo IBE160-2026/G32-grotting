@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "cv_saved_at" timestamp with time zone;

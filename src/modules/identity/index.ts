@@ -7,6 +7,7 @@ export {
   isAccessCodeCorrect,
   isValidAccessCookie,
 } from "./server/access";
+export { aiContextFor } from "./server/ai-caller";
 export {
   clearedSessionCookie,
   readSessionToken,
@@ -14,6 +15,7 @@ export {
 } from "./server/cookie";
 export {
   assertAccountsOn,
+  handleCaller,
   handleStudent,
   type StudentContext,
   type StudentSession,

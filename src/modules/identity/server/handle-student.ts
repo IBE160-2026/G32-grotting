@@ -39,3 +39,21 @@ export function handleStudent<T>(
     },
   });
 }
+
+// A route that serves both modes (Story 6.6): with accounts on it is
+// `handleStudent` (a live session, `ctx.session` set); with them off it is the
+// plain `handle` as after Epic 5, and `ctx.session` is `undefined`. The switch
+// is made per request, since the flag is read at run time, never at build time
+// (AD-4).
+export function handleCaller<T>(
+  route: string,
+  fn: (
+    request: Request,
+    ctx: HandlerContext<StudentSession | undefined>,
+  ) => Promise<T> | T,
+): (request: Request) => Promise<Response> {
+  const plain = handle<T, undefined>(route, fn);
+  const withSession = handleStudent(route, fn);
+  return (request) =>
+    getConfig().features.accounts ? withSession(request) : plain(request);
+}

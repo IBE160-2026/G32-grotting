@@ -1,4 +1,4 @@
-import { pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { encryptedText } from "@/shared/server/crypto";
 // AD-9: another slice's schema file reaches `students(id)` only through the
 // read-only `studentIdRef`.
@@ -16,4 +16,7 @@ export const profiles = pgTable("profiles", {
   name: encryptedText("name").notNull(),
   aiNoticeVersion: text("ai_notice_version"),
   cvText: encryptedText("cv_text"),
+  // When the CV text was last saved (Story 6.6): plain, null until the first
+  // save. A date alone says nothing about the text.
+  cvSavedAt: timestamp("cv_saved_at", { withTimezone: true }),
 });

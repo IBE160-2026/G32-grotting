@@ -1,7 +1,9 @@
 import { analyseInputs } from "@/modules/application";
 import { analyseRequestSchema } from "@/modules/application/contracts";
+import { aiContextFor, handleCaller } from "@/modules/identity";
 import { loadVocabulary } from "@/shared/server/data-files";
-import { ApiError, handle } from "@/shared/server/handle";
+import { getDb } from "@/shared/server/db";
+import { ApiError } from "@/shared/server/handle";
 
 // A new ad waits for one Keyword request (FR-5b), up to its 90 s limit.
 export const maxDuration = 120;
@@ -13,14 +15,15 @@ export const dynamic = "force-dynamic";
 // and returns `{ result, fingerprint }`. The Keyword list of a new ad may come
 // from one AI request that carries the Job ad only, never the CV (FR-26), and
 // is saved by the ad's hash; the CV is scored by code. A client fingerprint is
-// ignored in phase 1.
-export const POST = handle("/api/analyses", async (request) => {
+// ignored in phase 1. With accounts on the caller is the session's Student and
+// the consent is the one on the Profile; with them off, as after Epic 5.
+export const POST = handleCaller("/api/analyses", async (request, ctx) => {
   const body = await request.json().catch(() => undefined);
   const { inputs, consent } = analyseRequestSchema.parse(body);
 
   const vocabulary = await loadVocabulary();
   const analysed = await analyseInputs(inputs, vocabulary, {
-    ai: { ctx: { studentId: null, consent: consent ?? null } },
+    ai: { ctx: await aiContextFor(ctx.session, consent, await getDb()) },
   });
   if (!analysed.ok) {
     throw new ApiError("INVALID_INPUT", { field: "inputs.jobAd" });

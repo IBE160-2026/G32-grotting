@@ -186,7 +186,14 @@ test.describe("the expiry warning", () => {
     await page.getByLabel("Stillingstittel").fill("Utvikler");
     await page.getByLabel("Stillingsannonse").fill(JOB_AD);
     await toneRadio(page, "Direkte").check();
-    await cvField(page).fill(DRAFT);
+    // Søknad has no CV field with accounts on (Story 6.6); a draft the tab
+    // holds from Profil is what the logout must drop.
+    await page.evaluate((draft) => {
+      const key = "ja.session.v1";
+      const held = JSON.parse(sessionStorage.getItem(key) ?? "{}");
+      held.inputs = { ...held.inputs, cvDraft: draft, cvText: draft };
+      sessionStorage.setItem(key, JSON.stringify(held));
+    }, DRAFT);
     await page.clock.runFor(28 * MIN + 5_000);
     await warning(page).getByRole("button", { name: "Logg ut" }).click();
     await expect(page).toHaveURL(`${ACCOUNTS}/`);
@@ -430,10 +437,18 @@ test.describe("when the session ends", () => {
     expect((await session(page))?.inputs?.cvDraft).toBe(DRAFT);
   });
 
-  test("a draft typed on Søknad is not offered on Profil", async ({ page }) => {
+  test("Søknad with accounts on writes no CV to the tab, so nothing is offered on Profil", async ({
+    page,
+  }) => {
     await signIn(page);
     await openWithClock(page, "/soknad");
-    await cvField(page).fill(DRAFT);
+    // Søknad has no CV field now (Story 6.6): the ad and the example are all
+    // the Student can type, and neither writes a CV.
+    await page.getByLabel("Stillingsannonse").fill(JOB_AD);
+    await page.getByRole("button", { name: "Bruk eksempelet" }).click();
+    const kept = await session(page);
+    expect(kept?.inputs?.cvDraft).toBeUndefined();
+    expect(kept?.inputs?.cvText).toBeUndefined();
     await page.clock.runFor(30 * MIN + 5_000);
     await expect(page).toHaveURL(/\/logg-inn\?okt=utlopt$/);
     await logInOnTheForm(page);

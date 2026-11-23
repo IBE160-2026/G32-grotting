@@ -43,6 +43,7 @@ export function LetterSection({
   check = { kind: "pending" },
   onRetryCheck,
   showProgress = true,
+  name = null,
 }: {
   phase: LetterPhase;
   onRetry: () => void;
@@ -58,6 +59,8 @@ export function LetterSection({
   // The progress line while the Letter is written. The owner turns it off when
   // it shows one line for this section and the Gap analysis together.
   showProgress?: boolean;
+  // The Profile name that signs the Letter (accounts on), else null.
+  name?: string | null;
 }) {
   const articleRef = useRef<HTMLElement>(null);
   // `undefined` children keep the slot a placeholder (aria-busy, «Skrives»).
@@ -70,6 +73,7 @@ export function LetterSection({
           articleRef={articleRef}
           check={check}
           onRetryCheck={onRetryCheck}
+          name={name}
         />
         <LetterActions
           letter={phase.letter}
@@ -77,6 +81,7 @@ export function LetterSection({
           articleRef={articleRef}
           regen={regen}
           onRegenerate={onRegenerate}
+          name={name}
         />
       </>
     );

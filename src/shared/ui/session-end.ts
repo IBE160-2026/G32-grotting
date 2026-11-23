@@ -57,9 +57,9 @@ export function endSession(deps: EndDeps = {}): void {
     {
       restoredAfterExpiry: {
         soknad: hasText(inputs.jobAd),
-        // Søknad writes `cvDraft` too until Story 6.6: only a draft typed on
-        // Profil is Profil's to restore.
-        profil: pathname === "/profil" && hasText(inputs.cvDraft),
+        // Only Profil writes `cvDraft` (Søknad with accounts on keeps no CV
+        // in the tab, Story 6.6), and `endSession` runs only with accounts.
+        profil: hasText(inputs.cvDraft),
       },
     },
     deps.storage,

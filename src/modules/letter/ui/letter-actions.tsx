@@ -28,26 +28,29 @@ export function LetterActions({
   articleRef,
   regen,
   onRegenerate,
+  name = null,
 }: {
   letter: Letter;
   employer: string;
   articleRef: RefObject<HTMLElement | null>;
   regen: RegenState;
   onRegenerate: () => void;
+  // The Profile name (accounts on): in the copy, the file and its name.
+  name?: string | null;
 }) {
   const regenerateRef = useRef<HTMLButtonElement>(null);
   const [downloading, setDownloading] = useState(false);
   // The rev of the Letter whose download failed, so a new draft starts clean.
   const [failedRev, setFailedRev] = useState<number | null>(null);
   const downloadFailed = failedRev === letter.rev;
-  const rendered = renderLetter(letter.text, null);
+  const rendered = renderLetter(letter.text, name);
 
   async function download() {
     if (downloading) return;
     setDownloading(true);
     setFailedRev(null);
     try {
-      await downloadLetter(letter.text, employer);
+      await downloadLetter(letter.text, employer, name);
     } catch {
       setFailedRev(letter.rev);
       announce("action", messages.letter.actions.downloadFailed);
