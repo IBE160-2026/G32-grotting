@@ -2,7 +2,7 @@
 title: 'Save every Application automatically'
 type: 'feature'
 created: '2026-11-23'
-status: 'in-review'
+status: 'done'
 baseline_revision: '1d127434bbdd4108c694381672577b3943087e20'
 review_loop_iteration: 0
 followup_review_recommended: false
@@ -132,3 +132,19 @@ Review change (outside the contract): revs are written as the client works with 
 - `npm run typecheck`, `npx biome check`, `npx vitest run <changed files>` -- expected: pass
 - `npm test` -- expected: biome, tsc, vitest and Playwright (`--workers=2`) pass
 - `docker compose run --rm --build test` -- expected: pass, or documented as in 6.3/6.6
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** With `FEATURE_ACCOUNTS` on, phase 1 saves one encrypted `applications` row (AD-8: conditional upsert, `seq` = max+1 per Student with retry, `match_score` from the score); the Letter, Gaps and check routes check the `(applicationId, studentId)` row, write their part behind fingerprint and rev guards and log (never fail on) a write error. Søknad shows `JA-NNN · Ny søknad` (dimmed, with the lede) on the form, `JA-NNN · {arbeidsgiver}` and «Lagret i Historikk som JA-NNN.» on the result, and the saved sentence in the phase-2 announcement. A failed save keeps the score and a calm notice and starts no phase 2. Flag off: nothing stored, no `saved` key, screens unchanged.
+
+**Files:** migration `drizzle/0006_panoramic_hobgoblin.sql` (+ snapshot, journal); `src/modules/application/{server/schema.ts,server/repository.ts,core/catalogue-number.ts,contracts.ts,index.ts,ui/{application-form,result-view,use-phase-two,phase-two-line,use-next-number}}`; the four `src/app/api/analyses*` routes; `src/app/api/applications/next/route.ts`; `src/modules/gaps/{contracts.ts,ui/request-gaps.ts}` (optional `previousRev`); `src/shared/ui/components/catalogue-heading.tsx`; `messages.nb.ts`; new tests (`repository.test.ts`, `route.persist.test.ts`, `applications/next/route.test.ts`, `catalogue-number.test.ts`, `catalogue-heading.test.ts`, `e2e/applications-save.spec.ts`).
+
+**Edited existing tests:** the three `route.accounts.test.ts` files under `src/app/api/analyses/[id]/*` (the `@/modules/application` mock gains the new exports and the row check) and `src/modules/application/ui/phase-two-line.test.ts` (new cases added; no existing expectation changed).
+
+**Review:** four layers; 4 patches applied (3 medium, 1 low: rev drift, real seq-conflict test, raw-row route test, log code), the rest rejected with reasons in the Review Triage Log; none deferred. Follow-up review: not recommended.
+
+**Verification:** biome, tsc green; vitest 1717 passed (2 expected fail); Playwright 350 passed (`--workers=2`). Docker test run once locally: 146 of 147 files passed, 1710 tests passed, one worker killed with SIGKILL (memory, `route.test.ts`), no assertion failure; `ci` is the criterion.
+
+**Residual risks:** a failed phase-2 write is logged only, so the saved sentence can be true of the Application but not of the Letter or Gaps; a resubmitted Gap analysis that fails leaves the old `gaps_rev`, so that check is not stored; the concurrency retry is proven on PGlite (real unique violation) but not on a real Postgres race; the fingerprint is an unsalted sha256 in plain by AC; screen reader and a 360 px phone are not checked.
