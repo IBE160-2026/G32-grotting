@@ -44,6 +44,10 @@ export const gapsRequestSchema = z.object({
   fingerprint: z.string(),
   inputs: analysisInputsSchema,
   consent: z.object({ noticeVersion: z.string() }).nullable(),
+  // The rev of the Gap analysis the client shows now (0 before the first one
+  // arrived; left out, it counts as 0). With accounts on the server stores `previousRev + 1` as the
+  // row's `gaps_rev`, so the Letter check's revs match the client's (Story 6.7).
+  previousRev: z.number().int().nonnegative().max(1_000_000).optional(),
 });
 
 export type GapsRequest = z.infer<typeof gapsRequestSchema>;

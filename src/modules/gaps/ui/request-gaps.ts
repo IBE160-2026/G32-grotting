@@ -21,6 +21,9 @@ export type GapsJob = {
   readonly inputs: AnalysisInputs;
   // The fingerprint phase 1 answered with (AD-6).
   readonly fingerprint: string;
+  // The rev of the Gap analysis shown now; sent only with accounts on, where
+  // the server stores it (Story 6.7).
+  readonly previousRev?: number;
 };
 
 // How the request reaches the server; tests give their own.
@@ -65,6 +68,9 @@ export async function requestGaps(
       fingerprint,
       inputs: job.inputs,
       consent,
+      ...(job.previousRev === undefined
+        ? {}
+        : { previousRev: job.previousRev }),
     });
 
   const first = await send(job.fingerprint);

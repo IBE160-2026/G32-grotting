@@ -39,6 +39,7 @@ import {
   phaseTwoLine,
   type SectionKind,
   sectionKindOfFailure,
+  withSavedLine,
 } from "./phase-two-line";
 
 const NONE: readonly never[] = [];
@@ -127,6 +128,9 @@ export function usePhaseTwo({
     gaps: SectionKind | null;
   }>({ letter: null, gaps: null });
   const lineGiven = useRef(false);
+  // «Lagret i Historikk som JA-002.», appended to the phase-2 line when the
+  // Application is saved (Story 6.7).
+  const savedLine = useRef<string | undefined>(undefined);
   // The integrity check of the Letter shown (FR-11). It is no AI request, so a
   // check for an old Letter may finish while a new one is written: the sequence
   // and the rev of the Letter shown decide whether a result is used.
@@ -225,8 +229,9 @@ export function usePhaseTwo({
 
   // Phase 1 is on the screen; phase 2 starts at once (NFR-4). The phase-1 line
   // ends with what happens next.
-  function begin(job: LetterJob, result: AnalysisResult) {
+  function begin(job: LetterJob, result: AnalysisResult, saved?: string) {
     submission.current += 1;
+    savedLine.current = saved;
     setRegen("idle");
     resetCheck();
     gapsRev.current = 0;
@@ -331,8 +336,13 @@ export function usePhaseTwo({
     setGapsPhase({ kind: "pending" });
     const mine = submission.current;
     const isCurrent = () => mine === submission.current;
+    // With accounts on the server stores the rev the client works with, so the
+    // request says which Gap analysis it follows (Story 6.7).
+    const sent: GapsJob = runMode.features.accounts
+      ? { ...job, previousRev: gapsRev.current }
+      : job;
     gaps.mutate(
-      { job, isCurrent },
+      { job: sent, isCurrent },
       {
         onSuccess: ({ answer, rerun }) => {
           if (!isCurrent()) return;
@@ -575,7 +585,8 @@ export function usePhaseTwo({
       0,
       PHASE_LINE_GAP_MS - (Date.now() - phaseOneAt.current),
     );
-    phaseTwoTimer.current = setTimeout(() => announce("phase", line), wait);
+    const spoken = withSavedLine(line, savedLine.current);
+    phaseTwoTimer.current = setTimeout(() => announce("phase", spoken), wait);
   }
 
   // «Prøv igjen»: only the Letter request is sent again; focus follows to the
@@ -631,6 +642,7 @@ export function usePhaseTwo({
   function reset() {
     submission.current += 1;
     clearTimeout(phaseTwoTimer.current);
+    savedLine.current = undefined;
     resetCheck();
     letter.reset();
     gaps.reset();

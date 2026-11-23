@@ -70,9 +70,17 @@ export const analyseRequestSchema = z.object({
 
 export type AnalyseRequest = z.infer<typeof analyseRequestSchema>;
 
+// Story 6.7: with accounts on the answer says whether the Application was
+// saved. `saved` is `{ seq }` when it was, `null` when the save failed (or the
+// id is not the Student's), and absent with accounts off.
+export const savedSchema = z.object({ seq: z.number().int().positive() });
+
+export type Saved = z.infer<typeof savedSchema>;
+
 export const analyseResponseSchema = z.object({
   result: analysisResultSchema,
   fingerprint: z.string(),
+  saved: savedSchema.nullable().optional(),
 });
 
 export type AnalyseResponse = z.infer<typeof analyseResponseSchema>;
@@ -93,3 +101,10 @@ export function inputErrors(
   }
   return errors;
 }
+
+// `GET /api/applications/next`: the number the Student's next Application gets.
+export const nextApplicationSchema = z.object({
+  seq: z.number().int().positive(),
+});
+
+export type NextApplication = z.infer<typeof nextApplicationSchema>;

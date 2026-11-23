@@ -194,6 +194,16 @@ export const messages = {
       EMPLOYER_REQUIRED: "Fyll inn arbeidsgiveren.",
       TOO_LONG: "Maks 200 tegn.",
     },
+    // Story 6.7: with accounts on the form heading shows the next catalogue
+    // number dimmed («JA-003 · Ny søknad») and this lede stands under it.
+    lede: "Neste nummer i katalogen. Fyll inn annonsen, så regner vi ut hvilke av nøkkelordene CV-en din dekker.",
+    // The save failed (Story 6.7): the score stands, nothing is promised that
+    // is not stored. `live` is spoken after the phase-1 line.
+    notSaved: {
+      label: "Ikke lagret",
+      text: "Søknaden ble ikke lagret i Historikk. Samsvaret over er riktig, men brevet og gapanalysen skrives ikke nå. Prøv igjen om litt.",
+      live: "Søknaden ble ikke lagret i Historikk. Brevet og gapanalysen skrives ikke nå.",
+    },
     // Søknad with accounts on (Story 6.6): the CV comes from Profil, read-only,
     // in a native `<details>`; «Bruk eksempelet» swaps in the Example CV for
     // this application only.
@@ -368,6 +378,9 @@ export const messages = {
   // sjevroner for quotes, as in EXPERIENCE.md, Key strings.
   result: {
     editAd: "Endre annonsen",
+    // Under the heading once the Application is saved (Story 6.7), and spoken
+    // after the phase-2 line: «Lagret i Historikk som JA-002.»
+    saved: (number: string) => `Lagret i Historikk som ${number}.`,
     credits: {
       position: "Stilling",
       date: "Dato",

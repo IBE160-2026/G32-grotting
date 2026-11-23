@@ -21,6 +21,16 @@ vi.mock("@/shared/server/log", () => ({ log: vi.fn() }));
 const checkLetterFor = vi.fn();
 vi.mock("@/modules/application", () => ({
   checkLetterFor: (...args: unknown[]) => checkLetterFor(...args),
+  // Story 6.7: the Application row is checked and written through these; they
+  // are the replaced repository, so this test still reaches no database table.
+  getApplicationMeta: async () => ({
+    id: "x",
+    seq: 1,
+    fingerprint: "f",
+    letterRev: 0,
+    gapsRev: 0,
+  }),
+  saveLetterCheck: async () => true,
 }));
 
 const { POST: register } = await import("../../../auth/register/route");

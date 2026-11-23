@@ -43,6 +43,13 @@
       "when": 1795454513772,
       "tag": "0005_bitter_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795457337487,
+      "tag": "0006_panoramic_hobgoblin",
+      "breakpoints": true
     }
   ]
 }
