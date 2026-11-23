@@ -29,3 +29,30 @@ describe("FR-12 the .docx builder", () => {
     expect(xml).toContain("<w:br/>");
   });
 });
+
+describe("Story 6.6 the .docx with a name", () => {
+  it("signs the last paragraph with the name", () => {
+    expect(letterParagraphs(text, "Violet Hansen")).toEqual([
+      "Hei Nordic Digital,",
+      "Jeg søker <jobben> & mer.",
+      "Med vennlig hilsen\nViolet Hansen",
+    ]);
+  });
+
+  it("keeps the placeholder for no name or a blank one", () => {
+    for (const name of [undefined, null, "   "]) {
+      expect(letterParagraphs(text, name).at(-1)).toBe(
+        "Med vennlig hilsen\n[Navnet ditt]",
+      );
+    }
+  });
+
+  it("builds a Word file that holds the name and no placeholder", async () => {
+    const blob = await buildLetterDocx(text, "Violet Hansen");
+    const files = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+    const xml = strFromU8(files["word/document.xml"] ?? new Uint8Array());
+    expect(xml).toContain("Violet Hansen");
+    expect(xml).not.toContain("[Navnet ditt]");
+    expect(xml).not.toContain("SIGNATUR");
+  });
+});

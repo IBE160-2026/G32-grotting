@@ -51,11 +51,14 @@ describe("FR-18, AD-16 the session ends on the client", () => {
     expect(readSession(storage).restoredAfterExpiry).toEqual({ profil: true });
   });
 
-  it("a draft typed on Søknad is not Profil's to restore", () => {
+  it("a draft in the tab is Profil's to restore whichever page the session ended on (only Profil writes it, Story 6.6)", () => {
     const storage = memoryStorage();
     writeSession({ inputs: { jobAd: "annonse", cvDraft: "utkast" } }, storage);
     endSession({ storage, pathname: "/soknad", go: vi.fn() });
-    expect(readSession(storage).restoredAfterExpiry).toEqual({ soknad: true });
+    expect(readSession(storage).restoredAfterExpiry).toEqual({
+      soknad: true,
+      profil: true,
+    });
   });
 
   it("does not end the session after the Student has logged out on purpose", () => {

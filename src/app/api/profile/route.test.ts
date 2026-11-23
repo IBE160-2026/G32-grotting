@@ -70,7 +70,12 @@ const put = (
 async function body(response: Response) {
   return (await response.json()) as {
     ok: boolean;
-    data?: { name: string; cvText: string | null };
+    data?: {
+      name: string;
+      cvText: string | null;
+      cvSavedAt: string | null;
+      aiNoticeVersion: string | null;
+    };
     error?: { code: string; field?: string; retryable: boolean };
   };
 }
@@ -152,6 +157,8 @@ describe("GET /api/profile", () => {
     expect((await body(response)).data).toEqual({
       name: "Kari Nordmann",
       cvText: null,
+      cvSavedAt: null,
+      aiNoticeVersion: null,
     });
   });
 });
@@ -161,14 +168,15 @@ describe("PUT /api/profile", () => {
     const { token } = await signUp("Kari Nordmann", "kari@example.test");
     const saved = await put(token, { cvText: CV });
     expect(saved.status).toBe(200);
-    expect((await body(saved)).data).toEqual({
+    const savedView = {
       name: "Kari Nordmann",
       cvText: CV,
-    });
-    expect((await body(await get(token))).data).toEqual({
-      name: "Kari Nordmann",
-      cvText: CV,
-    });
+      // `Date` is faked, so the save date is the test's own clock.
+      cvSavedAt: T0.toISOString(),
+      aiNoticeVersion: null,
+    };
+    expect((await body(saved)).data).toEqual(savedView);
+    expect((await body(await get(token))).data).toEqual(savedView);
   });
 
   it("replaces the old text", async () => {
@@ -258,7 +266,12 @@ describe("FR-19 one Student cannot reach another's Profile", () => {
     const b = await signUp("Bjørn Berg", "bjorn@example.test");
     await put(a.token, { cvText: CV });
     const view = await body(await get(b.token));
-    expect(view.data).toEqual({ name: "Bjørn Berg", cvText: null });
+    expect(view.data).toEqual({
+      name: "Bjørn Berg",
+      cvText: null,
+      cvSavedAt: null,
+      aiNoticeVersion: null,
+    });
     expect(JSON.stringify(view)).not.toContain("Anna");
   });
 
@@ -275,6 +288,8 @@ describe("FR-19 one Student cannot reach another's Profile", () => {
     expect((await body(response)).data).toEqual({
       name: "Bjørn Berg",
       cvText: OTHER_CV,
+      cvSavedAt: T0.toISOString(),
+      aiNoticeVersion: null,
     });
     expect((await body(await get(a.token))).data?.cvText).toBe(CV);
     // A GET with A's id in the query still answers B's own view.

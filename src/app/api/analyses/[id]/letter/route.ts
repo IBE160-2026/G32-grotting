@@ -1,8 +1,10 @@
 import { analyseInputs } from "@/modules/application";
+import { aiContextFor, handleCaller } from "@/modules/identity";
 import { generateLetter } from "@/modules/letter";
 import { letterRequestSchema } from "@/modules/letter/contracts";
 import { loadVocabulary } from "@/shared/server/data-files";
-import { ApiError, handle } from "@/shared/server/handle";
+import { getDb } from "@/shared/server/db";
+import { ApiError } from "@/shared/server/handle";
 
 // One AI request, up to its 90 s limit, plus phase 1 in front of it.
 export const maxDuration = 120;
@@ -20,7 +22,7 @@ export async function POST(
   { params }: Context,
 ): Promise<Response> {
   const { id } = await params;
-  return handle("/api/analyses/[id]/letter", async (req) => {
+  return handleCaller("/api/analyses/[id]/letter", async (req, ctx) => {
     const body = await req.json().catch(() => undefined);
     const parsed = letterRequestSchema.parse(body);
     if (id !== parsed.applicationId) {
@@ -44,7 +46,7 @@ export async function POST(
         matchedTerms: analysed.value.result.matched.map(({ term }) => term),
         previousRev: parsed.previousRev,
       },
-      { studentId: null, consent: parsed.consent },
+      await aiContextFor(ctx.session, parsed.consent, await getDb()),
     );
     if (!generated.ok) {
       throw new ApiError(generated.error.code, {

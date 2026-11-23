@@ -194,6 +194,25 @@ export const messages = {
       EMPLOYER_REQUIRED: "Fyll inn arbeidsgiveren.",
       TOO_LONG: "Maks 200 tegn.",
     },
+    // Søknad with accounts on (Story 6.6): the CV comes from Profil, read-only,
+    // in a native `<details>`; «Bruk eksempelet» swaps in the Example CV for
+    // this application only.
+    cvDisclosure: {
+      summary: "CV-tekst fra Profil",
+      exampleSummary: "CV-tekst fra eksempelet",
+      hint: "Teksten hentes fra Profil.",
+      editLink: "Du endrer den i Profil",
+      exampleHint: "Bare til denne søknaden. Profilen din er ikke endret.",
+      textLabel: "CV-tekst, bare lesing",
+      meta: (count: string, date: string | null) =>
+        date === null ? `${count} tegn` : `${count} tegn · ${date}`,
+    },
+    // No CV in Profil yet: submit is unavailable until there is one.
+    noCv: {
+      label: "CV mangler",
+      text: "Du har ikke lagt inn CV-en din ennå.",
+      link: "Gå til Profil",
+    },
   },
   // The copy button (FR-12, UX-DR13): one label, the 1.8 s feedback, the
   // second live region, and the notice when the clipboard is blocked.

@@ -2,20 +2,22 @@ import { letterFileName } from "../core/file-name";
 
 /**
  * Builds the .docx and hands it to the browser as a download under the Letter's
- * file name (FR-12). The `docx` package is loaded here, on the first press, so
+ * file name (FR-12). With a name (accounts on) it signs the Letter and leads the
+ * file name. The `docx` package is loaded here, on the first press, so
  * it is not part of the page the Student first sees.
  */
 export async function downloadLetter(
   text: string,
   employer: string,
+  name: string | null = null,
   year: number = new Date().getFullYear(),
 ): Promise<void> {
   const { buildLetterDocx } = await import("./build-docx");
-  const blob = await buildLetterDocx(text);
+  const blob = await buildLetterDocx(text, name);
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = letterFileName({ employer, year }, null);
+  link.download = letterFileName({ employer, year }, name);
   document.body.append(link);
   link.click();
   link.remove();

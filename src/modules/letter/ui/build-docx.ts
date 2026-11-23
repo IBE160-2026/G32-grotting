@@ -5,8 +5,11 @@ import { renderLetter } from "../core/render-letter";
 const PARAGRAPH_GAP_TWIPS = 240;
 
 // The rendered Letter as paragraphs; a line break inside one stays a break.
-export function letterParagraphs(text: string): string[] {
-  return renderLetter(text, null)
+export function letterParagraphs(
+  text: string,
+  name: string | null = null,
+): string[] {
+  return renderLetter(text, name)
     .replace(/\r\n?/g, "\n")
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
@@ -15,11 +18,14 @@ export function letterParagraphs(text: string): string[] {
 
 /**
  * The Letter as a Word file (FR-12, AD-7), built in the browser from what the
- * screen and the copy show: the sign-off is the placeholder, since there is no
- * name before accounts. Plain paragraphs only, so Word and others open it as a
+ * screen and the copy show: the sign-off is the Profile name with accounts on
+ * (Story 6.6), otherwise the placeholder. Plain paragraphs only, so Word and others open it as a
  * blank document the Student edits.
  */
-export async function buildLetterDocx(text: string): Promise<Blob> {
+export async function buildLetterDocx(
+  text: string,
+  name: string | null = null,
+): Promise<Blob> {
   const document = new Document({
     creator: "JobAssistant",
     title: "Søknadsbrev",
@@ -32,7 +38,7 @@ export async function buildLetterDocx(text: string): Promise<Blob> {
     },
     sections: [
       {
-        children: letterParagraphs(text).map(
+        children: letterParagraphs(text, name).map(
           (paragraph) =>
             new Paragraph({
               spacing: { after: PARAGRAPH_GAP_TWIPS },

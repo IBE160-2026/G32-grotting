@@ -70,6 +70,26 @@ describe("FR-9 Letter view", () => {
   });
 });
 
+describe("Story 6.6 Letter view with a name", () => {
+  const html = renderToStaticMarkup(
+    createElement(LetterView, { letter, name: "Violet Hansen" }),
+  );
+
+  it("signs with the name and shows neither the placeholder nor the token", () => {
+    expect(text(html)).toContain("Vennlig hilsen\nViolet Hansen");
+    expect(html).not.toContain("[Navnet ditt]");
+    expect(html).not.toContain("SIGNATUR");
+  });
+
+  it("keeps the placeholder for no name or a blank one", () => {
+    for (const name of [null, "  "]) {
+      expect(
+        renderToStaticMarkup(createElement(LetterView, { letter, name })),
+      ).toContain("[Navnet ditt]");
+    }
+  });
+});
+
 describe("UX-DR30 Letter section", () => {
   const render = (phase: Parameters<typeof LetterSection>[0]["phase"]) =>
     renderToStaticMarkup(

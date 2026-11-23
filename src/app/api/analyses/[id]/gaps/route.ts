@@ -1,9 +1,11 @@
 import { analyseInputs } from "@/modules/application";
 import { analyseGaps } from "@/modules/gaps";
 import { gapsRequestSchema } from "@/modules/gaps/contracts";
+import { aiContextFor, handleCaller } from "@/modules/identity";
 import { getConfig } from "@/shared/server/config";
 import { loadVocabulary } from "@/shared/server/data-files";
-import { ApiError, handle } from "@/shared/server/handle";
+import { getDb } from "@/shared/server/db";
+import { ApiError } from "@/shared/server/handle";
 
 // One AI request, up to its 90 s limit, plus phase 1 in front of it.
 export const maxDuration = 120;
@@ -22,7 +24,7 @@ export async function POST(
   { params }: Context,
 ): Promise<Response> {
   const { id } = await params;
-  return handle("/api/analyses/[id]/gaps", async (req) => {
+  return handleCaller("/api/analyses/[id]/gaps", async (req, ctx) => {
     if (!getConfig().features.gaps) throw new ApiError("NOT_FOUND");
 
     const body = await req.json().catch(() => undefined);
@@ -49,7 +51,7 @@ export async function POST(
         rewording: getConfig().features.rewording,
         vocabulary,
       },
-      { studentId: null, consent: parsed.consent },
+      await aiContextFor(ctx.session, parsed.consent, await getDb()),
     );
     if (!analysedGaps.ok) {
       throw new ApiError(analysedGaps.error.code, {

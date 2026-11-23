@@ -36,6 +36,13 @@
       "when": 1795343526330,
       "tag": "0004_overrated_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795454513772,
+      "tag": "0005_bitter_beast",
+      "breakpoints": true
     }
   ]
 }

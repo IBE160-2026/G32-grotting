@@ -81,6 +81,9 @@ type PhaseTwoOptions = {
   readonly openNotice: () => void;
   // A silent rerun of phase 1 changed the result on screen (ANALYSIS_STALE).
   readonly onRerun: (result: AnalysisResult, job: LetterJob) => void;
+  // The notice version this Student has accepted, read when a request starts.
+  // With accounts on it comes from the Profile (Story 6.6), else from the tab.
+  readonly acceptedNotice?: () => string | undefined;
 };
 
 /**
@@ -94,6 +97,7 @@ export function usePhaseTwo({
   tone,
   openNotice,
   onRerun,
+  acceptedNotice = () => readSession().noticeVersion,
 }: PhaseTwoOptions) {
   // Phase 2: where the Letter stands, and what a refused request holds back.
   const [letterPhase, setLetterPhase] = useState<LetterPhase | null>(null);
@@ -166,7 +170,7 @@ export function usePhaseTwo({
     }) =>
       requestGaps(
         job,
-        consentFor(runMode, readSession().noticeVersion),
+        consentFor(runMode, acceptedNotice()),
         browserGapsIo,
         isCurrent,
       ),
@@ -183,7 +187,7 @@ export function usePhaseTwo({
     }) =>
       requestLetter(
         job,
-        consentFor(runMode, readSession().noticeVersion),
+        consentFor(runMode, acceptedNotice()),
         browserLetterIo,
         isCurrent,
       ),
@@ -416,7 +420,7 @@ export function usePhaseTwo({
     const outcome = await requestLetterCheck(
       {
         ...base,
-        consent: consentFor(runMode, readSession().noticeVersion),
+        consent: consentFor(runMode, acceptedNotice()),
         gaps: shownGaps,
         gapsRev: askedGapsRev,
       },

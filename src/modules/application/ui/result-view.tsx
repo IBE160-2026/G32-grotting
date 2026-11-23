@@ -33,6 +33,8 @@ type ResultViewProps = {
   readonly headingRef: RefObject<HTMLHeadingElement | null>;
   // «Endre annonsen»
   readonly onBack: () => void;
+  // The Profile name that signs the Letter (accounts on), else null.
+  readonly name?: string | null;
 };
 
 /** The result of phase 1 with the Letter and the Gap analysis of phase 2. */
@@ -41,6 +43,7 @@ export function ResultView({
   phaseTwo,
   headingRef,
   onBack,
+  name = null,
 }: ResultViewProps) {
   const { result } = outcome;
   const { letterPhase, gapsPhase } = phaseTwo;
@@ -59,6 +62,7 @@ export function ResultView({
       check={phaseTwo.letterCheck}
       onRetryCheck={phaseTwo.retryCheck}
       showProgress={showProgress}
+      name={name}
     />
   );
 

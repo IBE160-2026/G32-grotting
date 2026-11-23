@@ -1,7 +1,8 @@
 import { checkLetterFor } from "@/modules/application";
+import { handleCaller } from "@/modules/identity";
 import { letterCheckRequestSchema } from "@/modules/letter/contracts";
 import { loadVocabulary } from "@/shared/server/data-files";
-import { ApiError, handle } from "@/shared/server/handle";
+import { ApiError } from "@/shared/server/handle";
 
 // Answers per request: never prerendered at build.
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export async function POST(
   { params }: Context,
 ): Promise<Response> {
   const { id } = await params;
-  return handle("/api/analyses/[id]/letter-check", async (req) => {
+  return handleCaller("/api/analyses/[id]/letter-check", async (req) => {
     const body = await req.json().catch(() => undefined);
     const parsed = letterCheckRequestSchema.parse(body);
     if (id !== parsed.applicationId) {
