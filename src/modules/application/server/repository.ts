@@ -1,10 +1,16 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
+import { z } from "zod";
 import type { Gap } from "@/modules/gaps/contracts";
 import type { Letter, LetterCheck } from "@/modules/letter/contracts";
 import type { AnalysisResult } from "@/modules/match/contracts";
-import type { Section } from "@/shared/server/crypto";
+import { openSection, type Section } from "@/shared/server/crypto";
+import {
+  APPLICATIONS_PAGE_SIZE,
+  type ApplicationEntry,
+  type ApplicationList,
+} from "../contracts";
 import { applications } from "./schema";
 
 // The database or the `tx` of a transaction (AD-10).
@@ -245,4 +251,108 @@ export async function saveLetterCheck(
     )
     .returning({ id: applications.id });
   return rows.length > 0;
+}
+
+// Story 6.8: what Historikk reads. Only the Student's own rows, found by
+// `student_id` taken from the session. The register shows the job title and the
+// employer (`job`) and the score counts (`analysis`), so those two sections are
+// decrypted here on the server and only those fields leave it: the Job ad, the
+// keyword lists, the Gaps and the Letter text stay out of the answer. The
+// Letter is only tested for existence (`letter is not null`), never read.
+const jobTitleSchema = z.object({
+  jobTitle: z.string(),
+  employer: z.string(),
+});
+const countsSchema = z.object({
+  matchedCount: z.number().int().nonnegative(),
+  totalCount: z.number().int().positive(),
+});
+
+export async function listApplications(
+  studentId: string,
+  db: Executor,
+  page: number,
+  pageSize: number = APPLICATIONS_PAGE_SIZE,
+): Promise<ApplicationList> {
+  const [summary] = await db
+    .select({
+      total: sql<number>`count(*)::int`,
+      firstSeq: sql<number | null>`min(${applications.seq})`,
+      lastSeq: sql<number | null>`max(${applications.seq})`,
+    })
+    .from(applications)
+    .where(eq(applications.studentId, studentId));
+  const rows = await db
+    .select({
+      id: applications.id,
+      seq: applications.seq,
+      createdAt: applications.createdAt,
+      matchScore: applications.matchScore,
+      job: applications.job,
+      analysis: applications.analysis,
+      hasLetter: sql<boolean>`${applications.letter} is not null`,
+    })
+    .from(applications)
+    .where(eq(applications.studentId, studentId))
+    .orderBy(desc(applications.seq))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+  const entries: ApplicationEntry[] = rows.map((row) => {
+    const job = openSection(row.job, (data) => jobTitleSchema.parse(data));
+    const counts = openSection(row.analysis, (data) =>
+      countsSchema.parse(data),
+    );
+    return {
+      id: row.id,
+      seq: row.seq,
+      createdAt: row.createdAt.toISOString(),
+      score: row.matchScore,
+      matchedCount: counts.available ? counts.value.matchedCount : null,
+      totalCount: counts.available ? counts.value.totalCount : null,
+      jobTitle: job.available ? job.value.jobTitle : null,
+      employer: job.available ? job.value.employer : null,
+      hasLetter: row.hasLetter === true,
+    };
+  });
+  return {
+    page,
+    pageSize,
+    total: summary?.total ?? 0,
+    firstSeq: summary?.firstSeq ?? null,
+    lastSeq: summary?.lastSeq ?? null,
+    entries,
+  };
+}
+
+// How many entries the Student has, for the app bar; nothing is decrypted.
+export async function countApplications(
+  studentId: string,
+  db: Executor,
+): Promise<number> {
+  const [row] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(applications)
+    .where(eq(applications.studentId, studentId));
+  return row?.total ?? 0;
+}
+
+// The stored Letter text of one entry, found by `(id, studentId)`; the sign-off
+// token is still in it. Null for a missing row, another Student's row, a row
+// without a Letter and a Letter that cannot be read: the caller cannot tell
+// them apart. Nothing else of the row is selected or decrypted.
+export async function getApplicationLetterText(
+  studentId: string,
+  db: Executor,
+  id: string,
+): Promise<string | null> {
+  const [row] = await db
+    .select({ letter: applications.letter })
+    .from(applications)
+    .where(and(eq(applications.id, id), eq(applications.studentId, studentId)))
+    .limit(1);
+  if (row === undefined || row.letter === null) return null;
+  const opened = openSection(row.letter, (data) =>
+    z.object({ text: z.string() }).parse(data),
+  );
+  return opened.available ? opened.value.text : null;
 }

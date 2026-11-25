@@ -15,6 +15,9 @@ export const messages = {
     account: "Konto",
     menuOpen: "Meny",
     menuClose: "Lukk",
+    // The count by «Historikk» (Story 6.8): spoken after the name.
+    historyCount: (count: number) =>
+      count === 1 ? "1 oppføring" : `${count} oppføringer`,
   },
   errorStrip: "Feil",
   // The Test-mode banner under the app bar (FR-27, UX-DR16).
@@ -171,6 +174,49 @@ export const messages = {
     account: "Konto",
     body: "Denne siden er ikke ferdig ennå.",
     toApplication: "Til Søknad",
+  },
+  // Historikk, the catalogue register (Story 6.8, FR-21, UX-DR21). Wording
+  // follows EXPERIENCE.md, Key strings and Component Patterns.
+  history: {
+    title: "Historikk",
+    // «JA-001–JA-002 · 2 søknader, nyeste først»; one entry has no range.
+    summary: (first: string, last: string, count: number) =>
+      `${first === last ? first : `${first}–${last}`} · ${count} ${count === 1 ? "søknad" : "søknader"}, nyeste først`,
+    note: "Søknadene i katalogen kan ikke endres. Åpne en søknad for å se hele Refleksjonsnotatet.",
+    caption: "Alle søknadene dine, nyeste først",
+    listLabel: "Alle søknadene dine, nyeste først",
+    columns: {
+      number: "Nr.",
+      position: "Stilling",
+      date: "Dato",
+      score: "Samsvar",
+      actions: "Handlinger",
+    },
+    // A title or employer that could not be read.
+    unreadable: "Kan ikke leses",
+    open: "Åpne",
+    openEntry: (number: string) => `Åpne ${number}`,
+    copyLabel: "Kopier brev",
+    copyEntry: (number: string) => `Kopier brev for ${number}`,
+    downloadEntry: (number: string) => `Last ned (.docx) for ${number}`,
+    noLetter: "Brevet er ikke laget.",
+    letterFailed: "Brevet kunne ikke hentes. Prøv igjen.",
+    // The clipboard was blocked: the Letter is not on this page to select.
+    copyBlocked: "Kunne ikke kopiere. Åpne søknaden og kopier brevet derfra.",
+    // The score sentence when the counts could not be read.
+    scoreOnly: (score: number) => `${score} % samsvar`,
+    empty: {
+      ghost: "JA-001",
+      text: "Ingen søknader ennå. Start med din første stillingsannonse.",
+      hint: "Den første søknaden du lager, får nummer JA-001.",
+      action: "Lag skreddersydd søknad",
+    },
+    pagination: {
+      label: "Sider",
+      previous: "Forrige",
+      next: "Neste",
+      page: (page: number, pages: number) => `Side ${page} av ${pages}`,
+    },
   },
   application: {
     heading: "Ny søknad",

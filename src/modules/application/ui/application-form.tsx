@@ -43,6 +43,7 @@ import { TextArea, TextField } from "@/shared/ui/components/text-field";
 import { messages } from "@/shared/ui/messages.nb";
 import { newId } from "@/shared/ui/new-id";
 import { useRunMode } from "@/shared/ui/run-mode";
+import { HISTORY_COUNT_KEY } from "@/shared/ui/use-history-count";
 import {
   type AnalyseRequest,
   type AnalyseResponse,
@@ -57,6 +58,7 @@ import {
 import { formatCatalogueNumber } from "../core/catalogue-number";
 import { CvDisclosure, NoCvNotice } from "./cv-disclosure";
 import { type Outcome, ResultView } from "./result-view";
+import { APPLICATION_LIST_KEY } from "./use-applications";
 import { NEXT_APPLICATION_KEY, useNextApplication } from "./use-next-number";
 import { usePhaseTwo } from "./use-phase-two";
 
@@ -532,6 +534,9 @@ export function ApplicationForm({ example }: ApplicationFormProps) {
     }
     if (saved !== undefined) {
       void queryClient.invalidateQueries({ queryKey: NEXT_APPLICATION_KEY });
+      // Historikk and the count by it in the app bar (Story 6.8).
+      void queryClient.invalidateQueries({ queryKey: HISTORY_COUNT_KEY });
+      void queryClient.invalidateQueries({ queryKey: APPLICATION_LIST_KEY });
     }
     phaseTwo.begin(
       job,
