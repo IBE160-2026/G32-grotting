@@ -137,6 +137,9 @@ for (const [label, size] of [
         new RegExp(`^JA-001 ?, ${EXAMPLE_META.employer}$`),
       );
       await expect(page.getByText("Ikke laget.")).toHaveCount(0);
+      // A client navigation: Next writes the title after the heading shows, and
+      // axe (`document-title`) failed once when it ran first.
+      await expect(page).toHaveTitle("Lagret søknad – JobAssistant");
       await page.waitForLoadState("networkidle");
       await axe(page, "the saved Application");
 
