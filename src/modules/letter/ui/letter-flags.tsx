@@ -83,23 +83,26 @@ export function FlaggedWord({
 /**
  * The check could not be made: the Letter stays, and the Student is told to
  * read it with extra care. A notice, never an alert; the retry sends the check
- * only.
+ * only. Without `onRetry` (a reopened Application, Story 6.9) there is no retry
+ * button: nothing is checked again there.
  */
 export function LetterUnchecked({
   busy,
   onRetry,
 }: {
   busy: boolean;
-  onRetry: () => void;
+  onRetry?: () => void;
 }) {
   return (
     <div className="mb-3 flex flex-col items-start gap-3 max-640:items-stretch">
       <Notice label={messages.letter.check.strip}>
         {messages.letter.check.unchecked}
       </Notice>
-      <Button variant="secondary" busy={busy} onClick={onRetry}>
-        {messages.letter.check.retry}
-      </Button>
+      {onRetry === undefined ? null : (
+        <Button variant="secondary" busy={busy} onClick={onRetry}>
+          {messages.letter.check.retry}
+        </Button>
+      )}
     </div>
   );
 }

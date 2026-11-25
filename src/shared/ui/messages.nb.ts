@@ -218,6 +218,24 @@ export const messages = {
       page: (page: number, pages: number) => `Side ${page} av ${pages}`,
     },
   },
+  // A saved Application, reopened read-only (Story 6.9, FR-21). The heading is
+  // the catalogue number and the employer; nothing here is regenerated.
+  saved: {
+    // The page title is static: the number and the employer are personal.
+    title: "Lagret søknad",
+    navLabel: "I Historikk",
+    historyLink: "Historikk",
+    // «JA-001 · Fjord Analytics»; the number alone when the employer is unknown.
+    previousLink: (number: string, employer: string | null) =>
+      employer === null ? number : `${number} · ${employer}`,
+    // A section that was never made (a null column).
+    notMade: { label: "Ikke laget", text: "Ikke laget." },
+    // A section that cannot be read; the strip reuses `history.unreadable`.
+    unreadable: "Kan ikke leses.",
+    // The hint under the Letter without the sentence about «Lag nytt utkast».
+    letterHint:
+      "Brevet kan ikke redigeres her. Kopier det eller last det ned, og tilpass det i ditt eget program.",
+  },
   application: {
     heading: "Ny søknad",
     jobTitle: "Stillingstittel",

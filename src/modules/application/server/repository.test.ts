@@ -7,6 +7,7 @@ import { closeDb, getDb } from "@/shared/server/db";
 import {
   countApplications,
   type Executor,
+  getApplicationDetail,
   getApplicationLetterText,
   getApplicationMeta,
   isSeqConflict,
@@ -780,5 +781,228 @@ describe("Story 6.8 getApplicationLetterText", () => {
       sql`update applications set letter = 'garbage' where id = ${id}`,
     );
     expect(await getApplicationLetterText(studentId, db, id)).toBeNull();
+  });
+});
+
+describe("Story 6.9 getApplicationDetail", () => {
+  async function entry(studentId: string, fingerprint = "fp-1") {
+    const db = await getDb();
+    const id = newId();
+    await saveAnalysis(studentId, db, inputFor(id, fingerprint));
+    return { db, id, target: { id, fingerprint } };
+  }
+
+  it("returns every section of the Student's own row, with the number and the date", async () => {
+    const studentId = await newStudent();
+    const { db, id, target } = await entry(studentId);
+    await saveGaps(studentId, db, { ...target, gapsRev: 1 }, GAPS);
+    await saveLetter(studentId, db, target, LETTER);
+    await saveLetterCheck(
+      studentId,
+      db,
+      { ...target, letterRev: 1, gapsRev: 1 },
+      CHECK(1, 1),
+    );
+    const detail = await getApplicationDetail(studentId, db, id);
+    expect(detail).toMatchObject({
+      id,
+      seq: 1,
+      previous: null,
+      job: {
+        status: "ok",
+        value: {
+          jobTitle: "Hemmeligstilling",
+          employer: "Skjult Arbeidsgiver AS",
+        },
+      },
+      analysis: { status: "ok", value: { score: 71 } },
+      gaps: { status: "ok", value: GAPS },
+      letter: { status: "ok", value: LETTER },
+      check: CHECK(1, 1).flags,
+    });
+    expect(Number.isNaN(Date.parse(detail?.createdAt ?? ""))).toBe(false);
+  });
+
+  it("marks a section never made as missing, and the check as null", async () => {
+    const studentId = await newStudent();
+    const { db, id } = await entry(studentId);
+    const detail = await getApplicationDetail(studentId, db, id);
+    expect(detail?.gaps).toEqual({ status: "missing" });
+    expect(detail?.letter).toEqual({ status: "missing" });
+    expect(detail?.check).toBeNull();
+  });
+
+  it("holds only the stored sections: no CV text and no plain columns of the row beyond the answer", async () => {
+    const studentId = await newStudent();
+    const { db, id } = await entry(studentId);
+    const detail = await getApplicationDetail(studentId, db, id);
+    expect(Object.keys(detail ?? {}).sort()).toEqual([
+      "analysis",
+      "check",
+      "createdAt",
+      "gaps",
+      "id",
+      "job",
+      "letter",
+      "previous",
+      "seq",
+    ]);
+  });
+
+  it("gives null for another Student's row and an unknown id alike, with one select and no second query", async () => {
+    const studentId = await newStudent();
+    const other = await newStudent();
+    const { db, id } = await entry(studentId);
+    await entry(other);
+    expect(await getApplicationDetail(other, db, id)).toBeNull();
+    expect(await getApplicationDetail(other, db, newId())).toBeNull();
+    for (const probe of [id, newId()]) {
+      let selects = 0;
+      const counting = new Proxy(db, {
+        get(target, property, receiver) {
+          if (property === "select") selects++;
+          return Reflect.get(target, property, receiver);
+        },
+      });
+      expect(await getApplicationDetail(other, counting, probe)).toBeNull();
+      expect(selects).toBe(1);
+    }
+  });
+
+  it("points `previous` at the Student's next lower number, not another Student's", async () => {
+    const studentId = await newStudent();
+    const other = await newStudent();
+    const first = await entry(studentId);
+    const second = await entry(studentId);
+    await entry(other);
+    const third = await entry(studentId);
+    const db = first.db;
+    expect(
+      (await getApplicationDetail(studentId, db, first.id))?.previous,
+    ).toBeNull();
+    expect(
+      (await getApplicationDetail(studentId, db, second.id))?.previous,
+    ).toEqual({ id: first.id, seq: 1, employer: "Skjult Arbeidsgiver AS" });
+    expect(
+      (await getApplicationDetail(studentId, db, third.id))?.previous,
+    ).toEqual({ id: second.id, seq: 2, employer: "Skjult Arbeidsgiver AS" });
+  });
+
+  it("takes the highest lower number when the numbers have a gap", async () => {
+    const studentId = await newStudent();
+    const first = await entry(studentId);
+    const second = await entry(studentId);
+    const third = await entry(studentId);
+    await first.db.execute(
+      sql`delete from applications where id = ${second.id}`,
+    );
+    expect(
+      (await getApplicationDetail(studentId, third.db, third.id))?.previous,
+    ).toMatchObject({ id: first.id, seq: 1 });
+  });
+
+  it("gives a null employer when the previous entry's job cannot be read", async () => {
+    const studentId = await newStudent();
+    const first = await entry(studentId);
+    const second = await entry(studentId);
+    await first.db.execute(
+      sql`update applications set job = 'garbage' where id = ${first.id}`,
+    );
+    expect(
+      (await getApplicationDetail(studentId, second.db, second.id))?.previous,
+    ).toEqual({ id: first.id, seq: 1, employer: null });
+  });
+
+  it("marks each unreadable section on its own and keeps the rest", async () => {
+    const studentId = await newStudent();
+    const { db, id, target } = await entry(studentId);
+    await saveGaps(studentId, db, { ...target, gapsRev: 1 }, GAPS);
+    await saveLetter(studentId, db, target, LETTER);
+    await db.execute(
+      sql`update applications set letter = 'garbage', gaps = 'garbage' where id = ${id}`,
+    );
+    const detail = await getApplicationDetail(studentId, db, id);
+    expect(detail?.letter).toEqual({ status: "unreadable" });
+    expect(detail?.gaps).toEqual({ status: "unreadable" });
+    expect(detail?.job.status).toBe("ok");
+    expect(detail?.analysis.status).toBe("ok");
+    await db.execute(
+      sql`update applications set job = 'garbage', analysis = 'garbage' where id = ${id}`,
+    );
+    expect(await getApplicationDetail(studentId, db, id)).toMatchObject({
+      seq: 1,
+      job: { status: "unreadable" },
+      analysis: { status: "unreadable" },
+    });
+  });
+
+  it("marks a section that decrypts but does not parse as unreadable", async () => {
+    const studentId = await newStudent();
+    const { db, id } = await entry(studentId);
+    await db
+      .update(applications)
+      .set({
+        letter: {
+          available: true,
+          contractVersion: SECTION_VERSION,
+          data: { text: 5 },
+        },
+      })
+      .where(eq(applications.id, id));
+    expect((await getApplicationDetail(studentId, db, id))?.letter).toEqual({
+      status: "unreadable",
+    });
+  });
+
+  it("sends the check only while its revs are the row's", async () => {
+    const studentId = await newStudent();
+    const { db, id, target } = await entry(studentId);
+    await saveLetter(studentId, db, target, LETTER);
+    await saveLetterCheck(
+      studentId,
+      db,
+      { ...target, letterRev: 1, gapsRev: 0 },
+      CHECK(1, 0),
+    );
+    expect((await getApplicationDetail(studentId, db, id))?.check).toEqual(
+      CHECK(1, 0).flags,
+    );
+    // A Letter written again after the check: the stored check is stale.
+    await saveLetter(studentId, db, target, { ...LETTER, rev: 2 });
+    expect((await getApplicationDetail(studentId, db, id))?.check).toBeNull();
+    // Back at the rev the check was made for, a Gap analysis written since
+    // makes it stale too.
+    await saveLetter(studentId, db, target, LETTER);
+    expect((await getApplicationDetail(studentId, db, id))?.check).toEqual(
+      CHECK(1, 0).flags,
+    );
+    await saveGaps(studentId, db, { ...target, gapsRev: 1 }, GAPS);
+    expect((await getApplicationDetail(studentId, db, id))?.check).toBeNull();
+  });
+
+  it("gives no check for a check that cannot be read or a row without a Letter", async () => {
+    const studentId = await newStudent();
+    const { db, id, target } = await entry(studentId);
+    await saveLetter(studentId, db, target, LETTER);
+    await saveLetterCheck(
+      studentId,
+      db,
+      { ...target, letterRev: 1, gapsRev: 0 },
+      CHECK(1, 0),
+    );
+    await db.execute(
+      sql`update applications set letter_check = 'garbage' where id = ${id}`,
+    );
+    expect((await getApplicationDetail(studentId, db, id))?.check).toBeNull();
+    await saveLetterCheck(
+      studentId,
+      db,
+      { ...target, letterRev: 1, gapsRev: 0 },
+      CHECK(1, 0),
+    );
+    await db.execute(
+      sql`update applications set letter = null where id = ${id}`,
+    );
+    expect((await getApplicationDetail(studentId, db, id))?.check).toBeNull();
   });
 });

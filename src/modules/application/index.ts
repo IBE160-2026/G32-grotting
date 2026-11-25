@@ -7,6 +7,7 @@ export { checkLetterFor } from "./server/check-letter";
 export {
   type ApplicationMeta,
   countApplications,
+  getApplicationDetail,
   getApplicationLetterText,
   getApplicationMeta,
   listApplications,

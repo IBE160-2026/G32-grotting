@@ -89,3 +89,44 @@ describe("UX-DR39 Letter regenerating", () => {
     expect(text(html)).not.toContain("Prøv igjen");
   });
 });
+
+describe("Story 6.9 the action stack of a reopened Letter", () => {
+  const renderReadOnly = (
+    regen: "idle" | "running" | "failed" | "cap" | "testMode" = "idle",
+  ) =>
+    renderToStaticMarkup(
+      createElement(LetterSection, {
+        readOnly: true,
+        phase: { kind: "done", letter },
+        employer: "Nordic Digital",
+        regen,
+        year: 2025,
+      }),
+    );
+
+  it("holds «Kopier» and «Last ned (.docx)» only, with no «Lag nytt utkast»", () => {
+    const html = renderReadOnly();
+    const buttons = (html.match(/<button[\s\S]*?<\/button>/g) ?? []).map(text);
+    expect(buttons).toEqual(["Kopier", "Last ned (.docx)"]);
+    expect(html).not.toContain("Lag nytt utkast");
+    expect(html).not.toContain("Skriver et nytt utkast");
+    expect(text(html)).not.toContain("«Lag nytt utkast»");
+  });
+
+  it("shows no regenerate alert, notice or progress whatever the regen state is", () => {
+    for (const regen of ["running", "failed", "cap", "testMode"] as const) {
+      const html = renderReadOnly(regen);
+      expect(html).not.toContain("Prøv igjen");
+      expect(html).not.toContain("Dagens grense");
+      expect(html).not.toContain("Testmodus");
+      expect(html).not.toContain("Skriver et nytt utkast");
+      expect(html).not.toContain("role=");
+    }
+  });
+
+  it("leaves the fresh Letter as it was: «Lag nytt utkast» and the old hint", () => {
+    const html = render("idle");
+    expect(html).toContain("Lag nytt utkast");
+    expect(text(html)).toContain("«Lag nytt utkast» skriver et nytt brev");
+  });
+});

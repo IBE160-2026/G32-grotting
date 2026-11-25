@@ -46,10 +46,7 @@ export function LetterView({
         <LetterFlagList flags={flags} />
       ) : null}
       {check.kind === "failed" ? (
-        <LetterUnchecked
-          busy={check.busy}
-          onRetry={onRetryCheck ?? (() => {})}
-        />
+        <LetterUnchecked busy={check.busy} onRetry={onRetryCheck} />
       ) : null}
       <article
         ref={articleRef}

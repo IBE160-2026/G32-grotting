@@ -26,17 +26,24 @@ export function LetterActions({
   letter,
   employer,
   articleRef,
-  regen,
+  regen = "idle",
   onRegenerate,
   name = null,
+  readOnly = false,
+  year,
 }: {
   letter: Letter;
   employer: string;
   articleRef: RefObject<HTMLElement | null>;
-  regen: RegenState;
-  onRegenerate: () => void;
+  regen?: RegenState;
+  onRegenerate?: () => void;
   // The Profile name (accounts on): in the copy, the file and its name.
   name?: string | null;
+  // A reopened Application (Story 6.9): «Kopier» and «Last ned (.docx)» only,
+  // with no «Lag nytt utkast», no regenerate alert or notice.
+  readOnly?: boolean;
+  // The year in the file name; the year of the Application when it is reopened.
+  year?: number;
 }) {
   const regenerateRef = useRef<HTMLButtonElement>(null);
   const [downloading, setDownloading] = useState(false);
@@ -50,7 +57,7 @@ export function LetterActions({
     setDownloading(true);
     setFailedRev(null);
     try {
-      await downloadLetter(letter.text, employer, name);
+      await downloadLetter(letter.text, employer, name, year);
     } catch {
       setFailedRev(letter.rev);
       announce("action", messages.letter.actions.downloadFailed);
@@ -62,13 +69,13 @@ export function LetterActions({
   // The retry button goes away as the request starts, so focus moves to the
   // button that stays (and is busy).
   function retry() {
-    onRegenerate();
+    onRegenerate?.();
     regenerateRef.current?.focus();
   }
 
   return (
     <div className="mt-6 flex max-w-letter flex-col items-start gap-3 max-640:items-stretch">
-      {regen === "failed" ? (
+      {!readOnly && regen === "failed" ? (
         <div className="flex flex-col items-start gap-3 max-640:items-stretch">
           {/* Silent: the second live region speaks it once (UX-DR39). */}
           <Alert silent>{messages.letter.regenerate.live.failed}</Alert>
@@ -77,12 +84,12 @@ export function LetterActions({
           </Button>
         </div>
       ) : null}
-      {regen === "cap" ? (
+      {!readOnly && regen === "cap" ? (
         <Notice label={messages.letter.cap.label}>
           {messages.letter.cap.text}
         </Notice>
       ) : null}
-      {regen === "testMode" ? (
+      {!readOnly && regen === "testMode" ? (
         <Notice label={messages.letter.testMode.label}>
           {messages.letter.testMode.text}
         </Notice>
@@ -98,15 +105,19 @@ export function LetterActions({
       <Button variant="secondary" busy={downloading} onClick={download}>
         {messages.letter.actions.download}
       </Button>
-      <Button
-        ref={regenerateRef}
-        variant="secondary"
-        busy={regen === "running"}
-        onClick={onRegenerate}
-      >
-        {messages.letter.regenerate.label}
-      </Button>
-      <p className="m-0 text-hint text-ink-2">{messages.letter.actions.hint}</p>
+      {readOnly ? null : (
+        <Button
+          ref={regenerateRef}
+          variant="secondary"
+          busy={regen === "running"}
+          onClick={onRegenerate}
+        >
+          {messages.letter.regenerate.label}
+        </Button>
+      )}
+      <p className="m-0 text-hint text-ink-2">
+        {readOnly ? messages.saved.letterHint : messages.letter.actions.hint}
+      </p>
     </div>
   );
 }

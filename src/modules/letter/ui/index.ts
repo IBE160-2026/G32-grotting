@@ -5,7 +5,7 @@ export { downloadLetter } from "./download-letter";
 export type { RegenState } from "./letter-actions";
 export type { LetterCheckState } from "./letter-flags";
 export { type LetterPhase, LetterSection, letterLine } from "./letter-section";
-export { LetterView } from "./letter-view";
+export { LETTER_HEADING_ID, LetterView } from "./letter-view";
 export {
   browserLetterIo,
   type LetterJob,
