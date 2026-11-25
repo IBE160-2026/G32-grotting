@@ -1,16 +1,29 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, lt, sql } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import type { Gap } from "@/modules/gaps/contracts";
-import type { Letter, LetterCheck } from "@/modules/letter/contracts";
-import type { AnalysisResult } from "@/modules/match/contracts";
+import { type Gap, gapSchema } from "@/modules/gaps/contracts";
+import {
+  type Letter,
+  type LetterCheck,
+  letterCheckSchema,
+  letterSchema,
+} from "@/modules/letter/contracts";
+import {
+  type AnalysisResult,
+  analysisResultSchema,
+} from "@/modules/match/contracts";
 import { openSection, type Section } from "@/shared/server/crypto";
 import {
   APPLICATIONS_PAGE_SIZE,
   type ApplicationEntry,
   type ApplicationList,
 } from "../contracts";
+import {
+  type SavedApplication,
+  type SavedSection,
+  savedJobSchema,
+} from "../saved-contracts";
 import { applications } from "./schema";
 
 // The database or the `tx` of a transaction (AD-10).
@@ -355,4 +368,106 @@ export async function getApplicationLetterText(
     z.object({ text: z.string() }).parse(data),
   );
   return opened.available ? opened.value.text : null;
+}
+
+// A stored section as the detail answer carries it: a null column is `missing`,
+// a section that does not decrypt or parse is `unreadable`. Never throws for one
+// bad section, so the rest of the page is still shown (AD-11).
+function savedOf<T>(
+  stored: Section | null,
+  parse: (data: unknown) => T,
+): SavedSection<T> {
+  if (stored === null) return { status: "missing" };
+  const opened = openSection(stored, parse);
+  return opened.available
+    ? { status: "ok", value: opened.value }
+    : { status: "unreadable" };
+}
+
+const employerSchema = z.object({ employer: z.string() });
+
+// Story 6.9: one stored Application for «reopen», found by `(id, studentId)`
+// with the id of the session. Null for a missing row and for another Student's
+// row alike: no section is decrypted and no second query is made for it. The CV
+// text is not on the row and is not in the answer. The Letter check is passed on
+// only while its revs equal the row's (and a Letter is shown): a stale check is
+// never shown as valid, so the client never sees one. `previous` is the
+// Student's next lower entry, for the link to it.
+export async function getApplicationDetail(
+  studentId: string,
+  db: Executor,
+  id: string,
+): Promise<SavedApplication | null> {
+  const [row] = await db
+    .select({
+      id: applications.id,
+      seq: applications.seq,
+      createdAt: applications.createdAt,
+      letterRev: applications.letterRev,
+      gapsRev: applications.gapsRev,
+      job: applications.job,
+      analysis: applications.analysis,
+      gaps: applications.gaps,
+      letter: applications.letter,
+      letterCheck: applications.letterCheck,
+    })
+    .from(applications)
+    .where(and(eq(applications.id, id), eq(applications.studentId, studentId)))
+    .limit(1);
+  if (row === undefined) return null;
+
+  const job = savedOf(row.job, (data) => savedJobSchema.parse(data));
+  const analysis = savedOf(row.analysis, (data) =>
+    analysisResultSchema.parse(data),
+  );
+  const gaps = savedOf(row.gaps, (data) => z.array(gapSchema).parse(data));
+  const letter = savedOf(row.letter, (data) => letterSchema.parse(data));
+  const stored = savedOf(row.letterCheck, (data) =>
+    letterCheckSchema.parse(data),
+  );
+  const check =
+    letter.status === "ok" &&
+    stored.status === "ok" &&
+    stored.value.letterRev === row.letterRev &&
+    stored.value.gapsRev === row.gapsRev
+      ? stored.value.flags
+      : null;
+
+  const [before] = await db
+    .select({
+      id: applications.id,
+      seq: applications.seq,
+      job: applications.job,
+    })
+    .from(applications)
+    .where(
+      and(eq(applications.studentId, studentId), lt(applications.seq, row.seq)),
+    )
+    .orderBy(desc(applications.seq))
+    .limit(1);
+  const previous =
+    before === undefined
+      ? null
+      : {
+          id: before.id,
+          seq: before.seq,
+          employer: (() => {
+            const opened = openSection(before.job, (data) =>
+              employerSchema.parse(data),
+            );
+            return opened.available ? opened.value.employer : null;
+          })(),
+        };
+
+  return {
+    id: row.id,
+    seq: row.seq,
+    createdAt: row.createdAt.toISOString(),
+    previous,
+    job,
+    analysis,
+    gaps,
+    letter,
+    check,
+  };
 }

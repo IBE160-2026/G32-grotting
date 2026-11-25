@@ -106,3 +106,22 @@ describe("FR-11 a failed check", () => {
     expect(html).toContain('aria-disabled="true"');
   });
 });
+
+describe("Story 6.9 a check that was never made on a reopened Letter", () => {
+  const renderWithout = (check: LetterCheckState) =>
+    renderToStaticMarkup(createElement(LetterView, { letter, check }));
+
+  it("shows the notice and no retry when there is no retry to give", () => {
+    const html = renderWithout({ kind: "failed", busy: false });
+    expect(text(html)).toContain(
+      "Brevet er ikke sjekket mot CV-en. Les det ekstra nøye.",
+    );
+    expect(text(html)).not.toContain("Sjekk igjen");
+    expect(html).not.toContain("<button");
+    expect(html).not.toContain('role="alert"');
+  });
+
+  it("still offers the retry where one is given", () => {
+    expect(render({ kind: "failed", busy: false })).toContain("Sjekk igjen");
+  });
+});

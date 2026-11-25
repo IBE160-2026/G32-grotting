@@ -8,6 +8,7 @@ import {
 import { callApi } from "@/shared/ui/api-client";
 import { HISTORY_COUNT_KEY } from "@/shared/ui/use-history-count";
 import { applicationLetterSchema, applicationListSchema } from "../contracts";
+import { savedApplicationSchema } from "../saved-contracts";
 
 // The Historikk list, one cache entry per page (Story 6.8). It lives in the
 // TanStack cache only, never in browser storage. A saved Application
@@ -39,6 +40,29 @@ export function useApplicationList(page: number) {
       if (!result.ok) throw new ApplicationRequestError(result.error.code);
       // The app bar's count follows the list.
       queryClient.setQueryData(HISTORY_COUNT_KEY, result.data.total);
+      return result.data;
+    },
+  });
+}
+
+// One reopened Application (Story 6.9), one cache entry per id. It holds
+// decrypted text, so it lives in the TanStack cache only, never in browser
+// storage or a URL. Always read again on mount: what the screen shows is what
+// is stored now.
+export function applicationDetailKey(id: string) {
+  return ["applications", "detail", id] as const;
+}
+
+export function useSavedApplication(id: string) {
+  return useQuery({
+    queryKey: applicationDetailKey(id),
+    refetchOnMount: "always",
+    queryFn: async () => {
+      const result = await callApi(
+        `/api/applications/${id}`,
+        savedApplicationSchema,
+      );
+      if (!result.ok) throw new ApplicationRequestError(result.error.code);
       return result.data;
     },
   });

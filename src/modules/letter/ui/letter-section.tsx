@@ -44,15 +44,18 @@ export function LetterSection({
   onRetryCheck,
   showProgress = true,
   name = null,
+  readOnly = false,
+  year,
 }: {
   phase: LetterPhase;
-  onRetry: () => void;
+  // Without a retry (a reopened Application) a failure shows no button.
+  onRetry?: () => void;
   headingRef?: Ref<HTMLHeadingElement>;
   // The file name of the download is built from it (FR-12).
   employer: string;
   // «Lag nytt utkast»: the old Letter stays while a new one is written.
   regen?: RegenState;
-  onRegenerate: () => void;
+  onRegenerate?: () => void;
   // The integrity check of the Letter shown (FR-11) and its own retry.
   check?: LetterCheckState;
   onRetryCheck?: () => void;
@@ -61,6 +64,11 @@ export function LetterSection({
   showProgress?: boolean;
   // The Profile name that signs the Letter (accounts on), else null.
   name?: string | null;
+  // A reopened Application (Story 6.9): no «Lag nytt utkast», no regenerate
+  // alerts or notices, and the check has no retry.
+  readOnly?: boolean;
+  // The year in the file name of the download (the Application's own year).
+  year?: number;
 }) {
   const articleRef = useRef<HTMLElement>(null);
   // `undefined` children keep the slot a placeholder (aria-busy, «Skrives»).
@@ -82,6 +90,8 @@ export function LetterSection({
           regen={regen}
           onRegenerate={onRegenerate}
           name={name}
+          readOnly={readOnly}
+          year={year}
         />
       </>
     );
@@ -93,7 +103,7 @@ export function LetterSection({
       {phase.kind === "pending" && showProgress ? (
         <ProgressLine>{messages.letter.progress}</ProgressLine>
       ) : null}
-      {phase.kind === "done" && regen === "running" ? (
+      {phase.kind === "done" && !readOnly && regen === "running" ? (
         <ProgressLine>{messages.letter.regenerate.progress}</ProgressLine>
       ) : null}
       <AiPlaceholder
@@ -112,7 +122,7 @@ function FailedLetter({
   onRetry,
 }: {
   code: MessageKey;
-  onRetry: () => void;
+  onRetry?: () => void;
 }) {
   if (code === "DAILY_CAP_REACHED") {
     return (
@@ -132,9 +142,11 @@ function FailedLetter({
     <div className="flex flex-col items-start gap-4">
       {/* Silent: the live region speaks the failure once (UX-DR39). */}
       <Alert silent>{messages.letter.failed}</Alert>
-      <Button variant="secondary" onClick={onRetry}>
-        {messages.letter.retry}
-      </Button>
+      {onRetry === undefined ? null : (
+        <Button variant="secondary" onClick={onRetry}>
+          {messages.letter.retry}
+        </Button>
+      )}
     </div>
   );
 }
