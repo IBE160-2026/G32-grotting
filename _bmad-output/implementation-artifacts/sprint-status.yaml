@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-14-2026 19:13
-last_updated: 11-25-2026 16:00
+last_updated: 11-25-2026 18:30
 project: JobAssistant
 project_key: NOKEY
 tracking_system: file-system
@@ -258,7 +258,7 @@ action_items:
     action: "Add Cache-Control no-store to the Student pages (Profil, Historikk, /historikk/[id],
       Konto, Soknad) and an e2e test that Back after logout shows no Student content"
     owner: "Dev loop"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-6-retro-2026-11-25.md"
   - id: "epic-6-retro-item-21-decide-fr-22-for-keyword_lists-reword-th"
     epic: 6
@@ -274,7 +274,7 @@ action_items:
       (wait for toHaveTitle before axe on the saved Application) and look for the
       same pattern in applications-reopen and account specs"
     owner: "Dev loop"
-    status: open
+    status: done
     ref: "_bmad-output/implementation-artifacts/epic-6-retro-2026-11-25.md"
   - id: "epic-6-retro-item-23-go-through-the-17-rows-of-docs-qa-accoun"
     epic: 6
