@@ -2,7 +2,7 @@
 title: 'Reopen a saved Application'
 type: 'feature'
 created: '2026-11-25'
-status: 'in-progress'
+status: 'done'
 baseline_revision: '22ae782ef21fd5250ffb7bfec86036ce873c24c4'
 review_loop_iteration: 0
 followup_review_recommended: false
@@ -81,6 +81,26 @@ deferred: []
 
 ## Review Triage Log
 
+### 2026-11-25 — Review pass
+- verdicts: 20 findings (12 blind, 6 edge, 2 verification-gap; intent-alignment is descriptive; rows group same-cause findings) — high 0, medium 1, low 17, false 2, maybe-false 0
+- findings:
+  - `[medium]` `patch` Verification-gap: the download year of a reopened Letter (`year` from `createdAt`) is not pinned; the e2e computed the expected year the same way and the default (now) gives the same name — the e2e now plants `createdAt` 2019 in the answer (`page.route`) and expects `...-2019.docx`; removing `year` fails it.
+  - `[low]` `reject` Verification-gap: Profile failure branch of `SavedApplication` unexercised — mirrors the answer-failure branch tested in e2e and the Historikk page; a Profile outage is rare and the branch is three lines.
+  - `[low]` `reject` Blind, Edge, Intent: a `NOT_FOUND` answer from the detail API after the page check shows the network alert and a retry — no delete exists (D5) and the page checks the row first; a retry is harmless.
+  - `[low]` `reject` Blind, Edge: download year uses the browser's local `getFullYear()` — the same local zone as the date shown in the credits; both agree.
+  - `[low]` `reject` Blind, Edge: unreadable job gives a download with no employer part — `letterFileName` leaves out an empty part (6.8 triage); rare.
+  - `[low]` `reject` Blind, Edge: row and `previous` are two statements, not one transaction — no delete exists, so the previous row cannot vanish; the same reasoning as 6.8's total and page.
+  - `[low]` `reject` Blind: a failed Profile fails the whole page — the spec requires the Profile name before any copy or download, as Historikk does.
+  - `[false]` `reject` Blind: `missing` job/analysis reported as «Kan ikke leses.» — `job` and `analysis` are NOT NULL columns, `missing` cannot occur.
+  - `[low]` `reject` Blind: "never checked", "stale" and "unreadable" show the same unchecked notice — by design: all mean the check is not valid for this Letter, and the AC gives one text.
+  - `[low]` `defer` Blind: decrypted detail stays in the TanStack cache after logout — key `["applications","detail",id]` sits under `["applications"]`, which 6.10 clears on logout (goal.md, already in issues.md); written to issues.md.
+  - `[low]` `reject` Blind: 404 identity — status, body and headers compared in tests; a malformed id skips the DB but reveals nothing about any row.
+  - `[low]` `reject` Blind: loading, `ended` and Profile branches have no component test (no DOM test environment in the repo); e2e covers the load, failure and retry.
+  - `[low]` `reject` Blind: no live region or focus move on load — route changes are announced by Next's route announcer; the page uses the same pattern as Historikk. `networkidle` in the no-AI-request e2e is the repo's own pattern.
+  - `[false]` `reject` Edge: empty Profile name — registration requires a non-empty name.
+  - `[low]` `reject` Blind, Edge: Code Map names `contracts.ts`, code uses `saved-contracts.ts` (import cycle) — a fix would edit this spec; the reason is in the file's comment.
+  - Intent layer (descriptive): reading A2/A3 + B1 (server compares revs) + C2 + D2 + H2 carried through; flag-off isolation by gates; no existing test edited. Surface: rendered page and API are exercised by Playwright (3107 on, 3100 off) and route tests; stale-check rule at the repository and e2e levels.
+
 ## Design Notes
 
 Choices for `issues.md`: the server compares the stored check's revs with `letter_rev`/`gaps_rev` and sends flags only on a match (the client never sees a stale check); the detail answer carries the Job ad text (needed for the pulse plot and the ad quotes) but never the CV text; Gapanalyse is hidden when null with no Missing keyword (nothing was due), not shown as «Ikke laget.»; page title is static; page checks the row exists on the server (same 404 as an unknown URL) and the client then fetches the detail through the API.
@@ -90,3 +110,19 @@ Choices for `issues.md`: the server compares the stored check's revs with `lette
 **Commands:**
 - `npx biome check`, `npm run typecheck`, `npx vitest run` -- expected: pass
 - `npm test` -- expected: biome, tsc, vitest and Playwright pass
+
+## Auto Run Result
+
+Status: done
+
+**Summary:** With `FEATURE_ACCOUNTS` on, `/historikk/[id]` reopens a saved Application read-only. `GET /api/applications/[id]` returns `{id, seq, createdAt, previous, job, analysis, gaps, letter, check}` with each section `ok | missing | unreadable`; the check is sent only when its `letterRev`/`gapsRev` equal the row's `letter_rev`/`gaps_rev` and a Letter is shown. The page (server gate: flag, session, uuid, `getApplicationMeta`, `notFound()`) renders `SavedApplication`, composing `CatalogueHeading`, `CreditsList` (with the stored Tone), `PulsePlot`, `ScoreBlock`, `KeywordList`, `GapsSection` and `LetterSection` (new `readOnly` and `year` props: no «Lag nytt utkast», no check retry), a nav to the previous entry and «Historikk», and «Ikke laget.» for sections never made. Other Student, unknown and malformed ids give the same 404 page and `NOT_FOUND` (one `(id, student_id)` select, no decrypt). Flag off: 404.
+
+**Files:** `src/app/api/applications/[id]/route.ts`, `src/app/historikk/[id]/page.tsx`, `src/modules/application/{saved-contracts.ts,index.ts,server/repository.ts,ui/{saved-application.tsx,use-applications.ts,index.ts}}`, `src/modules/letter/ui/{letter-section,letter-actions,letter-view,letter-flags,index}.tsx|ts`, `src/shared/ui/messages.nb.ts`, tests `repository.test.ts`, `[id]/route.test.ts`, `[id]/page.test.ts`, `saved-application.test.ts`, `letter-actions.test.ts`, `letter-flags.test.ts`, `e2e/applications-reopen.spec.ts`; `sprint-status.yaml`. The schema is in `saved-contracts.ts`, not `contracts.ts` (import cycle with `letter/contracts` and `gaps/contracts`).
+
+**Edited existing tests:** none; additions only to `repository.test.ts`, `letter-actions.test.ts`, `letter-flags.test.ts`.
+
+**Review:** four layers; one patch applied (medium: the download year is pinned by an e2e that plants an old `createdAt`); one deferred to 6.10 (cache clearing on logout, key under `["applications"]`); the rest rejected with reasons in the Review Triage Log. Follow-up review: not recommended.
+
+**Verification:** `npm test` (biome, tsc, vitest 154 files, 1795 passed, 2 expected fail; Playwright 371 passed, one failure in the existing 6.8 test `applications-history.spec.ts` «Kopier brev» (`response.text: No resource with given identifier`, a protocol error reading a response body after reload) that passes on a rerun with the 6.9 and 6.8 spec files together, 23 passed). Docker test not required (no change to `package.json`, lockfile, `Dockerfile`, `compose.yaml`, `data/`, `drizzle/`, setup or migrate scripts).
+
+**Residual risks:** screen reader and a real 360 px phone not checked; a `NOT_FOUND` from the detail API after the page check reads as a network failure with a retry; Profile failure branch not covered by a test.

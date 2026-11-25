@@ -281,6 +281,16 @@ test.describe("with accounts on", () => {
         gaps: true,
         check: true,
       });
+      // The stored answer is given an old `createdAt`, so a file year taken from
+      // «now» instead of the Application would show.
+      await page.route(`**/api/applications/${id}`, async (route) => {
+        const response = await route.fetch();
+        const body = (await response.json()) as {
+          data: { createdAt: string };
+        };
+        body.data.createdAt = "2019-03-04T10:00:00.000Z";
+        await route.fulfill({ response, json: body });
+      });
       await page.goto(`/historikk/${id}`);
       await expect(h1(page)).toBeVisible();
       // The first button of the Letter's own section, not a suggestion's «Kopier».
@@ -295,18 +305,13 @@ test.describe("with accounts on", () => {
       expect(copied.replace(/\r\n?/g, "\n")).toBe(expected);
       expect(copied).not.toContain("SIGNATUR");
 
-      const createdAt = (
-        (await (await page.request.get(`/api/applications/${id}`)).json()) as {
-          data: { createdAt: string };
-        }
-      ).data.createdAt;
       const download = page.waitForEvent("download");
       await main(page)
         .getByRole("button", { name: "Last ned (.docx)" })
         .click();
       const file = await download;
       expect(file.suggestedFilename()).toBe(
-        `violet-hansen-soknadsbrev-nordic-digital-${new Date(createdAt).getFullYear()}.docx`,
+        "violet-hansen-soknadsbrev-nordic-digital-2019.docx",
       );
     });
   });
