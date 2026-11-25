@@ -127,6 +127,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// Accounts are on by default since Story 6.12. This test is about the
+// account-less behaviour of the route, so it sets the flag off explicitly.
+vi.stubEnv("FEATURE_ACCOUNTS", "false");
+
 describe("FR-13, FR-14 POST /api/analyses/[id]/gaps", () => {
   it("sets maxDuration to 120", () => {
     expect(maxDuration).toBe(120);

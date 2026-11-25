@@ -34,6 +34,10 @@ async function consentSeen(body: Record<string, unknown>) {
   return analyseInputs.mock.calls[0]?.[2];
 }
 
+// Accounts are on by default since Story 6.12. This test is about the
+// account-less behaviour of the route, so it sets the flag off explicitly.
+vi.stubEnv("FEATURE_ACCOUNTS", "false");
+
 describe("FR-5b POST /api/analyses hands the consent to phase 1", () => {
   it("passes the accepted notice version as the consent of the AI request, with no Student", async () => {
     expect(

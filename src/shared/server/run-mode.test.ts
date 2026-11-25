@@ -6,6 +6,8 @@ describe("AD-4 toRunMode", () => {
   it("maps each flag to its own key and nothing else", () => {
     const config = parseConfig({
       DATABASE_URL: "pglite://memory",
+      // Off on purpose (on by default since Story 6.12), so the flags differ.
+      FEATURE_ACCOUNTS: "false",
       FEATURE_GAPS: "true",
       // Off on purpose (on by default since Story 5.4), so the flags differ.
       FEATURE_REWORDING: "false",

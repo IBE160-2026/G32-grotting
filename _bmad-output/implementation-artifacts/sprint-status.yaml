@@ -94,7 +94,7 @@ development_status:
   5-4-switch-on-suggestions-and-run-the-first-live-checklist: done
   epic-5-retrospective: done
 
-  epic-6: in-progress
+  epic-6: done
   6-1-encrypt-personal-fields-with-one-key: done
   6-2-register-log-in-and-log-out-through-the-api: done
   6-3-keep-my-cv-in-profil: done
@@ -106,7 +106,7 @@ development_status:
   6-9-reopen-a-saved-application: done
   6-10-see-my-account-and-log-out: done
   6-11-seed-the-local-test-user: done
-  6-12-switch-on-accounts: backlog
+  6-12-switch-on-accounts: done
   epic-6-retrospective: optional
 
   epic-7: backlog

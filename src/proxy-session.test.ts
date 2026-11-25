@@ -70,7 +70,8 @@ describe("AD-12 proxy with accounts on", () => {
 
 describe("AD-12 proxy with accounts off", () => {
   it("does not look at ja_sid", () => {
-    current = parseConfig({});
+    // On by default since Story 6.12, so the flag is set off explicitly.
+    current = parseConfig({ FEATURE_ACCOUNTS: "false" });
     expect(proxy(request("/api/analyses")).status).toBe(200);
     expect(proxy(request("/api/session")).status).toBe(200);
   });

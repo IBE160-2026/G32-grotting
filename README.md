@@ -10,7 +10,7 @@ Repoet inneholder gruppens applikasjon og dokumentasjon av utvikling, testing og
 
 ## Run JobAssistant
 
-**Prerequisite:** Docker with Compose 2.24 or newer, nothing else. Tested with Docker Desktop 4.87.0 (Engine 29.7.2) on Windows 11. No account and no key are needed: without an AI key the app runs in Test mode on recorded answers.
+**Prerequisite:** Docker with Compose 2.24 or newer, nothing else. Tested with Docker Desktop 4.87.0 (Engine 29.7.2) on Windows 11. No key and no sign-up with a provider are needed: without an AI key the app runs in Test mode on recorded answers. Accounts are on by default: register in the app, or log in as the test user below. Setup makes the encryption key for your local data by itself.
 
 | Command | What it shows |
 |---|---|
@@ -22,14 +22,14 @@ Only `127.0.0.1:3000` (app) and `127.0.0.1:54320` (database) are published on yo
 
 ### Test user
 
-Setup creates a ready-made user, so you can log in and see a saved Profile without registering. It exists only on the local run, only when accounts are on, and never on the Hosted version.
+Setup creates a ready-made user when the app starts (`docker compose up`), so you can log in at `/logg-inn` and see a saved Profile without registering. It exists only on the local run, only when accounts are on (they are, by default), and never on the Hosted version.
 
 | | |
 |---|---|
 | Email | `testbruker@jobassistant.local` |
 | Password | `testpassord-2026` |
 
-The Profile holds the Example pair's CV, saved encrypted like any other Profile CV. Setup puts that CV back on every start. Both values are made up and work only against the local database.
+The Profile holds the Example pair's CV, saved encrypted like any other Profile CV. Setup puts that CV back on every start. Both values are made up and work only against the local database. The manual walk-through of the two user journeys with accounts (laptop, phone, screen reader) is in [`docs/qa/accounts-manual-checks.md`](docs/qa/accounts-manual-checks.md), together with what the automated tests cover.
 
 ### Developer loop (optional)
 
@@ -37,7 +37,7 @@ Needs Node 26. Run `docker compose up db`, then `npm install` and `npm run dev`.
 
 ### Hosted version
 
-A copy of the app runs on Vercel (Frankfurt) with a Supabase database, closed with an Access code, at <https://g32-grotting.vercel.app/>. It is a skeleton only: the Access code gate and the app shell, with no AI. Vercel's data processing agreement names the Enterprise and Pro plans, not Hobby, so the delivery is the run above, not this copy (PRD §5.1, D23). The Access code comes with the submission and is never committed. Set-up, the data processing agreement record and the manual checks are in [`docs/qa/hosted-deployment.md`](docs/qa/hosted-deployment.md).
+A copy of the app runs on Vercel (Frankfurt) with a Supabase database, closed with an Access code, at <https://g32-grotting.vercel.app/>. It is a skeleton only: the Access code gate and the app shell, with no AI. Vercel's data processing agreement names the Enterprise and Pro plans, not Hobby, so the delivery is the run above, not this copy (PRD §5.1, D23). The Access code comes with the submission and is never committed. It stays closed with accounts off: no Student data is stored there. Set-up, the data processing agreement record and the manual checks are in [`docs/qa/hosted-deployment.md`](docs/qa/hosted-deployment.md).
 
 ### Live AI (optional)
 

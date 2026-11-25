@@ -104,11 +104,20 @@ describe("AD-17 readEnv and SECRETS_FILE", () => {
 });
 
 describe("AD-11 encryption key rules in config", () => {
-  it("keeps accounts off by default and the key optional", () => {
-    expect(FEATURE_DEFAULTS.accounts).toBe(false);
+  it("has accounts on by default (Story 6.12) and the key optional for the parse", () => {
+    expect(FEATURE_DEFAULTS.accounts).toBe(true);
     const config = parseConfig({});
-    expect(config.features.accounts).toBe(false);
+    expect(config.features.accounts).toBe(true);
     expect(config.encryptionKey).toBeUndefined();
+  });
+
+  it("never lets the default switch accounts on on Hosted, and an explicit on without a key stops startup", () => {
+    const config = parseConfig(hostedEnv);
+    expect(config.features.accounts).toBe(false);
+    expect(() => assertEncryptionKey(config)).not.toThrow();
+    const forced = parseConfig({ ...hostedEnv, FEATURE_ACCOUNTS: "true" });
+    expect(forced.features.accounts).toBe(true);
+    expect(() => assertEncryptionKey(forced)).toThrow(/ENCRYPTION_KEY/);
   });
 
   it("carries a valid key and treats an empty one as unset", () => {

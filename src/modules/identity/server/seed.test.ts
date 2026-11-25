@@ -64,11 +64,13 @@ describe("FR-29 and AD-12: where the test user may be seeded", () => {
     expect(mayRunSeed(playwrightRun())).toBe(true);
   });
 
-  it("refuses with accounts off, which is the default", () => {
+  it("refuses with accounts off", () => {
+    // Accounts are on by default since Story 6.12, so the flag is set off.
     const off = parseConfig({
       APP_ENV: "local",
       DATABASE_URL: "postgres://u:p@db:5432/x",
       ENCRYPTION_KEY: KEY,
+      FEATURE_ACCOUNTS: "false",
     });
     expect(off.features.accounts).toBe(false);
     expect(mayRunSeed(off)).toBe(false);
@@ -147,6 +149,8 @@ describe("FR-29 seedTestUser", () => {
         APP_ENV: "local",
         DATABASE_URL: "postgres://u:p@db:5432/x",
         ENCRYPTION_KEY: KEY,
+        // On by default since Story 6.12, so the flag is set off.
+        FEATURE_ACCOUNTS: "false",
       }),
       localPostgres("db", {
         APP_ENV: "hosted",
