@@ -62,7 +62,9 @@ describe("FR-31 proxy", () => {
   });
 
   it("never applies locally", () => {
-    current = parseConfig({});
+    // Accounts are on by default since Story 6.12 (and then the session check
+    // answers 401 on API routes), so the flag is set off for the old gate.
+    current = parseConfig({ FEATURE_ACCOUNTS: "false" });
     expect(proxy(request("/soknad")).status).toBe(200);
     expect(proxy(request("/api/analyses")).status).toBe(200);
   });

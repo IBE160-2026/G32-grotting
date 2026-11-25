@@ -54,6 +54,10 @@ beforeEach(async () => {
   await (await getDb()).execute(sql`delete from keyword_lists`);
 });
 
+// Accounts are on by default since Story 6.12. This test is about the
+// account-less behaviour of the route, so it sets the flag off explicitly.
+vi.stubEnv("FEATURE_ACCOUNTS", "false");
+
 describe("FR-4, FR-7 POST /api/analyses", () => {
   it("FR-5b scores the Example pair on its Cached Keyword list in Test mode, as `saved`, without a network request", async () => {
     const fetchSpy = vi.fn();

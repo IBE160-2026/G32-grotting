@@ -4,7 +4,11 @@ import { z } from "zod";
 // Flag defaults live here and nowhere else (AD-4). The environment only
 // overrides them.
 export const FEATURE_DEFAULTS = {
-  accounts: false,
+  // On since Story 6.12 (D23): a local run has accounts, Profil and Historikk.
+  // The default never applies on Hosted, which stays frozen with accounts off
+  // and no `ENCRYPTION_KEY`: only an explicit FEATURE_ACCOUNTS=true can turn
+  // them on there, and then the missing key stops startup (`assertEncryptionKey`).
+  accounts: true,
   // On since Story 4.6: the Gap analysis runs with every Application. Never on
   // Hosted, which has no AI (D23).
   gaps: true,
@@ -199,7 +203,10 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
       "Invalid configuration: ENCRYPTION_KEY must be 32 bytes, base64",
     );
   }
-  const accounts = e.FEATURE_ACCOUNTS ?? FEATURE_DEFAULTS.accounts;
+  // The default is off on Hosted (D23: no Student data is stored there), so a
+  // redeploy of this code never switches accounts on by itself.
+  const accounts =
+    e.FEATURE_ACCOUNTS ?? (hosted ? false : FEATURE_DEFAULTS.accounts);
 
   const url = e.DATABASE_URL ?? LOCAL_DATABASE_URL;
   const kind = dbKind(url);

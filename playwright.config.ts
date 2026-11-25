@@ -1,5 +1,10 @@
 import { defineConfig } from "@playwright/test";
 
+// Accounts are on by default since Story 6.12 (FEATURE_DEFAULTS.accounts), so
+// the servers of the earlier specs, which test the app as it was without an
+// account, set FEATURE_ACCOUNTS=false explicitly. The accounts servers (3107,
+// 3109) set nothing and run on the default; Hosted (3101) has accounts off by
+// default and 3108 switches them on explicitly.
 const PORT = 3100;
 // A second server on the same build runs as Hosted (Story 1.6). The build never
 // reads run-time settings, so it needs no build of its own; Playwright starts
@@ -30,8 +35,8 @@ const LIVE_GAPS_PORT = 3105;
 // default server shows the suggestions; this one keeps the Gap analysis without
 // them under test.
 const REWORDING_OFF_PORT = 3106;
-// An eighth server is the default one with accounts on (FEATURE_ACCOUNTS=true,
-// Story 6.3), still in Test mode, so Profil and the account routes can be tested
+// An eighth server is the default one with accounts on (the default since Story
+// 6.12; FEATURE_ACCOUNTS=true until then), still in Test mode, so Profil and the account routes can be tested
 // in a browser. The key is made up: 32 bytes, base64.
 const ACCOUNTS_PORT = 3107;
 const ACCOUNTS_ENCRYPTION_KEY = "ZTItYWNjb3VudHMta2V5LTMyLWJ5dGVzLTAxMjM0NTY=";
@@ -63,6 +68,7 @@ export default defineConfig({
         TEST_MODE: "true",
         APP_ENV: "local",
         DATABASE_URL: "pglite://memory",
+        FEATURE_ACCOUNTS: "false",
         E2E: "1",
       },
     },
@@ -94,6 +100,7 @@ export default defineConfig({
         // The tests answer only the Letter request in the browser, and the key
         // is made up, so the Gap analysis (on by default) stays off here.
         FEATURE_GAPS: "false",
+        FEATURE_ACCOUNTS: "false",
       },
     },
     {
@@ -111,6 +118,7 @@ export default defineConfig({
         // As on the live server: only the phase-1 and Letter requests are
         // answered in the browser.
         FEATURE_GAPS: "false",
+        FEATURE_ACCOUNTS: "false",
       },
     },
     {
@@ -123,6 +131,7 @@ export default defineConfig({
         APP_ENV: "local",
         DATABASE_URL: "pglite://memory",
         FEATURE_GAPS: "false",
+        FEATURE_ACCOUNTS: "false",
         E2E: "1",
       },
     },
@@ -141,6 +150,7 @@ export default defineConfig({
         FEATURE_KEYWORD_FALLBACK: "false",
         // On, as by default: the tests answer both phase-2 requests.
         FEATURE_GAPS: "true",
+        FEATURE_ACCOUNTS: "false",
       },
     },
     {
@@ -153,6 +163,7 @@ export default defineConfig({
         APP_ENV: "local",
         DATABASE_URL: "pglite://memory",
         FEATURE_REWORDING: "false",
+        FEATURE_ACCOUNTS: "false",
         E2E: "1",
       },
     },
@@ -165,7 +176,7 @@ export default defineConfig({
         TEST_MODE: "true",
         APP_ENV: "local",
         DATABASE_URL: "pglite://memory",
-        FEATURE_ACCOUNTS: "true",
+        // No FEATURE_ACCOUNTS: accounts are on by default (Story 6.12).
         ENCRYPTION_KEY: ACCOUNTS_ENCRYPTION_KEY,
         E2E: "1",
       },
@@ -198,7 +209,7 @@ export default defineConfig({
         AI_API_KEY: "e2e-not-a-real-key",
         FEATURE_KEYWORD_FALLBACK: "false",
         FEATURE_GAPS: "false",
-        FEATURE_ACCOUNTS: "true",
+        // No FEATURE_ACCOUNTS: accounts are on by default (Story 6.12).
         ENCRYPTION_KEY: ACCOUNTS_ENCRYPTION_KEY,
         // No E2E: a test run never sees an AI key, so Test mode would stay on.
       },

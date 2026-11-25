@@ -92,6 +92,10 @@ async function request(
 
 beforeEach(() => vi.stubGlobal("fetch", vi.fn()));
 
+// Accounts are on by default since Story 6.12. This test is about the
+// account-less behaviour of the route, so it sets the flag off explicitly.
+vi.stubEnv("FEATURE_ACCOUNTS", "false");
+
 describe("FR-27 the Gaps route in Test mode on the Example pair", () => {
   it("answers from the Cached Gaps, one Gap per Missing keyword", async () => {
     const { json, missing } = await request();

@@ -93,6 +93,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// Accounts are on by default since Story 6.12. This test is about the
+// account-less behaviour of the route, so it sets the flag off explicitly.
+vi.stubEnv("FEATURE_ACCOUNTS", "false");
+
 describe("FR-9, FR-10 POST /api/analyses/[id]/letter", () => {
   it("returns the Letter with rev 1 after one runAi call and no network request", async () => {
     const response = await post(await body());

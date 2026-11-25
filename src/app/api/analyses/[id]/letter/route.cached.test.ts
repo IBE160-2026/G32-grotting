@@ -49,6 +49,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// Accounts are on by default since Story 6.12. This test is about the
+// account-less behaviour of the route, so it sets the flag off explicitly.
+vi.stubEnv("FEATURE_ACCOUNTS", "false");
+
 describe("FR-27 POST /api/analyses/[id]/letter in Test mode", () => {
   it.each(["Formell", "Personlig", "Direkte"])(
     "answers the Example pair with its %s Cached Letter",

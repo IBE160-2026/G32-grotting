@@ -23,6 +23,10 @@ beforeEach(() => {
   log.mockReset();
 });
 
+// Accounts are on by default since Story 6.12. This test is about the
+// account-less behaviour of the route, so it sets the flag off explicitly.
+vi.stubEnv("FEATURE_ACCOUNTS", "false");
+
 describe("FR-27 the Søknad page hands the Example pair to the form", () => {
   it("passes the pair as the example prop", async () => {
     loadExamplePair.mockResolvedValue(pair);

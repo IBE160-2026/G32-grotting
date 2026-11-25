@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CV_FILE_MAX_BYTES } from "@/modules/cv/contracts";
 import { POST } from "./route";
 
@@ -33,6 +33,10 @@ async function invalid(response: Response, field: string) {
     error: { code: "INVALID_INPUT", field, retryable: false },
   });
 }
+
+// Accounts are on by default since Story 6.12. This test is about the
+// account-less behaviour of the route, so it sets the flag off explicitly.
+vi.stubEnv("FEATURE_ACCOUNTS", "false");
 
 describe("FR-1 POST /api/cv/extract", () => {
   it("returns the text of a PDF", async () => {

@@ -21,7 +21,7 @@ describe("FR-27 mode detection", () => {
     expect(config.ai.adapter).toBe("cached");
     expect(config.hosted).toBe(false);
     expect(config.features).toEqual({
-      accounts: false,
+      accounts: true,
       gaps: true,
       rewording: true,
       keywordFallback: true,
