@@ -104,7 +104,7 @@ development_status:
   6-7-save-every-application-automatically: done
   6-8-find-my-applications-in-historikk: done
   6-9-reopen-a-saved-application: done
-  6-10-see-my-account-and-log-out: backlog
+  6-10-see-my-account-and-log-out: done
   6-11-seed-the-local-test-user: backlog
   6-12-switch-on-accounts: backlog
   epic-6-retrospective: optional

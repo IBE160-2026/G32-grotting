@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { callApi } from "@/shared/ui/api-client";
 import { writeSession } from "@/shared/ui/client-session";
@@ -15,13 +15,10 @@ import {
   setWarningOpen,
   subscribeSessionClock,
 } from "@/shared/ui/session-clock";
-import {
-  endSession,
-  forgetSessionForLogout,
-  holdEnding,
-} from "@/shared/ui/session-end";
-import { logoutResponseSchema, sessionViewSchema } from "../contracts";
+import { endSession } from "@/shared/ui/session-end";
+import { sessionViewSchema } from "../contracts";
 import { ExpiryWarning } from "./expiry-warning";
+import { logOutNow } from "./log-out";
 
 // What counts as activity (EXPERIENCE.md, Session expiring): any key, pointer
 // or input event in the page, not only a request.
@@ -46,6 +43,7 @@ type SessionWatchProps = {
 // before the end and ends the session on the client when it runs out
 // (Story 6.5, FR-18, AD-12). Renders the warning and nothing else.
 export function SessionWatch({ expiresAt, serverNow }: SessionWatchProps) {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<"continue" | "logout" | null>(null);
   const [failed, setFailed] = useState(false);
@@ -183,9 +181,7 @@ export function SessionWatch({ expiresAt, serverNow }: SessionWatchProps) {
     if (busy !== null) return;
     setBusy("logout");
     setFailed(false);
-    const result = await callApi("/api/auth/logout", logoutResponseSchema, {
-      method: "POST",
-    });
+    const result = await logOutNow(queryClient);
     if (!result.ok) {
       setBusy(null);
       // An ended session is on its way to Logg inn (`callApi`).
@@ -193,11 +189,10 @@ export function SessionWatch({ expiresAt, serverNow }: SessionWatchProps) {
       return;
     }
     // Stays busy: the page is leaving, for Hjem, logged out. A request that
-    // answers SESSION_EXPIRED from now on must not send it to Logg inn.
+    // answers SESSION_EXPIRED from now on must not send it to Logg inn
+    // (`logOutNow` holds the ending).
     leaving.current = true;
-    holdEnding();
     window.clearTimeout(timer.current);
-    forgetSessionForLogout();
     window.location.replace("/");
   }
 
