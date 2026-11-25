@@ -167,13 +167,26 @@ export const messages = {
       credentials: "Feil e-post eller passord.",
     },
   },
-  // Historikk and Konto stand as plain pages until Story 6.8 and 6.10 build
-  // them: a title and one honest line, no promise.
-  placeholderPage: {
-    history: "Historikk",
-    account: "Konto",
-    body: "Denne siden er ikke ferdig ennå.",
-    toApplication: "Til Søknad",
+  // Konto (Story 6.10, FR-21, FR-23, UX-DR43). The four lines are those of mock
+  // S10; none says more about keeping or deleting than the mock does.
+  account: {
+    title: "Konto",
+    email: "E-post",
+    catalogue: "Katalog",
+    // «2 søknader»; the count is what the catalogue holds (D5: nothing is
+    // ever removed from it).
+    entries: (count: number) =>
+      count === 0
+        ? "Ingen søknader ennå"
+        : `${count} ${count === 1 ? "søknad" : "søknader"}`,
+    logOut: "Logg ut",
+    storageTitle: "Slik lagres dataene dine",
+    storageLines: [
+      "CV-en din og dokumentene som lages, lagres kryptert.",
+      "Passordet ditt lagres aldri som lesbar tekst.",
+      "Alt som er lagret om deg, slettes når kurset er ferdig. Når sensuren er ferdig, tas nettversjonen ned og databasen slettes.",
+      "I denne versjonen kan du ikke bytte passord eller slette kontoen selv.",
+    ],
   },
   // Historikk, the catalogue register (Story 6.8, FR-21, UX-DR21). Wording
   // follows EXPERIENCE.md, Key strings and Component Patterns.

@@ -14,7 +14,6 @@ const NAME = "Kari Nordmann";
 const TAKEN = "Denne e-postadressen er allerede registrert.";
 const CREDENTIALS = "Feil e-post eller passord.";
 const TRUST = "CV-en din og dokumentene som lages, lagres kryptert.";
-const PLACEHOLDER_LINE = "Denne siden er ikke ferdig ennå.";
 const TRY_EXAMPLE =
   "Du kan prøve med eksempelet først. Det krever ingen konto.";
 const HJEM_BUTTON = "Lag skreddersydd søknad";
@@ -565,31 +564,7 @@ test.describe("logged-out visits", () => {
   });
 });
 
-test.describe("Konto placeholder", () => {
-  test.use({ baseURL: ACCOUNTS });
-
-  // Historikk has its own page since Story 6.8 (e2e/applications-history.spec.ts).
-  for (const [path, title, current] of [
-    ["/konto", "Konto", "Konto"],
-  ] as const) {
-    test(`${path} is a plain page, not a 404`, async ({ page }) => {
-      await register(page);
-      const response = await page.goto(path);
-      expect(response?.status()).toBe(200);
-      await expect(page).toHaveTitle(`${title} – JobAssistant`);
-      await expect(
-        page.getByRole("heading", { level: 1, name: title }),
-      ).toBeVisible();
-      await expect(page.getByText(PLACEHOLDER_LINE)).toBeVisible();
-      await expect(
-        page.getByRole("main").getByRole("link", { name: "Til Søknad" }),
-      ).toHaveAttribute("href", "/soknad");
-      await expect(
-        nav(page).getByRole("link", { name: current }),
-      ).toHaveAttribute("aria-current", "page");
-    });
-  }
-});
+// Konto has its own page since Story 6.10 (e2e/account.spec.ts).
 
 test.describe("the screens pass axe", () => {
   test.use({ baseURL: ACCOUNTS });
@@ -628,7 +603,7 @@ test.describe("the screens pass axe", () => {
       expect(await seriousFindings(page)).toEqual([]);
     });
 
-    test(`the placeholder pages at ${label}`, async ({ page }) => {
+    test(`Historikk and Konto at ${label}`, async ({ page }) => {
       await page.setViewportSize(size);
       await register(page);
       for (const path of ["/historikk", "/konto"]) {

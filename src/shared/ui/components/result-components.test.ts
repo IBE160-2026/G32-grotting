@@ -38,6 +38,22 @@ describe("UX-DR14 credits list", () => {
     expect(html).toContain(">Stilling</dt>");
     expect(html).toContain(">14 avsnitt · 7 nøkkelord</dd>");
   });
+
+  it("stacks the rows, divided by the rule colour, on Konto (UX-DR18)", () => {
+    const html = renderToStaticMarkup(
+      createElement(CreditsList, {
+        stacked: true,
+        items: [
+          { term: "E-post", value: "kari@example.test" },
+          { term: "Katalog", value: "2 søknader" },
+        ],
+      }),
+    );
+    expect(html).not.toContain("flex-wrap");
+    expect(html.match(/border-rule/g)).toHaveLength(2);
+    expect(html).toContain(">E-post</dt>");
+    expect(html).toContain(">2 søknader</dd>");
+  });
 });
 
 describe("UX-DR14 evidence quote", () => {

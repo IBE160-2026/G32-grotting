@@ -1,35 +1,38 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
-import { requireStudentPage } from "@/modules/identity";
+import { countApplications } from "@/modules/application";
+import {
+  getPageSession,
+  getStudentEmail,
+  LOGIN_PATH,
+  requireStudentPage,
+} from "@/modules/identity";
+import { Account } from "@/modules/identity/ui";
 import { getConfig } from "@/shared/server/config";
-import { Link } from "@/shared/ui/components/link";
+import { getDb } from "@/shared/server/db";
 import { messages } from "@/shared/ui/messages.nb";
 import { pageTitle } from "@/shared/ui/page-title";
 
-export const metadata: Metadata = {
-  title: pageTitle(messages.placeholderPage.account),
-};
+export const metadata: Metadata = { title: pageTitle(messages.account.title) };
 
-// Konto stands as a plain page until its own story builds it. It exists only
-// while accounts are on, and a logged-out visitor is sent to Logg inn.
+// Konto (Story 6.10): the Student's email, the catalogue count, «Logg ut» and
+// how the data is stored. It exists only while accounts are on; the flag is
+// read per request, never at build time (AD-4). Both values come from the
+// session's `studentId`, nothing is decrypted, and a logged-out visitor is sent
+// to Logg inn.
 export default async function KontoPage() {
   await connection();
   if (!getConfig().features.accounts) notFound();
   await requireStudentPage();
-  return (
-    <div className="max-w-measure">
-      <h1 className="text-title max-640:text-title-mobile">
-        {messages.placeholderPage.account}
-      </h1>
-      <p className="mt-4 text-lede text-ink-2">
-        {messages.placeholderPage.body}
-      </p>
-      <p className="mt-6">
-        <Link href="/soknad" kind="standalone">
-          {messages.placeholderPage.toApplication}
-        </Link>
-      </p>
-    </div>
-  );
+  const session = await getPageSession();
+  if (session === null) redirect(LOGIN_PATH);
+  const db = await getDb();
+  const [email, entries] = await Promise.all([
+    getStudentEmail(session.studentId, db),
+    countApplications(session.studentId, db),
+  ]);
+  // A Student without an email cannot exist; a miss reads as a gone session.
+  if (email === null) redirect(LOGIN_PATH);
+  return <Account email={email} entries={entries} />;
 }
