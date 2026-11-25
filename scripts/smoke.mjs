@@ -5,6 +5,13 @@ import { fileURLToPath } from "node:url";
 // Run inside the app container: `node scripts/smoke.mjs`.
 const DEFAULT_BASE_URL = "http://127.0.0.1:3000";
 
+// The local test user that setup seeds when accounts are on (FR-29, Story 6.11).
+// Made-up values for the local run only, the same as in the README and in
+// `src/modules/identity/server/seed.ts`: a test checks that the three agree.
+// This file runs on its own in the container, so it cannot import the seed.
+export const SEED_EMAIL = "testbruker@jobassistant.local";
+export const SEED_PASSWORD = "testpassord-2026";
+
 // Resolves to { ok: true } or { ok: false, reason }; never throws.
 export async function checkHealth(baseUrl = DEFAULT_BASE_URL) {
   let response;

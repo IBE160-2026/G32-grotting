@@ -27,6 +27,12 @@ export {
   requireStudentPage,
 } from "./server/page-session";
 export { registerAccount } from "./server/register";
+export {
+  mayRunSeed,
+  SEED_TEST_USER,
+  type SeedConfig,
+  seedTestUser,
+} from "./server/seed";
 export { buildSessionView } from "./server/session-view";
 export { deleteSessionByToken, renewSession } from "./server/sessions";
 export { getStudentEmail } from "./server/students";
