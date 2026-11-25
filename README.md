@@ -20,6 +20,17 @@ Repoet inneholder gruppens applikasjon og dokumentasjon av utvikling, testing og
 
 Only `127.0.0.1:3000` (app) and `127.0.0.1:54320` (database) are published on your machine. If another program already uses one of them, stop it first. The database login `jobassistant` / `jobassistant` is a throwaway for local use only.
 
+### Test user
+
+Setup creates a ready-made user, so you can log in and see a saved Profile without registering. It exists only on the local run, only when accounts are on, and never on the Hosted version.
+
+| | |
+|---|---|
+| Email | `testbruker@jobassistant.local` |
+| Password | `testpassord-2026` |
+
+The Profile holds the Example pair's CV, saved encrypted like any other Profile CV. Setup puts that CV back on every start. Both values are made up and work only against the local database.
+
 ### Developer loop (optional)
 
 Needs Node 26. Run `docker compose up db`, then `npm install` and `npm run dev`. `npm run dev` runs setup first (migrations) against `127.0.0.1:54320`. `npm test` on the host also needs Chromium once: `npx playwright install chromium`.

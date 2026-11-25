@@ -6,7 +6,7 @@ import { sql } from "drizzle-orm";
 import type { PgliteDatabase } from "drizzle-orm/pglite";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { Sql } from "postgres";
-import { getConfig } from "./config";
+import { type Config, getConfig } from "./config";
 import { initCrypto } from "./crypto";
 
 type PostgresDb = PostgresJsDatabase & { $client: Sql };
@@ -20,7 +20,17 @@ const MIGRATIONS_FOLDER = join(process.cwd(), "drizzle");
 // (dev reloads, separate route bundles) reuses it (AD-9).
 const holder = globalThis as typeof globalThis & {
   __jobassistantDb?: Promise<Db>;
+  __jobassistantE2eSeed?: E2eSeed;
 };
+
+// What runs on a freshly migrated PGlite under `E2E=1` (Story 6.11): the same
+// `seedTestUser` setup runs. The shared kernel cannot import a slice, so
+// `instrumentation-node.ts` hands it over at server start.
+export type E2eSeed = (db: Db, config: Config) => Promise<unknown>;
+
+export function registerE2eSeed(seed: E2eSeed | undefined): void {
+  holder.__jobassistantE2eSeed = seed;
+}
 
 async function openDb(): Promise<Db> {
   const { db, encryptionKey } = getConfig();
@@ -32,6 +42,10 @@ async function openDb(): Promise<Db> {
     const { drizzle } = await import("drizzle-orm/pglite");
     const opened = drizzle({ client: await PGlite.create() });
     await applyMigrations(opened);
+    // Under E2E=1 only: the end-to-end tests log in as the test user. The seed
+    // itself checks accounts, Hosted and the key, so it is a no-op elsewhere.
+    if (getConfig().e2e)
+      await holder.__jobassistantE2eSeed?.(opened, getConfig());
     return opened;
   }
   const { default: postgres } = await import("postgres");

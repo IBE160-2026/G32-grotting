@@ -9,10 +9,14 @@ import {
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { eq } from "drizzle-orm";
+// The seed file directly, not the slice index: the index pulls in Next.js, which
+// setup (run by tsx, outside Next) cannot load.
+import { seedTestUser } from "@/modules/identity/server/seed";
 import {
   assertEncryptionKey,
   type Config,
   getConfig,
+  isLocalPostgres,
   isTestRunEnv,
   parseConfig,
   readEnv,
@@ -33,9 +37,10 @@ import { localMeta } from "@/shared/server/schema";
 // Arbitrary constant: every starting container asks for the same lock.
 const SETUP_LOCK_KEY = 7_041_160;
 
-const LOCAL_HOSTS = ["db", "127.0.0.1", "localhost"];
-
-type SetupConfig = Pick<Config, "hosted" | "db" | "encryptionKey">;
+type SetupConfig = Pick<
+  Config,
+  "hosted" | "db" | "encryptionKey" | "features" | "isTestRun"
+>;
 
 export type LocalStep = (db: Db, config: SetupConfig) => Promise<void>;
 
@@ -58,17 +63,20 @@ export const checkKeyStep: LocalStep = async (db, config) => {
   }
 };
 
-// Steps that write to a local database only. Story 6.11 (seed) adds its own.
-export const LOCAL_STEPS: readonly LocalStep[] = [checkKeyStep];
+// The test user (FR-29, Story 6.11), after the key check: its CV is stored
+// encrypted, so it needs the key the database belongs to. `seedTestUser` itself
+// refuses unless accounts are on, the run is local and the key exists, so it is
+// a no-op in every other environment.
+export const seedStep: LocalStep = async (db, config) => {
+  await seedTestUser(db, config);
+};
+
+// Steps that write to a local database only (the production guard below).
+export const LOCAL_STEPS: readonly LocalStep[] = [checkKeyStep, seedStep];
 
 // The production guard: local-only steps never run against another database.
 export function isLocalTarget(config: Pick<Config, "hosted" | "db">): boolean {
-  if (config.hosted || config.db.kind !== "postgres") return false;
-  try {
-    return LOCAL_HOSTS.includes(new URL(config.db.url).hostname);
-  } catch {
-    return false;
-  }
+  return isLocalPostgres(config);
 }
 
 const hasValue = (value: string | undefined): value is string =>

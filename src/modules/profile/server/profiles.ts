@@ -33,3 +33,31 @@ export async function getProfileSummary(
     ? null
     : { name: row.name, noticeVersion: row.noticeVersion };
 }
+
+// The seed's Profile (Story 6.11): creates the row when the Student has none and
+// otherwise replaces only the CV text and its save date, so a second run leaves
+// one row with the CV as the Example pair has it now. The name and the CV text
+// go through `encryptedText`: only the encrypted form reaches the database. The
+// existing name is never overwritten.
+export async function upsertSeedProfile(
+  tx: Executor,
+  input: {
+    readonly studentId: string;
+    readonly name: string;
+    readonly cvText: string;
+    readonly savedAt: Date;
+  },
+): Promise<void> {
+  await tx
+    .insert(profiles)
+    .values({
+      studentId: input.studentId,
+      name: input.name,
+      cvText: input.cvText,
+      cvSavedAt: input.savedAt,
+    })
+    .onConflictDoUpdate({
+      target: profiles.studentId,
+      set: { cvText: input.cvText, cvSavedAt: input.savedAt },
+    });
+}

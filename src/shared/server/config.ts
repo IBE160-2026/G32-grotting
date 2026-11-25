@@ -34,6 +34,9 @@ export type Config = {
   readonly hosted: boolean;
   readonly testMode: boolean;
   readonly isTestRun: boolean;
+  // The Playwright web server (E2E=1): the only run in which `db.ts` seeds its
+  // in-memory PGlite (Story 6.11).
+  readonly e2e: boolean;
   // The Hosted Access code (AD-12). Never sent to the client or logged.
   readonly accessCode: string | undefined;
   // The live settings are read as given; `RunMode` never carries them. In a
@@ -56,6 +59,27 @@ export const LOCAL_DATABASE_URL =
   "postgres://jobassistant:jobassistant@127.0.0.1:54320/jobassistant";
 
 const ACCESS_CODE_MIN_LENGTH = 16;
+
+// The only database hosts a local-only step (writing secrets, the test user)
+// may run against (AD-17): the `db` container and the developer loop.
+export const LOCAL_DATABASE_HOSTS: readonly string[] = [
+  "db",
+  "127.0.0.1",
+  "localhost",
+];
+
+// True for a local Postgres only: never Hosted, never PGlite, never a foreign
+// host. An unparseable URL is not local.
+export function isLocalPostgres(
+  config: Pick<Config, "hosted" | "db">,
+): boolean {
+  if (config.hosted || config.db.kind !== "postgres") return false;
+  try {
+    return LOCAL_DATABASE_HOSTS.includes(new URL(config.db.url).hostname);
+  } catch {
+    return false;
+  }
+}
 
 export const DEFAULT_SECRETS_FILE = ".data/secrets.env";
 
@@ -218,6 +242,7 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     hosted,
     testMode,
     isTestRun,
+    e2e: e.E2E === "1",
     accessCode: e.ACCESS_CODE,
     ai: {
       adapter: testMode ? "cached" : "live",

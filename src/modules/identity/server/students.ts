@@ -57,3 +57,18 @@ export async function getStudentEmail(
     .limit(1);
   return row?.email ?? null;
 }
+
+// The seed's insert (Story 6.11): `INSERT … ON CONFLICT DO NOTHING` on the email.
+// Returns the new id, or null when the email already had a row. The email must
+// already be lower-cased and the password already hashed.
+export async function insertStudentIfAbsent(
+  tx: Executor,
+  input: { readonly email: string; readonly passwordHash: string },
+): Promise<string | null> {
+  const [row] = await tx
+    .insert(students)
+    .values({ email: input.email, passwordHash: input.passwordHash })
+    .onConflictDoNothing({ target: students.email })
+    .returning({ id: students.id });
+  return row?.id ?? null;
+}

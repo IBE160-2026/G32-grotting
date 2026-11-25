@@ -3,4 +3,8 @@
 export async function register(): Promise<void> {
   const { assertStartupConfig } = await import("@/shared/server/config");
   assertStartupConfig();
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { startE2eSeed } = await import("./instrumentation-node");
+    await startE2eSeed();
+  }
 }
