@@ -32,3 +32,30 @@ describe("UX-DR13 copy button", () => {
     expect(html).toContain('aria-label="Kopier brevet til JA-002"');
   });
 });
+
+describe("the copy button in Historikk (Story 6.8)", () => {
+  it("takes its own visible label and still names the entry", () => {
+    const html = renderToStaticMarkup(
+      createElement(CopyButton, {
+        text: async () => "x",
+        label: "Kopier brev",
+        ariaLabel: "Kopier brev for JA-002",
+      }),
+    );
+    expect(text(html)).toBe("Kopier brev");
+    expect(html).toContain('aria-label="Kopier brev for JA-002"');
+  });
+
+  it("does not ask for the text before a press", () => {
+    let asked = 0;
+    renderToStaticMarkup(
+      createElement(CopyButton, {
+        text: async () => {
+          asked++;
+          return "x";
+        },
+      }),
+    );
+    expect(asked).toBe(0);
+  });
+});

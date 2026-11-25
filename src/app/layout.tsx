@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Archivo, DM_Mono, Schibsted_Grotesk } from "next/font/google";
 import { connection } from "next/server";
+import { countApplications } from "@/modules/application";
 import { getPageSession } from "@/modules/identity";
 import { SessionWatch } from "@/modules/identity/ui";
 import { getConfig } from "@/shared/server/config";
+import { getDb } from "@/shared/server/db";
+import { log } from "@/shared/server/log";
 import { toRunMode } from "@/shared/server/run-mode";
 import { LIVE_REGION_IDS } from "@/shared/ui/announce";
 import { AppBar } from "@/shared/ui/components/app-bar";
@@ -50,6 +53,22 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       ? "out"
       : "in";
 
+  // Historikk shows how many entries the Student has (Story 6.8). A count that
+  // cannot be read costs the app bar its number, not the page.
+  let historyCount: number | undefined;
+  if (session !== null) {
+    try {
+      historyCount = await countApplications(session.studentId, await getDb());
+    } catch (error) {
+      log({
+        kind: "error",
+        code: "UNEXPECTED",
+        errorName: error instanceof Error ? error.name : "Error",
+        route: "layout",
+      });
+    }
+  }
+
   return (
     <html
       lang="nb"
@@ -63,16 +82,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           >
             {messages.skipLink}
           </a>
-          <header>
-            <AppBar account={account} />
-            <Banner />
-          </header>
-          <main
-            id="hovedinnhold"
-            tabIndex={-1}
-            className="flex-1 px-page-x pt-page-top pb-page-bottom max-640:px-page-x-mobile max-640:pt-page-top-mobile max-640:pb-page-bottom-mobile"
-          >
-            <QueryProvider>
+          {/* One client for the app bar and the page: the count by Historikk
+              and the list share a cache. */}
+          <QueryProvider>
+            <header>
+              <AppBar account={account} historyCount={historyCount} />
+              <Banner />
+            </header>
+            <main
+              id="hovedinnhold"
+              tabIndex={-1}
+              className="flex-1 px-page-x pt-page-top pb-page-bottom max-640:px-page-x-mobile max-640:pt-page-top-mobile max-640:pb-page-bottom-mobile"
+            >
               {children}
               {session === null ? null : (
                 // The expiry warning and the keep-alive (Story 6.5); a
@@ -82,8 +103,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                   serverNow={Date.now()}
                 />
               )}
-            </QueryProvider>
-          </main>
+            </main>
+          </QueryProvider>
         </RunModeProvider>
         <div
           id={LIVE_REGION_IDS.phase}

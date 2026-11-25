@@ -5,9 +5,12 @@ import type { Letter, LetterCheck } from "@/modules/letter/contracts";
 import type { AnalysisResult } from "@/modules/match/contracts";
 import { closeDb, getDb } from "@/shared/server/db";
 import {
+  countApplications,
   type Executor,
+  getApplicationLetterText,
   getApplicationMeta,
   isSeqConflict,
+  listApplications,
   nextSeq,
   type SaveAnalysisInput,
   SECTION_VERSION,
@@ -599,5 +602,183 @@ describe("Story 6.7 raw rows", () => {
     ]) {
       expect(dump).not.toContain(word);
     }
+  });
+});
+
+// Story 6.8: what Historikk reads.
+describe("Story 6.8 listApplications", () => {
+  async function saveMany(studentId: string, count: number): Promise<string[]> {
+    const db = await getDb();
+    const ids: string[] = [];
+    for (let n = 1; n <= count; n++) {
+      const id = newId();
+      ids.push(id);
+      await saveAnalysis(studentId, db, {
+        ...inputFor(id, `fp-${id}`, 40 + n),
+        job: {
+          jobAd: "Vi søker en Hemmeligstilling-utvikler med Kubernetes.",
+          jobTitle: `Stilling ${n}`,
+          employer: `Firma ${n}`,
+        },
+      });
+    }
+    return ids;
+  }
+
+  it("lists the Student's entries newest first with the plain and the decrypted fields the register shows", async () => {
+    const db = await getDb();
+    const studentId = await newStudent();
+    const [first, second] = await saveMany(studentId, 2);
+    await saveLetter(
+      studentId,
+      db,
+      { id: second ?? "", fingerprint: `fp-${second}` },
+      LETTER,
+    );
+    const list = await listApplications(studentId, db, 1);
+    expect(list).toMatchObject({
+      page: 1,
+      pageSize: 20,
+      total: 2,
+      firstSeq: 1,
+      lastSeq: 2,
+    });
+    expect(list.entries.map((entry) => entry.seq)).toEqual([2, 1]);
+    expect(list.entries[0]).toMatchObject({
+      id: second,
+      seq: 2,
+      score: 42,
+      matchedCount: 1,
+      totalCount: 2,
+      jobTitle: "Stilling 2",
+      employer: "Firma 2",
+      hasLetter: true,
+    });
+    expect(list.entries[1]).toMatchObject({ id: first, hasLetter: false });
+    expect(Number.isNaN(Date.parse(list.entries[0]?.createdAt ?? ""))).toBe(
+      false,
+    );
+  });
+
+  it("carries nothing but the register's fields: no ad, keyword, evidence, gap or letter text", async () => {
+    const db = await getDb();
+    const studentId = await newStudent();
+    const [id] = await saveMany(studentId, 1);
+    const target = { id: id ?? "", fingerprint: `fp-${id}` };
+    await saveLetter(studentId, db, target, LETTER);
+    await saveGaps(studentId, db, { ...target, gapsRev: 1 }, GAPS);
+    const list = await listApplications(studentId, db, 1);
+    expect(Object.keys(list.entries[0] ?? {}).sort()).toEqual(
+      [
+        "id",
+        "seq",
+        "createdAt",
+        "score",
+        "matchedCount",
+        "totalCount",
+        "jobTitle",
+        "employer",
+        "hasLetter",
+      ].sort(),
+    );
+    const dump = JSON.stringify(list);
+    for (const word of [
+      "Hemmeligstilling",
+      "Kubernetes",
+      "hemmeligbrev",
+      "Kjære",
+      "Hemmeliggap",
+      "Erfaring med",
+    ]) {
+      expect(dump).not.toContain(word);
+    }
+  });
+
+  it("pages 20 at a time, newest first, with the total of all pages", async () => {
+    const db = await getDb();
+    const studentId = await newStudent();
+    await saveMany(studentId, 23);
+    const one = await listApplications(studentId, db, 1);
+    const two = await listApplications(studentId, db, 2);
+    const three = await listApplications(studentId, db, 3);
+    expect(one.entries).toHaveLength(20);
+    expect(one.entries[0]?.seq).toBe(23);
+    expect(one.entries[19]?.seq).toBe(4);
+    expect(two.entries.map((entry) => entry.seq)).toEqual([3, 2, 1]);
+    expect(three.entries).toEqual([]);
+    for (const list of [one, two, three]) {
+      expect(list).toMatchObject({ total: 23, firstSeq: 1, lastSeq: 23 });
+    }
+  });
+
+  it("answers an empty list with no range for a Student with no entries", async () => {
+    const list = await listApplications(await newStudent(), await getDb(), 1);
+    expect(list).toEqual({
+      page: 1,
+      pageSize: 20,
+      total: 0,
+      firstSeq: null,
+      lastSeq: null,
+      entries: [],
+    });
+  });
+
+  it("never lists or counts another Student's entries (FR-19)", async () => {
+    const db = await getDb();
+    const anna = await newStudent();
+    const bjorn = await newStudent();
+    await saveMany(anna, 3);
+    const mine = await listApplications(bjorn, db, 1);
+    expect(mine.total).toBe(0);
+    expect(mine.entries).toEqual([]);
+    expect(await countApplications(bjorn, db)).toBe(0);
+    expect(await countApplications(anna, db)).toBe(3);
+    expect((await listApplications(anna, db, 1)).total).toBe(3);
+  });
+
+  it("shows a row whose sections cannot be read, without the title, employer and counts", async () => {
+    const db = await getDb();
+    const studentId = await newStudent();
+    const [id] = await saveMany(studentId, 1);
+    await db.execute(
+      sql`update applications set job = 'garbage', analysis = 'garbage' where id = ${id}`,
+    );
+    const list = await listApplications(studentId, db, 1);
+    expect(list.entries[0]).toMatchObject({
+      id,
+      score: 41,
+      matchedCount: null,
+      totalCount: null,
+      jobTitle: null,
+      employer: null,
+    });
+  });
+});
+
+describe("Story 6.8 getApplicationLetterText", () => {
+  it("returns the stored text, with the sign-off token, to its own Student only", async () => {
+    const db = await getDb();
+    const studentId = await newStudent();
+    const other = await newStudent();
+    const id = newId();
+    await saveAnalysis(studentId, db, inputFor(id));
+    expect(await getApplicationLetterText(studentId, db, id)).toBeNull();
+    await saveLetter(studentId, db, { id, fingerprint: "fp-1" }, LETTER);
+    expect(await getApplicationLetterText(studentId, db, id)).toBe(LETTER.text);
+    // Another Student's id, an unknown id and an entry without a Letter are one answer.
+    expect(await getApplicationLetterText(other, db, id)).toBeNull();
+    expect(await getApplicationLetterText(studentId, db, newId())).toBeNull();
+  });
+
+  it("returns null for a Letter that cannot be read", async () => {
+    const db = await getDb();
+    const studentId = await newStudent();
+    const id = newId();
+    await saveAnalysis(studentId, db, inputFor(id));
+    await saveLetter(studentId, db, { id, fingerprint: "fp-1" }, LETTER);
+    await db.execute(
+      sql`update applications set letter = 'garbage' where id = ${id}`,
+    );
+    expect(await getApplicationLetterText(studentId, db, id)).toBeNull();
   });
 });

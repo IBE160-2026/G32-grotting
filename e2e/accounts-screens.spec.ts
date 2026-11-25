@@ -565,11 +565,11 @@ test.describe("logged-out visits", () => {
   });
 });
 
-test.describe("Historikk and Konto placeholders", () => {
+test.describe("Konto placeholder", () => {
   test.use({ baseURL: ACCOUNTS });
 
+  // Historikk has its own page since Story 6.8 (e2e/applications-history.spec.ts).
   for (const [path, title, current] of [
-    ["/historikk", "Historikk", "Historikk"],
     ["/konto", "Konto", "Konto"],
   ] as const) {
     test(`${path} is a plain page, not a 404`, async ({ page }) => {

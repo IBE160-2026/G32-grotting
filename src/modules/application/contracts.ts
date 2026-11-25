@@ -108,3 +108,51 @@ export const nextApplicationSchema = z.object({
 });
 
 export type NextApplication = z.infer<typeof nextApplicationSchema>;
+
+// Story 6.8: `GET /api/applications` is the register of Historikk, newest first,
+// 20 per page. A row carries only what the register shows (UX-DR21): the
+// number, the date, the score and its counts, the job title, the employer and
+// whether a Letter exists. The Job ad, the keyword lists, the Gaps and the
+// Letter text never travel in it; the Letter is fetched per row, on a press.
+// A title, an employer or the counts that cannot be read are `null` (AD-11:
+// one section that fails does not fail the page).
+export const APPLICATIONS_PAGE_SIZE = 20;
+
+export const applicationEntrySchema = z.object({
+  id: z.uuid(),
+  seq: z.number().int().positive(),
+  createdAt: z.string(),
+  score: z.number().int().min(0).max(100),
+  matchedCount: z.number().int().nonnegative().nullable(),
+  totalCount: z.number().int().positive().nullable(),
+  jobTitle: z.string().nullable(),
+  employer: z.string().nullable(),
+  hasLetter: z.boolean(),
+});
+
+export type ApplicationEntry = z.infer<typeof applicationEntrySchema>;
+
+export const applicationListSchema = z.object({
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+  // The lowest and the highest number of all the Student's entries, for the
+  // range line «JA-001–JA-002»; null when there is none.
+  firstSeq: z.number().int().positive().nullable(),
+  lastSeq: z.number().int().positive().nullable(),
+  entries: z.array(applicationEntrySchema),
+});
+
+export type ApplicationList = z.infer<typeof applicationListSchema>;
+
+// The query string of the list: a whole page number from 1.
+export const applicationListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(100_000).default(1),
+});
+
+// `GET /api/applications/[id]/letter`: the stored Letter text of one entry, with
+// the sign-off token still in it (the browser puts the Profile name in, as on
+// Søknad).
+export const applicationLetterSchema = z.object({ text: z.string() });
+
+export type ApplicationLetter = z.infer<typeof applicationLetterSchema>;

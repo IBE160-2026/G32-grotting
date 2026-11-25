@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { messages } from "../messages.nb";
+import { useHistoryCount } from "../use-history-count";
 import { Button } from "./button";
 import { Link } from "./link";
 import { type AccountNav, navItems } from "./nav-items";
@@ -50,8 +51,20 @@ function MenuIcon({ open }: { open: boolean }) {
 
 // `account` is what the server knew when the page loaded (Story 6.4): the nav
 // follows it, and a login or logout loads the page afresh.
-export function AppBar({ account = "off" }: { account?: AccountNav }) {
+export function AppBar({
+  account = "off",
+  historyCount,
+}: {
+  account?: AccountNav;
+  // The number of entries the server knew when the page loaded (Story 6.8).
+  historyCount?: number;
+}) {
   const pathname = usePathname();
+  // Only a logged-in Student has a count; with accounts off nothing is asked.
+  const count = useHistoryCount({
+    enabled: account === "in",
+    initial: historyCount,
+  }).data;
   // The menu belongs to the page it was opened on, so back/forward or any
   // navigation closes it without an effect.
   const [openPath, setOpenPath] = useState<string | null>(null);
@@ -121,6 +134,22 @@ export function AppBar({ account = "off" }: { account?: AccountNav }) {
                   }`}
                 >
                   {item.label}
+                  {item.href === "/historikk" &&
+                  account === "in" &&
+                  count !== undefined &&
+                  count > 0 ? (
+                    <>
+                      <span
+                        aria-hidden="true"
+                        className="ml-2 font-mono text-mono-meta text-ink-2"
+                      >
+                        {count}
+                      </span>
+                      <span className="sr-only">
+                        , {messages.nav.historyCount(count)}
+                      </span>
+                    </>
+                  ) : null}
                 </Link>
               </li>
             ))}

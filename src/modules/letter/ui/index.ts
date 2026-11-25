@@ -1,3 +1,7 @@
+// Historikk (Story 6.8) copies and downloads a stored Letter with the same
+// functions the Letter on Søknad uses.
+export { renderLetter } from "../core/render-letter";
+export { downloadLetter } from "./download-letter";
 export type { RegenState } from "./letter-actions";
 export type { LetterCheckState } from "./letter-flags";
 export { type LetterPhase, LetterSection, letterLine } from "./letter-section";
