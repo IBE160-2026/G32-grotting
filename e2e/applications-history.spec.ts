@@ -232,6 +232,9 @@ test.describe("with accounts on", () => {
         letter: true,
       });
       await page.goto("/historikk");
+      // The first list answer is in before the one this test reads is waited
+      // for, so the wait cannot catch it and lose its body to the reload.
+      await expect(main(page).getByRole("table")).toBeVisible();
       const letterRequests: string[] = [];
       page.on("request", (request) => {
         const { pathname } = new URL(request.url());
